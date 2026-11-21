@@ -56,6 +56,7 @@ const Phys = {
       allowSleep: true, sleepSpeedLimit: 0.12, sleepTimeLimit: 0.9,
     });
     if (col.type === 'sphere') body.addShape(new CANNON.Sphere(Math.max(0.04, col.r)));
+    else if (col.boxes && col.boxes.length > 1) for (const bx of col.boxes) body.addShape(new CANNON.Box(new CANNON.Vec3(Math.max(0.015, bx.he.x), Math.max(0.015, bx.he.y), Math.max(0.015, bx.he.z))), new CANNON.Vec3(bx.c.x, bx.c.y, bx.c.z));
     else body.addShape(new CANNON.Box(new CANNON.Vec3(Math.max(0.03, col.he.x), Math.max(0.03, col.he.y), Math.max(0.03, col.he.z))));
     const st = info.state;
     body.linearDamping = st === 'gas' ? 0.75 : st === 'abstract' ? 0.55 : st === 'energy' ? 0.45 : st === 'plasma' ? 0.3 : st === 'liquid' ? 0.2 : 0.06;

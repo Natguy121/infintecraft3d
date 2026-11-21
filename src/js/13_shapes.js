@@ -1620,10 +1620,28 @@ function buildVisual(info) {
     return { name: g.name, pivot: g.pivot, body: mergeParts(g.parts.filter(p => !p.glow), off), glow: mergeParts(g.parts.filter(p => p.glow), off) };
   });
   const he = size.clone().multiplyScalar(s * 0.5);
+  // compound collider: one box per significant part, so a house collides with its walls and roof,
+  // not with an oversized bounding box
+  const tb = new THREE.Box3(), boxes = [];
+  for (const p of P.list) {
+    if (p.anim) continue;
+    if (!p.geo.boundingBox) p.geo.computeBoundingBox();
+    tb.copy(p.geo.boundingBox).applyMatrix4(p.matrix);
+    const c = new THREE.Vector3(), z = new THREE.Vector3(); tb.getCenter(c); tb.getSize(z);
+    c.sub(center).multiplyScalar(s); z.multiplyScalar(s * 0.5);
+    boxes.push({ c, he: z, vol: Math.max(z.x, 0.01) * Math.max(z.y, 0.01) * Math.max(z.z, 0.01) });
+  }
+  boxes.sort((a, b2) => b2.vol - a.vol);
+  const kept = [];
+  for (const bx of boxes) {
+    if (kept.length >= 12) break;
+    const inside = kept.some(k => Math.abs(bx.c.x - k.c.x) + bx.he.x <= k.he.x + 1e-3 && Math.abs(bx.c.y - k.c.y) + bx.he.y <= k.he.y + 1e-3 && Math.abs(bx.c.z - k.c.z) + bx.he.z <= k.he.z + 1e-3);
+    if (!inside && bx.vol > he.x * he.y * he.z * 0.002) kept.push(bx);
+  }
   const round = ROUND_SHAPES.has(info.shape) && (Math.max(he.x, he.y, he.z) / Math.max(0.01, Math.min(he.x, he.y, he.z)) < 1.8);
   v = {
     body, glow, anims, scale: s, real, halfExtents: he, radius: he.length() * 0.92, top: he.y,
-    collider: round ? { type: 'sphere', r: (he.x + he.y + he.z) / 3 * 0.95 } : { type: 'box', he: he.clone().multiplyScalar(0.92) },
+    collider: round ? { type: 'sphere', r: (he.x + he.y + he.z) / 3 * 0.95 } : { type: 'box', he: he.clone().multiplyScalar(0.92), boxes: kept },
   };
   if (VisualCache.size > 240) { const k = VisualCache.keys().next().value; const old = VisualCache.get(k); if (!old.refs) { old.body && old.body.dispose(); old.glow && old.glow.dispose(); } VisualCache.delete(k); }
   VisualCache.set(info.id, v);
