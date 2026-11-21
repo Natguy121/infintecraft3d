@@ -53,15 +53,15 @@ const Room = {
     const R = LAYOUT.room;
     const W = R.x1 - R.x0, D = R.z1 - R.z0, cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2;
     scene.background = new THREE.Color(0xeef0f4);
-    scene.fog = new THREE.Fog(0xeef0f4, 14, 34);
+    scene.fog = new THREE.Fog(0xeef0f4, 45, 150);
 
     // ---- environment map (soft studio box) for reflections on metal/glass
     const env = new THREE.Scene();
     const envBox = new THREE.Mesh(new THREE.BoxGeometry(W, R.h, D), new THREE.MeshBasicMaterial({ color: 0xdfe3ea, side: THREE.BackSide }));
     envBox.position.set(cx, R.h / 2, cz); env.add(envBox);
-    for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.2), new THREE.MeshBasicMaterial({ color: new THREE.Color(5, 5, 5.2), side: THREE.DoubleSide }));
-      p.rotation.x = Math.PI / 2; p.position.set(-3.6 + i * 3.6, R.h - 0.02, -1.2 + j * 3.6); env.add(p);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(5, 5, 5.2), side: THREE.DoubleSide }));
+      p.rotation.x = Math.PI / 2; p.position.set(-45 + i * 30, R.h - 0.05, -45 + j * 30); env.add(p);
     }
     const envFloor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ color: 0x9aa0aa }));
     envFloor.rotation.x = -Math.PI / 2; envFloor.position.set(cx, 0.01, cz); env.add(envFloor);
@@ -73,11 +73,11 @@ const Room = {
     const hemi = new THREE.HemisphereLight(0xf4f7ff, 0xc9ced8, 0.62);
     scene.add(hemi);
     const sun = this.sun = new THREE.DirectionalLight(0xfffaf2, 2.7);
-    sun.position.set(2.6, 7.5, 3.4);
+    sun.position.set(13, 37, 17);
     sun.target.position.set(0, 0, 0);
     sun.castShadow = true;
     sun.shadow.mapSize.set(Q().shadow, Q().shadow);
-    Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 18 });
+    Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 70 });
     sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.025; sun.shadow.radius = 3;
     scene.add(sun, sun.target);
     this.hemi = hemi;
@@ -111,10 +111,14 @@ const Room = {
     wall(D, R.h, R.x1, R.h / 2, cz, -Math.PI / 2);
     const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: 0xf2f4f8, roughness: 1, emissive: 0xc8ccd6, emissiveIntensity: 0.55 }));
     ceil.rotation.x = Math.PI / 2; ceil.position.set(cx, R.h, cz); g.add(ceil);
-    for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.2), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.6, 1.65) }));
-      p.rotation.x = Math.PI / 2; p.position.set(-3.6 + i * 3.6, R.h - 0.01, -1.2 + j * 3.6); g.add(p);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.6, 1.65), fog: false }));
+      p.rotation.x = Math.PI / 2; p.position.set(-45 + i * 30, R.h - 0.02, -45 + j * 30); g.add(p);
     }
+    // freestanding partition behind the Discovery Shelf (the room walls are far away now)
+    const part = new THREE.Mesh(new THREE.BoxGeometry(14, 4.2, 0.2), this.wallMat);
+    part.position.set(0, 2.1, LAYOUT.shelf.wallZ - 0.1); part.castShadow = part.receiveShadow = true; g.add(part);
+    Phys.addStaticBox([0, 2.1, LAYOUT.shelf.wallZ - 0.1], [14, 4.2, 0.2]);
     // baseboards
     const bb = new THREE.MeshStandardMaterial({ color: 0xe3e7ee, roughness: 0.6 });
     for (const [w, x, z, ry] of [[W, cx, R.z0 + 0.01, 0], [W, cx, R.z1 - 0.01, Math.PI], [D, R.x0 + 0.01, cz, Math.PI / 2], [D, R.x1 - 0.01, cz, -Math.PI / 2]]) {
@@ -129,10 +133,10 @@ const Room = {
     Phys.addStaticBox([R.x1 + 0.5, R.h / 2, cz], [1, R.h, D + 2]);
 
     // wall decor: title + "periodic" board
-    const title = labelPlane('ELEMENTAL LAB', 3.6, 0.55, { font: '900 86px', color: '#4a3fd6', glow: 'rgba(122,107,255,0.6)' });
-    title.position.set(R.x0 + 0.02, 2.9, 0.6); title.rotation.y = Math.PI / 2; g.add(title);
-    const sub = labelPlane('Combine · Discover · Repeat', 3.0, 0.3, { font: '700 54px', color: '#6b7388' });
-    sub.position.set(R.x0 + 0.02, 2.45, 0.6); sub.rotation.y = Math.PI / 2; g.add(sub);
+    const title = labelPlane('ELEMENTAL LAB', 40, 6.1, { font: '900 86px', color: '#4a3fd6', glow: 'rgba(122,107,255,0.6)' });
+    title.position.set(R.x0 + 0.05, 26, 0); title.rotation.y = Math.PI / 2; g.add(title);
+    const sub = labelPlane('Combine · Discover · Repeat', 30, 3, { font: '700 54px', color: '#6b7388' });
+    sub.position.set(R.x0 + 0.05, 20, 0); sub.rotation.y = Math.PI / 2; g.add(sub);
     const board = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.7), new THREE.MeshBasicMaterial({ map: canvasTex(1024, 512, (c, w, h) => {
       c.fillStyle = '#fbfcfe'; roundRect(c, 4, 4, w - 8, h - 8, 30); c.fill(); c.strokeStyle = '#dfe3ea'; c.lineWidth = 6; c.stroke();
       c.fillStyle = '#2b3245'; c.font = '900 44px ui-rounded, system-ui'; c.fillText('THE FOUR ELEMENTS', 50, 80);
@@ -141,7 +145,7 @@ const Room = {
       c.fillStyle = '#6b7388'; c.font = '600 30px ui-rounded, system-ui'; c.fillText('Smash two things together, hold them touching, or press E.', 50, 430);
       c.fillText('3+ items? Drop them in the Fusion Ring.', 50, 475);
     }) }));
-    board.position.set(R.x1 - 0.02, 1.9, 0.4); board.rotation.y = -Math.PI / 2; g.add(board);
+    board.position.set(5.1, 2.0, LAYOUT.shelf.wallZ + 0.01); board.rotation.y = 0; g.add(board);
 
     this.buildTable(g);
     this.buildPedestals(g, scene);
@@ -261,10 +265,10 @@ const Room = {
     const width = S.cols * S.dx + 0.3;
     for (const y of S.rows) {
       const board = new THREE.Mesh(new THREE.BoxGeometry(width, 0.05, 0.34), mat);
-      board.position.set(0, y, R.z0 + 0.17); board.castShadow = board.receiveShadow = true; g.add(board);
-      Phys.addStaticBox([0, y - 0.05, R.z0 + 0.17], [width, 0.15, 0.34]);
+      board.position.set(0, y, S.wallZ + 0.17); board.castShadow = board.receiveShadow = true; g.add(board);
+      Phys.addStaticBox([0, y - 0.05, S.wallZ + 0.17], [width, 0.15, 0.34]);
       const glow = new THREE.Mesh(new THREE.BoxGeometry(width - 0.1, 0.008, 0.008), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.4, 1.3, 2.0) }));
-      glow.position.set(0, y - 0.03, R.z0 + 0.335); g.add(glow);
+      glow.position.set(0, y - 0.03, S.wallZ + 0.335); g.add(glow);
       for (let i = 0; i < S.cols; i++) {
         const x = S.x0 + i * S.dx;
         const p = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.12, 0.03, 24), plinthMat);
@@ -274,10 +278,10 @@ const Room = {
     }
     for (const x of [-width / 2, width / 2]) {
       const side = new THREE.Mesh(new THREE.BoxGeometry(0.05, S.rows[2] - S.rows[0] + 0.5, 0.34), mat);
-      side.position.set(x, (S.rows[0] + S.rows[2]) / 2 + 0.05, R.z0 + 0.17); side.castShadow = true; g.add(side);
+      side.position.set(x, (S.rows[0] + S.rows[2]) / 2 + 0.05, S.wallZ + 0.17); side.castShadow = true; g.add(side);
     }
     const sign = labelPlane('DISCOVERY SHELF', 2.6, 0.32, { font: '900 74px', color: '#3a3f55', sub: 'drop or press F to display a trophy' });
-    sign.position.set(0, S.rows[2] + 0.55, R.z0 + 0.01); g.add(sign);
+    sign.position.set(0, S.rows[2] + 0.55, S.wallZ + 0.01); g.add(sign);
   },
 
   buildDisco(scene) {
@@ -286,6 +290,8 @@ const Room = {
   },
 
   update(dt) {
+    // the sun's shadow box follows the player around the huge room
+    if (G.camera) { const px = Math.round(G.camera.position.x), pz = Math.round(G.camera.position.z); this.sun.position.set(px + 13, 37, pz + 17); this.sun.target.position.set(px, 0, pz); }
     for (const P of LAYOUT.pedestals) if (P.holo) { P.holo.rotation.x = Math.PI / 2 + Math.sin(G.time * 0.8 + P.x) * 0.25; P.holo.rotation.z += dt * 0.8; P.holo.position.y = LAYOUT.table.top + 0.34 + Math.sin(G.time * 1.6 + P.x) * 0.02; }
     const rp = this.ringParts;
     if (rp) {

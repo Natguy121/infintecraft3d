@@ -26,7 +26,7 @@ const Q = () => QUALITY[Settings.quality] || QUALITY.high;
 
 // ---------------------------------------------------------------- layout (metres)
 const LAYOUT = {
-  room: { x0: -6, x1: 6, z0: -3.6, z1: 6, h: 4.2 },
+  room: { x0: -60, x1: 60, z0: -60, z1: 60, h: 40 },
   table: { w: 5.2, d: 1.3, top: 0.9, z: 0 },
   pedestals: [
     { id: 'air', label: 'AIR', x: -2.15, color: 0x9fd8ff },
@@ -38,7 +38,7 @@ const LAYOUT = {
   ring: { x: 0, z: -0.12, r: 0.44 },
   pad: { x: -3.3, z: -0.05, top: 1.0, r: 0.36 },
   trash: { x: 3.3, z: 0.2, r: 0.36, h: 0.82 },
-  shelf: { z: -3.36, rows: [1.28, 1.88, 2.48], cols: 10, x0: -2.61, dx: 0.58 },
+  shelf: { wallZ: -3.6, z: -3.36, rows: [1.28, 1.88, 2.48], cols: 10, x0: -2.61, dx: 0.58 },
   start: { x: 0, z: 2.15 },
 };
 

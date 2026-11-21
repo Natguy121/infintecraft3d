@@ -51,7 +51,7 @@ const Phys = {
   createItemBody(ent, pos) {
     const info = ent.info, col = ent.vis.collider;
     const body = new CANNON.Body({
-      mass: clamp(info.mass, 0.05, 25), material: this.mats[this.physClass(info)],
+      mass: clamp((MATERIALS[info.material] || MATERIALS.clay).density * Math.pow(ent.vis.real || 0.4, 3) * 55, 0.04, info.state === 'gas' ? 20 : 600), material: this.mats[this.physClass(info)],
       collisionFilterGroup: GROUP.ITEM, collisionFilterMask: GROUP.STATIC | GROUP.ITEM | GROUP.PLAYER | GROUP.HELD,
       allowSleep: true, sleepSpeedLimit: 0.12, sleepTimeLimit: 0.9,
     });

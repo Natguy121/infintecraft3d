@@ -15,7 +15,7 @@ const Post = {
     this.mat = new THREE.ShaderMaterial({
       uniforms: {
         tColor: { value: this.rt.texture }, tDepth: { value: this.rt.depthTexture }, uFocus: { value: 1.5 }, uAmount: { value: 0 },
-        uNear: { value: 0.05 }, uFar: { value: 60 }, uRes: { value: new THREE.Vector2(s.x, s.y) }, uVig: { value: 0.35 },
+        uNear: { value: 0.05 }, uFar: { value: 400 }, uRes: { value: new THREE.Vector2(s.x, s.y) }, uVig: { value: 0.35 },
       },
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: `

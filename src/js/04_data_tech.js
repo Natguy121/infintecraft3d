@@ -184,6 +184,7 @@ Racket|🏸|sport,@tool,#e8c03a|Net+Stick;Net+Paddle;String+Paddle
 Golf|⛳|sport,@orb,#f8f8f8,%plastic|Ball+Hole;Ball+Grass+Stick;Ball+Club
 Hockey|🏒|sport,cold,@tool,#3a3a44|Ice+Stick+Puck;Ice+Sport;Ice+Stick
 Skiing|⛷️|sport,cold,fast,@abstract,#e8f4ff|Snow+Sport;Snow+Mountain+Human;Mountain+Stick+Snow
+Surfer|🏄|human,sport,sea,@humanoid,#3ab8ff|Human+Surfboard;Human+Wave;Surfboard+Athlete;Human+Surfing
 Surfing|🏄|sport,sea,@abstract,#3ab8ff|Wave+Sport;Wave+Human;Wave+Surfboard
 Surfboard|🏄|sport,sea,@book,#ffcf3a,%plastic|Wave+Plank;Wave+Board;Plank+Sea
 Swimming|🏊|sport,water,@abstract,#3a8aff|Water+Sport;Human+Pool;Human+Water

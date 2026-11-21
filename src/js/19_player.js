@@ -123,7 +123,7 @@ const Player = {
     if (this.held) {
       if (this.held.dead || this.held.merging) { this.held = null; }
       else {
-        if (Input.wheel) this.holdDist = clamp(this.holdDist - Input.wheel * 0.22, 0.75, 3.4);
+        if (Input.wheel) this.holdDist = clamp(this.holdDist - Input.wheel * 0.22 * Math.max(1, this.held.vis.radius), this.minHold(), this.minHold() + 3.4);
         this.updateForceCombine(dt);
         if (this.held) this.updateTouchMerge(dt);
         if (this.held && canMove && Input.pressed.has('KeyF')) Crafting.toShelf(this.held);
@@ -153,7 +153,7 @@ const Player = {
     const T = this.holdTarget.copy(cam.position).addScaledVector(dir, this.holdDist).addScaledVector(up, -0.11 * this.holdDist);
     const dx = T.x - b.position.x, dy = T.y - b.position.y, dz = T.z - b.position.z;
     const dist = Math.hypot(dx, dy, dz);
-    if (dist > 3.2) { this.drop(); return; }
+    if (dist > 3.2 + e.vis.radius) { this.drop(); return; }
     const stiff = 13 / (1 + m * 0.05);
     let vx = dx * stiff, vy = dy * stiff, vz = dz * stiff;
     const vl = Math.hypot(vx, vy, vz); if (vl > 15) { vx *= 15 / vl; vy *= 15 / vl; vz *= 15 / vl; }
@@ -222,12 +222,13 @@ const Player = {
   grab(ent, dist) {
     this.held = ent;
     ent.setHeld(true);
-    this.holdDist = clamp((dist ?? ent.root.position.distanceTo(G.camera.position)) + ent.vis.radius * 0.5, 0.85, 2.6);
+    this.holdDist = clamp((dist ?? ent.root.position.distanceTo(G.camera.position)) + ent.vis.radius * 0.5, this.minHold(ent), this.minHold(ent) + 1.8);
     const q = _q2.set(ent.body.quaternion.x, ent.body.quaternion.y, ent.body.quaternion.z, ent.body.quaternion.w);
     this.holdRot.copy(this.yawQuat(_q1).invert().multiply(q));
     Sound.grab(ent.info.material);
     G.selected = ent.id;
   },
+  minHold(e = this.held) { return e ? Math.max(0.75, e.vis.radius + 0.6) : 0.75; },
   drop(sound = true) {
     const e = this.held;
     this.held = null;

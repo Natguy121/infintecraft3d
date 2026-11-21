@@ -5440,6 +5440,7 @@ Racket|🏸|sport,@tool,#e8c03a|Net+Stick;Net+Paddle;String+Paddle
 Golf|⛳|sport,@orb,#f8f8f8,%plastic|Ball+Hole;Ball+Grass+Stick;Ball+Club
 Hockey|🏒|sport,cold,@tool,#3a3a44|Ice+Stick+Puck;Ice+Sport;Ice+Stick
 Skiing|⛷️|sport,cold,fast,@abstract,#e8f4ff|Snow+Sport;Snow+Mountain+Human;Mountain+Stick+Snow
+Surfer|🏄|human,sport,sea,@humanoid,#3ab8ff|Human+Surfboard;Human+Wave;Surfboard+Athlete;Human+Surfing
 Surfing|🏄|sport,sea,@abstract,#3ab8ff|Wave+Sport;Wave+Human;Wave+Surfboard
 Surfboard|🏄|sport,sea,@book,#ffcf3a,%plastic|Wave+Plank;Wave+Board;Plank+Sea
 Swimming|🏊|sport,water,@abstract,#3a8aff|Water+Sport;Human+Pool;Human+Water
@@ -7305,7 +7306,7 @@ const Q = () => QUALITY[Settings.quality] || QUALITY.high;
 
 // ---------------------------------------------------------------- layout (metres)
 const LAYOUT = {
-  room: { x0: -6, x1: 6, z0: -3.6, z1: 6, h: 4.2 },
+  room: { x0: -60, x1: 60, z0: -60, z1: 60, h: 40 },
   table: { w: 5.2, d: 1.3, top: 0.9, z: 0 },
   pedestals: [
     { id: 'air', label: 'AIR', x: -2.15, color: 0x9fd8ff },
@@ -7317,7 +7318,7 @@ const LAYOUT = {
   ring: { x: 0, z: -0.12, r: 0.44 },
   pad: { x: -3.3, z: -0.05, top: 1.0, r: 0.36 },
   trash: { x: 3.3, z: 0.2, r: 0.36, h: 0.82 },
-  shelf: { z: -3.36, rows: [1.28, 1.88, 2.48], cols: 10, x0: -2.61, dx: 0.58 },
+  shelf: { wallZ: -3.6, z: -3.36, rows: [1.28, 1.88, 2.48], cols: 10, x0: -2.61, dx: 0.58 },
   start: { x: 0, z: 2.15 },
 };
 
@@ -7842,6 +7843,69 @@ const EmojiAtlas = {
   uv(cell) { return [(cell % this.cols) / this.cols, 1 - (Math.floor(cell / this.cols) + 1) / this.rows]; },
   flush() { if (this.dirty) { this.texture.needsUpdate = true; this.dirty = false; } },
 };
+
+// ===================================================================== 12b_sizes.js
+// ============================================================================
+//  ELEMENTAL LAB — 12b · Real-world sizes
+//  Every item is built at (roughly) its true size: an ant is a few centimetres,
+//  a toy fits in your hand, a person is 1.75 m, a whale is 16 m and a cloud is
+//  a big drifting puff. Truly astronomical things are capped so they still fit
+//  inside the (enormous) lab. Value = the item's largest dimension in metres.
+// ============================================================================
+
+const REAL_SIZE = [
+  // tiny
+  [0.06, 'atom,molecule,bacteria,virus,cell,yeast,dot,point,spark,pixel,static'], [0.05, 'ant,flea,mosquito,fly,ladybug,firefly,bee,tick'],
+  [0.05, 'seed,bean,acorn,pea,rice,sugar,salt,pill,button,pearl,tooth,coin,ring,dice,gem,diamond,ruby,emerald,sapphire,quartz,amethyst,nail,screw,pin,needle,snowflake,hail,pebble,gravel,sand,dust,glitter,sparkle,stardust,microchip,bullet'],
+  [0.08, 'grape,berry,cherry,olive,key,compass,egg,shrimp,snail,spider,beetle,grasshopper,bug,caterpillar,worm,tadpole,lollipop,candy,cookie,chocolate,cupcake,match,lighter,battery,dna,heart,brain,eye,ear,mouth,lips,hand,feather,leaf,clover,thorn,spike,shuriken,origami,stamp,lens,chip,chips,fries,dumpling,sushi,rice ball,wasabi,pacifier'],
+  // hand-held
+  [0.12, 'apple,orange,lemon,lime,peach,tomato,onion,garlic,kiwi,mango,fruit,potato,carrot,pepper,chili,cucumber,mushroom,toadstool,mouse,hamster,frog,toad,butterfly,moth,dragonfly,scorpion,crab,hummingbird,chick,duckling,mug,cup,glass,bulb,lightbulb,idea,phone,smartphone,watch,smartwatch,burger,cheeseburger,sandwich,taco,donut,bagel,pretzel,muffin,cheese,butter,soap,sponge,candle,ink,glue,tape,can,jar,horseshoe,magnet,bell,whistle,pen,pencil,quill,scalpel,syringe,ball,golf,tennis,baseball,puck,snowball,grenade,glasses,crown,tiara,medal,trophy'],
+  [0.3, 'banana,corn,eggplant,pineapple,coconut,avocado,cabbage,lettuce,broccoli,bread,toast,croissant,pie,pizza,cake,pancake,steak,meat,bacon,sausage,hot dog,ice cream,milkshake,smoothie,juice,soda,coffee,tea,wine,beer,bottle,potion,elixir,poison,flask,book,spellbook,bible,scroll,map,letter,paper,newspaper,photo,picture,calendar,cards,clock,alarm clock,lamp,lantern,torch,flashlight,camera,radio,toaster,kettle,pot,pan,frying pan,bowl,plate,basket,bag,hat,top hat,helmet,mask,shoe,boot,sock,glove,scarf,wig,toy,doll,teddy,yo-yo,puzzle,kite,balloon,rock,stone,brick,ore,coal,crystal,ice,gold,silver,iron,steel,copper,metal,ingot,gold bar,skull,bone,fossil,shell,starfish,bird,parrot,pigeon,crow,owl,duck,squirrel,rat,mole,hedgehog,kitten,piggy,fish,goldfish,pufferfish,seahorse,octopus,squid,jellyfish,cactus,flower,rose,tulip,sunflower,lily,lotus,orchid,herb,mint,sprout,bonsai,nest,hammer,wrench,screwdriver,knife,dagger,chisel,saw,drill,gun,laser gun,wand,microphone,headphones,laptop,keyboard,calculator,game console,video game,drone,typewriter,chess,bomb,dynamite,tnt,firework,hourglass,trophy,vinyl,flute,whistle,violin,trumpet,saxophone,harp'],
+  // furniture / pets / people-scale
+  [0.6, 'cat,rabbit,chicken,rooster,penguin,puppy,fox,raccoon,skunk,otter,beaver,armadillo,platypus,lizard,gecko,iguana,chameleon,turtle,eagle,hawk,falcon,peacock,turkey,swan,goose,flamingo,bat,lamb,baby,pillow,blanket,towel,backpack,chest,treasure,box,gift,cargo,barrel,bucket,microwave,computer,television,speaker,drum,guitar,electric guitar,cello,sword,katana,axe,pickaxe,shovel,rake,broom,mop,bow,shield,umbrella,paddle,racket,skateboard,snowboard,fire extinguisher'],
+  [1.0, 'dog,wolf,hyena,goat,sheep,pig,boar,koala,panda,monkey,sloth,kangaroo,seal,dolphin,child,dwarf,gnome,goblin,leprechaun,pixie,fairy,chair,bench,stool,throne,table,oven,stove,fridge,freezer,washing machine,vacuum,piano,synthesizer,spear,trident,scythe,flag,pole,sign,ladder,bicycle,sled,barbecue,grill,anvil,spinning wheel,loom,well,fountain,statue'],
+  [1.75, 'human,man,woman,person,surfer,farmer,hunter,lumberjack,carpenter,blacksmith,miner,builder,engineer,chef,baker,butcher,fisherman,sailor,pirate,captain,pilot,doctor,nurse,scientist,professor,teacher,student,genius,artist,sculptor,musician,singer,dancer,athlete,soldier,knight,samurai,ninja,viking,warrior,gladiator,cowboy,caveman,explorer,archaeologist,detective,police,thief,assassin,judge,lawyer,banker,merchant,king,queen,prince,princess,pharaoh,emperor,priest,monk,clown,magician,superhero,hero,villain,hacker,programmer,gamer,firefighter,gardener,leader,astronaut,wizard,witch,warlock,sorcerer,necromancer,alchemist,vampire,zombie,mummy,skeleton,ghost,ghoul,elf,mermaid,angel,archangel,cupid,demon,devil,reaper,santa,snowman,robot,android,cyborg,alien,muse,goddess,old man,grandma,actor,celebrity,champion,winner,archer,dryad,nymph,medusa,genie,avatar,frankenstein,werewolf,minotaur,centaur,chess master,lighthouse keeper,robot chef'],
+  // big animals & vehicles
+  [2.4, 'horse,pony,donkey,zebra,deer,reindeer,cow,bull,ox,bison,lion,tiger,leopard,cheetah,jaguar,panther,lynx,bear,polar bear,gorilla,yeti,bigfoot,ostrich,llama,camel,unicorn,pegasus,griffin,phoenix,sphinx,cerberus,kitsune,chimera,shark,orca,crocodile,alligator,python,cobra,snake,eel,motorcycle,snowmobile,jet ski,canoe,raft,hot tub,bed,sofa,tent,hut,igloo,golem,gargoyle,troll,ogre,cyclops'],
+  [4.5, 'car,electric car,race car,police car,taxi,ambulance,tractor,cart,wagon,chariot,elephant,rhino,hippo,giraffe,moose,mammoth,walrus,sea lion,boat,sailboat,yacht,catapult,cannon,helicopter,jetpack,giant,lake monster,hydra,basilisk,kraken,treant,swamp monster,ice golem,mud golem,fire elemental,water elemental,air elemental,earth elemental,titan,grim reaper,poseidon,zeus,thor,odin,god'],
+  [9, 'truck,fire truck,bus,tank,train,locomotive,bullet train,magnet train,ship,pirate ship,viking ship,submarine,airplane,ufo,rocket,spaceship,rocket ship,hot air balloon,satellite,dinosaur,t-rex,dragon,ice dragon,baby dragon,whale,fire whale,cosmic whale,leviathan,sea serpent,tree,pine tree,palm tree,dead tree,maple,christmas tree,beanstalk,tree of life,house,cabin,barn,treehouse,windmill,mill,factory,shop,restaurant,school,hospital,bank,museum,library,church,haunted house,prison,hotel,gym,arcade,laboratory,kitchen,well,dam,bridge,greenhouse'],
+  [16, 'castle,palace,tower,lighthouse,skyscraper,temple,pyramid,colosseum,arena,stadium,observatory,space station,moon base,nuclear reactor,great wall,stonehenge,ruins,cloud castle,valhalla,atlantis,el dorado,village,town,city,metropolis,kingdom,empire,world tree,tesla coil'],
+  // weather & landscape
+  [6, 'cloud,rain cloud,rain,drizzle,snow,storm,thunderstorm,hurricane,tornado,blizzard,fog,smog,mist,steam cloud,sandstorm,rainbow,aurora,northern lights,lightning,thunder,heaven,weather,cotton candy'],
+  [20, 'mountain,volcano,ice cream volcano,glacier,iceberg,hill,plateau,cliff,canyon,island,volcano island,beach,desert,dune,oasis,lake,lava lake,pond,river,waterfall,valley,delta,ocean,sea,swamp,marsh,forest,jungle,rain forest,wilderness,savanna,prairie,field,farm,garden,park,continent,land,country,tundra,arctic,antarctica,coral reef,kelp forest,olympus,paradise,garden of eden'],
+  // cosmic (capped)
+  [10, 'sun,star,neutron star,pulsar,quasar,supernova,moon,full moon,planet,planet earth,world,mars,venus,jupiter,saturn,solar system,pizza planet,comet,asteroid,meteor,black hole,wormhole,eclipse,nebula,gas cloud,big bang'],
+  [24, 'galaxy,milky way,universe,multiverse,omniverse,dark matter,singularity,cosmic egg,primordial chaos,creation'],
+];
+const SHAPE_SIZE = { orb: 0.4, flame: 0.45, rock: 0.35, blob: 0.4, liquid: 0.5, gas: 1.4, cloud: 6, cube: 0.35, crystal: 0.3, spike: 0.3, tree: 9, plant: 0.5,
+  mushroom: 0.15, creature: 1.2, bird: 0.35, fish: 0.4, snake: 2, insect: 0.06, humanoid: 1.75, robot: 1.7, tool: 0.35, blade: 0.9, building: 9, vehicle: 4.5,
+  plane: 12, boat: 6, rocket: 12, machine: 0.7, device: 0.2, celestial: 10, planet: 10, moon: 8, galaxy: 24, blackhole: 10, abstract: 0.5, heart: 0.3,
+  star5: 0.3, fruit: 0.12, food: 0.2, disc: 0.3, cake: 0.3, icecream: 0.2, drink: 0.18, bowl: 0.25, bread: 0.3, meat: 0.25, candy: 0.06, egg: 0.08,
+  potion: 0.25, book: 0.25, coin: 0.05, instrument: 0.9, cloth: 0.6, landform: 20, bolt: 2, gear: 0.3, ring: 0.3, skull: 0.22, bone: 0.4, bomb: 0.3,
+  lamp: 0.2, shield: 0.7, crown: 0.25, key: 0.08, clock: 0.3, magnet: 0.12, bell: 0.2, umbrella: 1, flag: 1.5 };
+const SIZE_BY_NAME = new Map();
+for (const [s, list] of REAL_SIZE) for (const w of list.split(',')) SIZE_BY_NAME.set(w.trim(), s);
+const MAX_REAL = 24, MIN_REAL = 0.05;
+
+function realSize(info) {
+  const base = (info.base && info.base) || (info.headItem) || info;
+  const name = base.name.toLowerCase();
+  let s = SIZE_BY_NAME.get(name);
+  if (s == null) {
+    // try the last word ("Golden Retriever" → retriever, "Ice Dragon" → dragon), then any word
+    const words = name.split(/[\s-]+/);
+    for (let i = 0; i < words.length - 1 && s == null; i++) s = SIZE_BY_NAME.get(words.slice(i).join(' '));
+    for (let i = words.length - 1; i >= 0 && s == null; i--) s = SIZE_BY_NAME.get(words[i]);
+  }
+  if (s == null) {
+    s = SHAPE_SIZE[base.shape] ?? 0.4;
+    if (base.tags.includes('tiny')) s *= 0.4;
+    if (base.tags.includes('huge')) s *= 2.5;
+  }
+  s *= info.scale || 1; // Giant / Tiny / Baby modifiers
+  if (info.mods && info.mods.includes('giant')) s *= 1.6; // giants should feel giant
+  return clamp(s, MIN_REAL, MAX_REAL);
+}
 
 // ===================================================================== 13_shapes.js
 // ============================================================================
@@ -8537,6 +8601,7 @@ BUILD.humanoid = (P, I, kw) => {
   else P.add(PG.capsule(), cloth, [0, -0.08, 0], [0.55, 0.55, 0.42]);
   if (K('mummy')) for (let i = 0; i < 5; i++) P.t(0.27, 0.03, [0, 0.15 - i * 0.12, 0], 0xd8c8a0, [Math.PI / 2 + (i % 2 ? 0.2 : -0.2), 0, 0]);
   if (K('doctor', 'scientist', 'nurse', 'chef', 'professor', 'alchemist')) P.b(0.42, 0.55, 0.05, [0, -0.08, 0.2], 0xffffff);
+  if (K('surfer')) { P.s(1, [0, -1.12, 0.05], 0xffcf3a, [0.32, 0.04, 1.05]); P.b(0.05, 0.03, 2.0, [0, -1.09, 0.05], 0xffffff); }
   if (K('superhero', 'hero')) P.add(PG.star(5, 0.45, 0.1), COL.yellow, [0, 0.05, 0.24], 0.12);
   // head
   const hy = baby ? 0.6 : 0.52;
@@ -9454,7 +9519,8 @@ function buildVisual(info) {
   const box = P.bbox(), center = new THREE.Vector3(), size = new THREE.Vector3();
   box.getCenter(center); box.getSize(size);
   const half = Math.max(size.x, size.y, size.z) / 2 || 1;
-  const s = (info.size * ITEM_SCALE * (info.scale || 1)) / half;
+  const real = realSize(info);
+  const s = (real / 2) / half;
   const body = mergeParts(P.list.filter(p => !p.glow && !p.anim), center);
   const glow = mergeParts(P.list.filter(p => p.glow && !p.anim), center);
   const animGroups = new Map();
@@ -9466,7 +9532,7 @@ function buildVisual(info) {
   const he = size.clone().multiplyScalar(s * 0.5);
   const round = ROUND_SHAPES.has(info.shape) && (Math.max(he.x, he.y, he.z) / Math.max(0.01, Math.min(he.x, he.y, he.z)) < 1.8);
   v = {
-    body, glow, anims, scale: s, halfExtents: he, radius: he.length() * 0.92, top: he.y,
+    body, glow, anims, scale: s, real, halfExtents: he, radius: he.length() * 0.92, top: he.y,
     collider: round ? { type: 'sphere', r: (he.x + he.y + he.z) / 3 * 0.95 } : { type: 'box', he: he.clone().multiplyScalar(0.92) },
   };
   if (VisualCache.size > 240) { const k = VisualCache.keys().next().value; const old = VisualCache.get(k); if (!old.refs) { old.body && old.body.dispose(); old.glow && old.glow.dispose(); } VisualCache.delete(k); }
@@ -9697,11 +9763,11 @@ const Labels = {
       if (!e.labelCell || e.dead) continue;
       const p = e.root.position;
       const d = Math.hypot(p.x - cam.x, p.y - cam.y, p.z - cam.z);
-      const a = clamp(1.3 - d / 9, 0, 1) * (e.held ? 0.5 : 1) * (e.fade ?? 1);
+      const a = clamp(1.3 - d / (9 + e.vis.radius * 4), 0, 1) * (e.held ? 0.5 : 1) * (e.fade ?? 1);
       if (a <= 0.01) continue;
-      put(p.x, p.y + e.vis.radius * 0.95 + 0.12 + Math.sin(G.time * 2 + e.phase) * 0.012, p.z, e.labelCell.cell, 0.17 * (e.popScale ?? 1), a);
+      put(p.x, p.y + e.vis.radius * 0.95 + 0.12 + Math.sin(G.time * 2 + e.phase) * 0.012, p.z, e.labelCell.cell, 0.17 * Math.max(1, Math.sqrt(e.vis.radius / 0.3)) * (e.popScale ?? 1), a);
     }
-    for (const d of G.displays) if (d.labelCell && d.visible) put(d.pos.x, d.pos.y + d.vis.radius + 0.14, d.pos.z, d.labelCell.cell, 0.16, 1);
+    for (const d of G.displays) if (d.labelCell && d.visible) put(d.pos.x, d.pos.y + d.vis.radius * (d.fit || 1) + 0.14, d.pos.z, d.labelCell.cell, 0.16, 1);
     for (const t of G.trophies) if (t && t.labelCell) put(t.pos.x, t.pos.y + t.vis.radius + 0.08, t.pos.z, t.labelCell.cell, 0.12, 0.95);
     this.geo.setDrawRange(0, n);
     for (const k of ['position', 'aUv', 'aSize', 'aAlpha']) this.geo.attributes[k].needsUpdate = true;
@@ -9729,7 +9795,7 @@ const Glows = {
       const fire = e.info.material === 'fire';
       put(e.root.position, fire ? e.info.color : (e.info.glowColor || e.info.color), e.vis.radius * (2.2 + e.info.glow * 2.2) * (e.popScale ?? 1), (fire ? 0.36 : 0.5) * e.info.glow * f * (e.fade ?? 1));
     }
-    for (const d of G.displays) if (d.visible && d.info.glow) put(d.pos, d.info.color, d.vis.radius * 4, 0.32);
+    for (const d of G.displays) if (d.visible && d.info.glow) put(d.pos, d.info.color, d.vis.radius * (d.fit || 1) * 4, 0.32);
     for (const g of Room.glowSpots || []) put(g.pos, g.color, g.size * (g.pulse ? (0.85 + Math.sin(G.time * g.pulse) * 0.15) : 1), g.alpha * (g.mul ?? 1));
     for (let i = this.flashes.length - 1; i >= 0; i--) {
       const fl = this.flashes[i];
@@ -9853,15 +9919,15 @@ const Room = {
     const R = LAYOUT.room;
     const W = R.x1 - R.x0, D = R.z1 - R.z0, cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2;
     scene.background = new THREE.Color(0xeef0f4);
-    scene.fog = new THREE.Fog(0xeef0f4, 14, 34);
+    scene.fog = new THREE.Fog(0xeef0f4, 45, 150);
 
     // ---- environment map (soft studio box) for reflections on metal/glass
     const env = new THREE.Scene();
     const envBox = new THREE.Mesh(new THREE.BoxGeometry(W, R.h, D), new THREE.MeshBasicMaterial({ color: 0xdfe3ea, side: THREE.BackSide }));
     envBox.position.set(cx, R.h / 2, cz); env.add(envBox);
-    for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.2), new THREE.MeshBasicMaterial({ color: new THREE.Color(5, 5, 5.2), side: THREE.DoubleSide }));
-      p.rotation.x = Math.PI / 2; p.position.set(-3.6 + i * 3.6, R.h - 0.02, -1.2 + j * 3.6); env.add(p);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(5, 5, 5.2), side: THREE.DoubleSide }));
+      p.rotation.x = Math.PI / 2; p.position.set(-45 + i * 30, R.h - 0.05, -45 + j * 30); env.add(p);
     }
     const envFloor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ color: 0x9aa0aa }));
     envFloor.rotation.x = -Math.PI / 2; envFloor.position.set(cx, 0.01, cz); env.add(envFloor);
@@ -9873,11 +9939,11 @@ const Room = {
     const hemi = new THREE.HemisphereLight(0xf4f7ff, 0xc9ced8, 0.62);
     scene.add(hemi);
     const sun = this.sun = new THREE.DirectionalLight(0xfffaf2, 2.7);
-    sun.position.set(2.6, 7.5, 3.4);
+    sun.position.set(13, 37, 17);
     sun.target.position.set(0, 0, 0);
     sun.castShadow = true;
     sun.shadow.mapSize.set(Q().shadow, Q().shadow);
-    Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 18 });
+    Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 70 });
     sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.025; sun.shadow.radius = 3;
     scene.add(sun, sun.target);
     this.hemi = hemi;
@@ -9911,10 +9977,14 @@ const Room = {
     wall(D, R.h, R.x1, R.h / 2, cz, -Math.PI / 2);
     const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: 0xf2f4f8, roughness: 1, emissive: 0xc8ccd6, emissiveIntensity: 0.55 }));
     ceil.rotation.x = Math.PI / 2; ceil.position.set(cx, R.h, cz); g.add(ceil);
-    for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.2), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.6, 1.65) }));
-      p.rotation.x = Math.PI / 2; p.position.set(-3.6 + i * 3.6, R.h - 0.01, -1.2 + j * 3.6); g.add(p);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.6, 1.65), fog: false }));
+      p.rotation.x = Math.PI / 2; p.position.set(-45 + i * 30, R.h - 0.02, -45 + j * 30); g.add(p);
     }
+    // freestanding partition behind the Discovery Shelf (the room walls are far away now)
+    const part = new THREE.Mesh(new THREE.BoxGeometry(14, 4.2, 0.2), this.wallMat);
+    part.position.set(0, 2.1, LAYOUT.shelf.wallZ - 0.1); part.castShadow = part.receiveShadow = true; g.add(part);
+    Phys.addStaticBox([0, 2.1, LAYOUT.shelf.wallZ - 0.1], [14, 4.2, 0.2]);
     // baseboards
     const bb = new THREE.MeshStandardMaterial({ color: 0xe3e7ee, roughness: 0.6 });
     for (const [w, x, z, ry] of [[W, cx, R.z0 + 0.01, 0], [W, cx, R.z1 - 0.01, Math.PI], [D, R.x0 + 0.01, cz, Math.PI / 2], [D, R.x1 - 0.01, cz, -Math.PI / 2]]) {
@@ -9929,10 +9999,10 @@ const Room = {
     Phys.addStaticBox([R.x1 + 0.5, R.h / 2, cz], [1, R.h, D + 2]);
 
     // wall decor: title + "periodic" board
-    const title = labelPlane('ELEMENTAL LAB', 3.6, 0.55, { font: '900 86px', color: '#4a3fd6', glow: 'rgba(122,107,255,0.6)' });
-    title.position.set(R.x0 + 0.02, 2.9, 0.6); title.rotation.y = Math.PI / 2; g.add(title);
-    const sub = labelPlane('Combine · Discover · Repeat', 3.0, 0.3, { font: '700 54px', color: '#6b7388' });
-    sub.position.set(R.x0 + 0.02, 2.45, 0.6); sub.rotation.y = Math.PI / 2; g.add(sub);
+    const title = labelPlane('ELEMENTAL LAB', 40, 6.1, { font: '900 86px', color: '#4a3fd6', glow: 'rgba(122,107,255,0.6)' });
+    title.position.set(R.x0 + 0.05, 26, 0); title.rotation.y = Math.PI / 2; g.add(title);
+    const sub = labelPlane('Combine · Discover · Repeat', 30, 3, { font: '700 54px', color: '#6b7388' });
+    sub.position.set(R.x0 + 0.05, 20, 0); sub.rotation.y = Math.PI / 2; g.add(sub);
     const board = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.7), new THREE.MeshBasicMaterial({ map: canvasTex(1024, 512, (c, w, h) => {
       c.fillStyle = '#fbfcfe'; roundRect(c, 4, 4, w - 8, h - 8, 30); c.fill(); c.strokeStyle = '#dfe3ea'; c.lineWidth = 6; c.stroke();
       c.fillStyle = '#2b3245'; c.font = '900 44px ui-rounded, system-ui'; c.fillText('THE FOUR ELEMENTS', 50, 80);
@@ -9941,7 +10011,7 @@ const Room = {
       c.fillStyle = '#6b7388'; c.font = '600 30px ui-rounded, system-ui'; c.fillText('Smash two things together, hold them touching, or press E.', 50, 430);
       c.fillText('3+ items? Drop them in the Fusion Ring.', 50, 475);
     }) }));
-    board.position.set(R.x1 - 0.02, 1.9, 0.4); board.rotation.y = -Math.PI / 2; g.add(board);
+    board.position.set(5.1, 2.0, LAYOUT.shelf.wallZ + 0.01); board.rotation.y = 0; g.add(board);
 
     this.buildTable(g);
     this.buildPedestals(g, scene);
@@ -10061,10 +10131,10 @@ const Room = {
     const width = S.cols * S.dx + 0.3;
     for (const y of S.rows) {
       const board = new THREE.Mesh(new THREE.BoxGeometry(width, 0.05, 0.34), mat);
-      board.position.set(0, y, R.z0 + 0.17); board.castShadow = board.receiveShadow = true; g.add(board);
-      Phys.addStaticBox([0, y - 0.05, R.z0 + 0.17], [width, 0.15, 0.34]);
+      board.position.set(0, y, S.wallZ + 0.17); board.castShadow = board.receiveShadow = true; g.add(board);
+      Phys.addStaticBox([0, y - 0.05, S.wallZ + 0.17], [width, 0.15, 0.34]);
       const glow = new THREE.Mesh(new THREE.BoxGeometry(width - 0.1, 0.008, 0.008), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.4, 1.3, 2.0) }));
-      glow.position.set(0, y - 0.03, R.z0 + 0.335); g.add(glow);
+      glow.position.set(0, y - 0.03, S.wallZ + 0.335); g.add(glow);
       for (let i = 0; i < S.cols; i++) {
         const x = S.x0 + i * S.dx;
         const p = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.12, 0.03, 24), plinthMat);
@@ -10074,10 +10144,10 @@ const Room = {
     }
     for (const x of [-width / 2, width / 2]) {
       const side = new THREE.Mesh(new THREE.BoxGeometry(0.05, S.rows[2] - S.rows[0] + 0.5, 0.34), mat);
-      side.position.set(x, (S.rows[0] + S.rows[2]) / 2 + 0.05, R.z0 + 0.17); side.castShadow = true; g.add(side);
+      side.position.set(x, (S.rows[0] + S.rows[2]) / 2 + 0.05, S.wallZ + 0.17); side.castShadow = true; g.add(side);
     }
     const sign = labelPlane('DISCOVERY SHELF', 2.6, 0.32, { font: '900 74px', color: '#3a3f55', sub: 'drop or press F to display a trophy' });
-    sign.position.set(0, S.rows[2] + 0.55, R.z0 + 0.01); g.add(sign);
+    sign.position.set(0, S.rows[2] + 0.55, S.wallZ + 0.01); g.add(sign);
   },
 
   buildDisco(scene) {
@@ -10086,6 +10156,8 @@ const Room = {
   },
 
   update(dt) {
+    // the sun's shadow box follows the player around the huge room
+    if (G.camera) { const px = Math.round(G.camera.position.x), pz = Math.round(G.camera.position.z); this.sun.position.set(px + 13, 37, pz + 17); this.sun.target.position.set(px, 0, pz); }
     for (const P of LAYOUT.pedestals) if (P.holo) { P.holo.rotation.x = Math.PI / 2 + Math.sin(G.time * 0.8 + P.x) * 0.25; P.holo.rotation.z += dt * 0.8; P.holo.position.y = LAYOUT.table.top + 0.34 + Math.sin(G.time * 1.6 + P.x) * 0.02; }
     const rp = this.ringParts;
     if (rp) {
@@ -10169,7 +10241,7 @@ const Phys = {
   createItemBody(ent, pos) {
     const info = ent.info, col = ent.vis.collider;
     const body = new CANNON.Body({
-      mass: clamp(info.mass, 0.05, 25), material: this.mats[this.physClass(info)],
+      mass: clamp((MATERIALS[info.material] || MATERIALS.clay).density * Math.pow(ent.vis.real || 0.4, 3) * 55, 0.04, info.state === 'gas' ? 20 : 600), material: this.mats[this.physClass(info)],
       collisionFilterGroup: GROUP.ITEM, collisionFilterMask: GROUP.STATIC | GROUP.ITEM | GROUP.PLAYER | GROUP.HELD,
       allowSleep: true, sleepSpeedLimit: 0.12, sleepTimeLimit: 0.9,
     });
@@ -10436,10 +10508,12 @@ const Displays = {
       const built = buildItemMeshes(info, vis);
       const root = new THREE.Group();
       root.add(built.inner);
-      const pos = new THREE.Vector3(P.x, LAYOUT.table.top + 0.12 + vis.radius * 0.9, LAYOUT.pedZ);
+      const fit = Math.min(1, 0.17 / vis.radius); // pedestal copies are shown at a handy size
+      built.inner.scale.setScalar(vis.scale * fit);
+      const pos = new THREE.Vector3(P.x, LAYOUT.table.top + 0.12 + vis.radius * fit * 0.9, LAYOUT.pedZ);
       root.position.copy(pos);
       G.scene.add(root);
-      G.displays.push({ id: P.id, info, vis, root, inner: built.inner, animParts: built.animParts, pos, base: pos.clone(), visible: true, regrow: 1, labelCell: EmojiAtlas.acquire(info), ped: P, phase: Math.random() * 6 });
+      G.displays.push({ id: P.id, info, vis, root, inner: built.inner, animParts: built.animParts, pos, base: pos.clone(), visible: true, regrow: 1, labelCell: EmojiAtlas.acquire(info), ped: P, phase: Math.random() * 6, fit });
     }
   },
   update(dt) {
@@ -10447,7 +10521,7 @@ const Displays = {
       if (d.regrow < 1) {
         d.regrow = Math.min(1, d.regrow + dt / 0.55);
         const k = d.regrow < 0.35 ? 0 : (d.regrow - 0.35) / 0.65;
-        d.inner.scale.setScalar(d.vis.scale * Math.max(0.001, ease.outBack(k, 2.2)));
+        d.inner.scale.setScalar(d.vis.scale * d.fit * Math.max(0.001, ease.outBack(k, 2.2)));
         d.visible = k > 0;
         if (k > 0 && !d.sparked) { d.sparked = true; Particles.emit({ pos: d.base, color: d.ped.color, count: 14, size: 0.06, speed: 0.8, life: 0.5 }); }
       }
@@ -10659,7 +10733,7 @@ const Player = {
     if (this.held) {
       if (this.held.dead || this.held.merging) { this.held = null; }
       else {
-        if (Input.wheel) this.holdDist = clamp(this.holdDist - Input.wheel * 0.22, 0.75, 3.4);
+        if (Input.wheel) this.holdDist = clamp(this.holdDist - Input.wheel * 0.22 * Math.max(1, this.held.vis.radius), this.minHold(), this.minHold() + 3.4);
         this.updateForceCombine(dt);
         if (this.held) this.updateTouchMerge(dt);
         if (this.held && canMove && Input.pressed.has('KeyF')) Crafting.toShelf(this.held);
@@ -10689,7 +10763,7 @@ const Player = {
     const T = this.holdTarget.copy(cam.position).addScaledVector(dir, this.holdDist).addScaledVector(up, -0.11 * this.holdDist);
     const dx = T.x - b.position.x, dy = T.y - b.position.y, dz = T.z - b.position.z;
     const dist = Math.hypot(dx, dy, dz);
-    if (dist > 3.2) { this.drop(); return; }
+    if (dist > 3.2 + e.vis.radius) { this.drop(); return; }
     const stiff = 13 / (1 + m * 0.05);
     let vx = dx * stiff, vy = dy * stiff, vz = dz * stiff;
     const vl = Math.hypot(vx, vy, vz); if (vl > 15) { vx *= 15 / vl; vy *= 15 / vl; vz *= 15 / vl; }
@@ -10758,12 +10832,13 @@ const Player = {
   grab(ent, dist) {
     this.held = ent;
     ent.setHeld(true);
-    this.holdDist = clamp((dist ?? ent.root.position.distanceTo(G.camera.position)) + ent.vis.radius * 0.5, 0.85, 2.6);
+    this.holdDist = clamp((dist ?? ent.root.position.distanceTo(G.camera.position)) + ent.vis.radius * 0.5, this.minHold(ent), this.minHold(ent) + 1.8);
     const q = _q2.set(ent.body.quaternion.x, ent.body.quaternion.y, ent.body.quaternion.z, ent.body.quaternion.w);
     this.holdRot.copy(this.yawQuat(_q1).invert().multiply(q));
     Sound.grab(ent.info.material);
     G.selected = ent.id;
   },
+  minHold(e = this.held) { return e ? Math.max(0.75, e.vis.radius + 0.6) : 0.75; },
   drop(sound = true) {
     const e = this.held;
     this.held = null;
@@ -11063,6 +11138,8 @@ const Crafting = {
     const id = res.id;
     const info = Universe.get(id);
     if (!info) return;
+    const r0 = buildVisual(info).radius;
+    if (r0 > 0.6) pos = pos.clone().setY(Math.max(pos.y, r0 * 0.9 + 0.05));
     const ent = spawnItem(id, pos, { popDur: 0.55, touched: true, vel: new THREE.Vector3(0, 1.4, 0) });
     this.fx(pos, info);
     const isNew = Progress.discover(id);
@@ -11237,7 +11314,7 @@ const Crafting = {
     for (const k in E) if (E[k] > 0) E[k] = Math.max(0, E[k] - dt);
     G.timeScale = E.slowmo > 0 ? (E.slowmo > 9.5 ? lerp(1, 0.25, (10 - E.slowmo) * 2) : E.slowmo < 0.5 ? lerp(1, 0.25, E.slowmo * 2) : 0.25) : 1;
     if (E.zerog <= 0 && Phys.world.gravity.y > -9) Phys.world.gravity.set(0, -9.82, 0);
-    if (E.snow > 0) for (let i = 0; i < 3; i++) Particles.emit({ add: false, pos: _v1.set(lerp(R.x0, R.x1, Math.random()), R.h - 0.1, lerp(R.z0, 3.5, Math.random())), vel: { x: 0, y: -0.6, z: 0 }, color: 0xffffff, size: 0.05, sizeEnd: 0.05, life: 6, alpha: 0.9, drag: 0, speed: 0.05 });
+    if (E.snow > 0) for (let i = 0; i < 3; i++) Particles.emit({ add: false, pos: _v1.set(G.camera.position.x + (Math.random() - 0.5) * 24, 12, G.camera.position.z + (Math.random() - 0.5) * 24), vel: { x: 0, y: -1.2, z: 0 }, color: 0xffffff, size: 0.06, sizeEnd: 0.06, life: 10, alpha: 0.9, drag: 0, speed: 0.05 });
     if (E.fireworks > 0 && Math.random() < dt * 3) {
       const p = new THREE.Vector3(lerp(-4, 4, Math.random()), 2.6 + Math.random() * 1.2, lerp(-3, 2, Math.random()));
       const col = [0xff3ad8, 0x3ad8ff, 0xffe03a, 0x7aff5a, 0xff6a3a][Math.floor(Math.random() * 5)];
@@ -11245,7 +11322,7 @@ const Crafting = {
       Glows.flash(p, col, 2.5, 0.5);
       Sound.noiseBurst(0.3, { vol: 0.2, freq: 900, sweep: 200, verb: 0.6 });
     }
-    if (E.starfield > 0 && Math.random() < dt * 30) Particles.emit({ pos: _v1.set(lerp(R.x0, R.x1, Math.random()), Math.random() * R.h, lerp(R.z0, R.z1, Math.random())), color: [0xffffff, 0xc8b8ff, 0x8ab8ff], size: 0.06, life: 2.5, speed: 0.02, drag: 0 });
+    if (E.starfield > 0 && Math.random() < dt * 30) Particles.emit({ pos: _v1.set(G.camera.position.x + (Math.random() - 0.5) * 40, Math.random() * 20, G.camera.position.z + (Math.random() - 0.5) * 40), color: [0xffffff, 0xc8b8ff, 0x8ab8ff], size: 0.06, life: 2.5, speed: 0.02, drag: 0 });
     if (E.disco > 0 && Math.random() < dt * 20) Particles.emit({ pos: _v1.set(lerp(-4, 4, Math.random()), 3.8, lerp(-3, 3, Math.random())), color: [0xff3ad8, 0x3ad8ff, 0xffe03a], size: 0.05, life: 1.5, gravity: -1.5, speed: 0.2 });
   },
 
@@ -11891,7 +11968,10 @@ const Spawner = {
   spawn(id) {
     if (!Progress.has(id)) return;
     const P = LAYOUT.pad;
-    const pos = new THREE.Vector3(P.x + (Math.random() - 0.5) * 0.1, P.top + 0.45, P.z + (Math.random() - 0.5) * 0.1);
+    const r = buildVisual(Universe.get(id)).radius;
+    // big things are delivered onto the floor beside the pad instead of on top of it
+    const pos = r < 0.5 ? new THREE.Vector3(P.x + (Math.random() - 0.5) * 0.1, P.top + 0.45, P.z + (Math.random() - 0.5) * 0.1)
+      : new THREE.Vector3(P.x - 0.8 - r, r + 0.3, P.z + 1);
     const e = spawnItem(id, pos, { popDur: 0.45, touched: false, vel: new THREE.Vector3(0, 0.5, 0) });
     if (!e) return;
     Particles.emit({ pos, color: [0x22c7e8, 0xffffff], count: 26, size: 0.06, speed: 1.4, life: 0.6 });
@@ -12073,7 +12153,7 @@ const Post = {
     this.mat = new THREE.ShaderMaterial({
       uniforms: {
         tColor: { value: this.rt.texture }, tDepth: { value: this.rt.depthTexture }, uFocus: { value: 1.5 }, uAmount: { value: 0 },
-        uNear: { value: 0.05 }, uFar: { value: 60 }, uRes: { value: new THREE.Vector2(s.x, s.y) }, uVig: { value: 0.35 },
+        uNear: { value: 0.05 }, uFar: { value: 400 }, uRes: { value: new THREE.Vector2(s.x, s.y) }, uVig: { value: 0.35 },
       },
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: `
@@ -12165,7 +12245,7 @@ async function boot() {
   renderer.toneMappingExposure = 0.96;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   const scene = G.scene = new THREE.Scene();
-  const camera = G.camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.05, 60);
+  const camera = G.camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.05, 400);
   camera.rotation.order = 'YXZ';
 
   Tex.init(); EmojiAtlas.init();

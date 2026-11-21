@@ -200,10 +200,12 @@ const Displays = {
       const built = buildItemMeshes(info, vis);
       const root = new THREE.Group();
       root.add(built.inner);
-      const pos = new THREE.Vector3(P.x, LAYOUT.table.top + 0.12 + vis.radius * 0.9, LAYOUT.pedZ);
+      const fit = Math.min(1, 0.17 / vis.radius); // pedestal copies are shown at a handy size
+      built.inner.scale.setScalar(vis.scale * fit);
+      const pos = new THREE.Vector3(P.x, LAYOUT.table.top + 0.12 + vis.radius * fit * 0.9, LAYOUT.pedZ);
       root.position.copy(pos);
       G.scene.add(root);
-      G.displays.push({ id: P.id, info, vis, root, inner: built.inner, animParts: built.animParts, pos, base: pos.clone(), visible: true, regrow: 1, labelCell: EmojiAtlas.acquire(info), ped: P, phase: Math.random() * 6 });
+      G.displays.push({ id: P.id, info, vis, root, inner: built.inner, animParts: built.animParts, pos, base: pos.clone(), visible: true, regrow: 1, labelCell: EmojiAtlas.acquire(info), ped: P, phase: Math.random() * 6, fit });
     }
   },
   update(dt) {
@@ -211,7 +213,7 @@ const Displays = {
       if (d.regrow < 1) {
         d.regrow = Math.min(1, d.regrow + dt / 0.55);
         const k = d.regrow < 0.35 ? 0 : (d.regrow - 0.35) / 0.65;
-        d.inner.scale.setScalar(d.vis.scale * Math.max(0.001, ease.outBack(k, 2.2)));
+        d.inner.scale.setScalar(d.vis.scale * d.fit * Math.max(0.001, ease.outBack(k, 2.2)));
         d.visible = k > 0;
         if (k > 0 && !d.sparked) { d.sparked = true; Particles.emit({ pos: d.base, color: d.ped.color, count: 14, size: 0.06, speed: 0.8, life: 0.5 }); }
       }

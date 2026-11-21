@@ -21,7 +21,7 @@ async function boot() {
   renderer.toneMappingExposure = 0.96;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   const scene = G.scene = new THREE.Scene();
-  const camera = G.camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.05, 60);
+  const camera = G.camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.05, 400);
   camera.rotation.order = 'YXZ';
 
   Tex.init(); EmojiAtlas.init();

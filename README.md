@@ -47,6 +47,14 @@ anything a specific modifier (for example "Make anything Frozen"), and an activi
 2 times". Progress is shown in the HUD (📅 Daily 1/3) and in the Codex's **Daily** tab. Finish all three on
 consecutive days to build a 🔥 streak.
 
+## Real-world scale
+
+The lab is enormous (120 × 120 m, 40 m ceiling) and every item is built at roughly its true size: an ant is a few
+centimetres, a teddy bear or a pizza fits in your hands, a surfer is a person standing on a surfboard, a car is 4.5 m,
+whales, dragons, trees and houses are about 9 m, castles 16 m, and clouds are big 6 m puffs drifting overhead. Truly
+astronomical things (planets, galaxies, mountains) are capped at 10–24 m so they still fit in the room. Copies on the
+element pedestals are shown at a handy size, and big things you spawn from the Codex land on the floor beside the pad.
+
 ## The lab
 
 - **Element pedestals** never run out. Grab the floating copy and a new one materialises.

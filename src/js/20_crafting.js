@@ -125,6 +125,8 @@ const Crafting = {
     const id = res.id;
     const info = Universe.get(id);
     if (!info) return;
+    const r0 = buildVisual(info).radius;
+    if (r0 > 0.6) pos = pos.clone().setY(Math.max(pos.y, r0 * 0.9 + 0.05));
     const ent = spawnItem(id, pos, { popDur: 0.55, touched: true, vel: new THREE.Vector3(0, 1.4, 0) });
     this.fx(pos, info);
     const isNew = Progress.discover(id);
@@ -299,7 +301,7 @@ const Crafting = {
     for (const k in E) if (E[k] > 0) E[k] = Math.max(0, E[k] - dt);
     G.timeScale = E.slowmo > 0 ? (E.slowmo > 9.5 ? lerp(1, 0.25, (10 - E.slowmo) * 2) : E.slowmo < 0.5 ? lerp(1, 0.25, E.slowmo * 2) : 0.25) : 1;
     if (E.zerog <= 0 && Phys.world.gravity.y > -9) Phys.world.gravity.set(0, -9.82, 0);
-    if (E.snow > 0) for (let i = 0; i < 3; i++) Particles.emit({ add: false, pos: _v1.set(lerp(R.x0, R.x1, Math.random()), R.h - 0.1, lerp(R.z0, 3.5, Math.random())), vel: { x: 0, y: -0.6, z: 0 }, color: 0xffffff, size: 0.05, sizeEnd: 0.05, life: 6, alpha: 0.9, drag: 0, speed: 0.05 });
+    if (E.snow > 0) for (let i = 0; i < 3; i++) Particles.emit({ add: false, pos: _v1.set(G.camera.position.x + (Math.random() - 0.5) * 24, 12, G.camera.position.z + (Math.random() - 0.5) * 24), vel: { x: 0, y: -1.2, z: 0 }, color: 0xffffff, size: 0.06, sizeEnd: 0.06, life: 10, alpha: 0.9, drag: 0, speed: 0.05 });
     if (E.fireworks > 0 && Math.random() < dt * 3) {
       const p = new THREE.Vector3(lerp(-4, 4, Math.random()), 2.6 + Math.random() * 1.2, lerp(-3, 2, Math.random()));
       const col = [0xff3ad8, 0x3ad8ff, 0xffe03a, 0x7aff5a, 0xff6a3a][Math.floor(Math.random() * 5)];
@@ -307,7 +309,7 @@ const Crafting = {
       Glows.flash(p, col, 2.5, 0.5);
       Sound.noiseBurst(0.3, { vol: 0.2, freq: 900, sweep: 200, verb: 0.6 });
     }
-    if (E.starfield > 0 && Math.random() < dt * 30) Particles.emit({ pos: _v1.set(lerp(R.x0, R.x1, Math.random()), Math.random() * R.h, lerp(R.z0, R.z1, Math.random())), color: [0xffffff, 0xc8b8ff, 0x8ab8ff], size: 0.06, life: 2.5, speed: 0.02, drag: 0 });
+    if (E.starfield > 0 && Math.random() < dt * 30) Particles.emit({ pos: _v1.set(G.camera.position.x + (Math.random() - 0.5) * 40, Math.random() * 20, G.camera.position.z + (Math.random() - 0.5) * 40), color: [0xffffff, 0xc8b8ff, 0x8ab8ff], size: 0.06, life: 2.5, speed: 0.02, drag: 0 });
     if (E.disco > 0 && Math.random() < dt * 20) Particles.emit({ pos: _v1.set(lerp(-4, 4, Math.random()), 3.8, lerp(-3, 3, Math.random())), color: [0xff3ad8, 0x3ad8ff, 0xffe03a], size: 0.05, life: 1.5, gravity: -1.5, speed: 0.2 });
   },
 

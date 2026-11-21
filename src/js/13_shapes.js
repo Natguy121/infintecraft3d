@@ -691,6 +691,7 @@ BUILD.humanoid = (P, I, kw) => {
   else P.add(PG.capsule(), cloth, [0, -0.08, 0], [0.55, 0.55, 0.42]);
   if (K('mummy')) for (let i = 0; i < 5; i++) P.t(0.27, 0.03, [0, 0.15 - i * 0.12, 0], 0xd8c8a0, [Math.PI / 2 + (i % 2 ? 0.2 : -0.2), 0, 0]);
   if (K('doctor', 'scientist', 'nurse', 'chef', 'professor', 'alchemist')) P.b(0.42, 0.55, 0.05, [0, -0.08, 0.2], 0xffffff);
+  if (K('surfer')) { P.s(1, [0, -1.12, 0.05], 0xffcf3a, [0.32, 0.04, 1.05]); P.b(0.05, 0.03, 2.0, [0, -1.09, 0.05], 0xffffff); }
   if (K('superhero', 'hero')) P.add(PG.star(5, 0.45, 0.1), COL.yellow, [0, 0.05, 0.24], 0.12);
   // head
   const hy = baby ? 0.6 : 0.52;
@@ -1608,7 +1609,8 @@ function buildVisual(info) {
   const box = P.bbox(), center = new THREE.Vector3(), size = new THREE.Vector3();
   box.getCenter(center); box.getSize(size);
   const half = Math.max(size.x, size.y, size.z) / 2 || 1;
-  const s = (info.size * ITEM_SCALE * (info.scale || 1)) / half;
+  const real = realSize(info);
+  const s = (real / 2) / half;
   const body = mergeParts(P.list.filter(p => !p.glow && !p.anim), center);
   const glow = mergeParts(P.list.filter(p => p.glow && !p.anim), center);
   const animGroups = new Map();
@@ -1620,7 +1622,7 @@ function buildVisual(info) {
   const he = size.clone().multiplyScalar(s * 0.5);
   const round = ROUND_SHAPES.has(info.shape) && (Math.max(he.x, he.y, he.z) / Math.max(0.01, Math.min(he.x, he.y, he.z)) < 1.8);
   v = {
-    body, glow, anims, scale: s, halfExtents: he, radius: he.length() * 0.92, top: he.y,
+    body, glow, anims, scale: s, real, halfExtents: he, radius: he.length() * 0.92, top: he.y,
     collider: round ? { type: 'sphere', r: (he.x + he.y + he.z) / 3 * 0.95 } : { type: 'box', he: he.clone().multiplyScalar(0.92) },
   };
   if (VisualCache.size > 240) { const k = VisualCache.keys().next().value; const old = VisualCache.get(k); if (!old.refs) { old.body && old.body.dispose(); old.glow && old.glow.dispose(); } VisualCache.delete(k); }

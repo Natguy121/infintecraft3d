@@ -147,11 +147,11 @@ const Labels = {
       if (!e.labelCell || e.dead) continue;
       const p = e.root.position;
       const d = Math.hypot(p.x - cam.x, p.y - cam.y, p.z - cam.z);
-      const a = clamp(1.3 - d / 9, 0, 1) * (e.held ? 0.5 : 1) * (e.fade ?? 1);
+      const a = clamp(1.3 - d / (9 + e.vis.radius * 4), 0, 1) * (e.held ? 0.5 : 1) * (e.fade ?? 1);
       if (a <= 0.01) continue;
-      put(p.x, p.y + e.vis.radius * 0.95 + 0.12 + Math.sin(G.time * 2 + e.phase) * 0.012, p.z, e.labelCell.cell, 0.17 * (e.popScale ?? 1), a);
+      put(p.x, p.y + e.vis.radius * 0.95 + 0.12 + Math.sin(G.time * 2 + e.phase) * 0.012, p.z, e.labelCell.cell, 0.17 * Math.max(1, Math.sqrt(e.vis.radius / 0.3)) * (e.popScale ?? 1), a);
     }
-    for (const d of G.displays) if (d.labelCell && d.visible) put(d.pos.x, d.pos.y + d.vis.radius + 0.14, d.pos.z, d.labelCell.cell, 0.16, 1);
+    for (const d of G.displays) if (d.labelCell && d.visible) put(d.pos.x, d.pos.y + d.vis.radius * (d.fit || 1) + 0.14, d.pos.z, d.labelCell.cell, 0.16, 1);
     for (const t of G.trophies) if (t && t.labelCell) put(t.pos.x, t.pos.y + t.vis.radius + 0.08, t.pos.z, t.labelCell.cell, 0.12, 0.95);
     this.geo.setDrawRange(0, n);
     for (const k of ['position', 'aUv', 'aSize', 'aAlpha']) this.geo.attributes[k].needsUpdate = true;
@@ -179,7 +179,7 @@ const Glows = {
       const fire = e.info.material === 'fire';
       put(e.root.position, fire ? e.info.color : (e.info.glowColor || e.info.color), e.vis.radius * (2.2 + e.info.glow * 2.2) * (e.popScale ?? 1), (fire ? 0.36 : 0.5) * e.info.glow * f * (e.fade ?? 1));
     }
-    for (const d of G.displays) if (d.visible && d.info.glow) put(d.pos, d.info.color, d.vis.radius * 4, 0.32);
+    for (const d of G.displays) if (d.visible && d.info.glow) put(d.pos, d.info.color, d.vis.radius * (d.fit || 1) * 4, 0.32);
     for (const g of Room.glowSpots || []) put(g.pos, g.color, g.size * (g.pulse ? (0.85 + Math.sin(G.time * g.pulse) * 0.15) : 1), g.alpha * (g.mul ?? 1));
     for (let i = this.flashes.length - 1; i >= 0; i--) {
       const fl = this.flashes[i];

@@ -417,7 +417,10 @@ const Spawner = {
   spawn(id) {
     if (!Progress.has(id)) return;
     const P = LAYOUT.pad;
-    const pos = new THREE.Vector3(P.x + (Math.random() - 0.5) * 0.1, P.top + 0.45, P.z + (Math.random() - 0.5) * 0.1);
+    const r = buildVisual(Universe.get(id)).radius;
+    // big things are delivered onto the floor beside the pad instead of on top of it
+    const pos = r < 0.5 ? new THREE.Vector3(P.x + (Math.random() - 0.5) * 0.1, P.top + 0.45, P.z + (Math.random() - 0.5) * 0.1)
+      : new THREE.Vector3(P.x - 0.8 - r, r + 0.3, P.z + 1);
     const e = spawnItem(id, pos, { popDur: 0.45, touched: false, vel: new THREE.Vector3(0, 0.5, 0) });
     if (!e) return;
     Particles.emit({ pos, color: [0x22c7e8, 0xffffff], count: 26, size: 0.06, speed: 1.4, life: 0.6 });
