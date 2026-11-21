@@ -159,7 +159,7 @@ Pick **Theme → Normal or Horror** in Settings. It switches instantly and is re
 ## Accounts
 
 The main menu has **Log in / Sign up**. Each account has its own discoveries, recipes, levels, trophies and daily
-progress, and the panel lists every player on the device ranked by discoveries. If you play without logging in, you
-are the Guest, and your existing progress stays there. Accounts are local to this browser: passwords are salted and
+progress, and the panel lists every player on the device ranked by discoveries. A new account starts with everything you've discovered
+so far. If you're signed in and the Guest has discoveries you don't, the menu offers **📥 Bring over Guest discoveries**. Accounts are local to this browser: passwords are salted and
 hashed (SHA-256), and nothing is sent anywhere. They keep players' progress separate but do not protect it, because
 anyone with access to the browser can read its storage.
