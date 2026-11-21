@@ -40,6 +40,13 @@ the right to look, tap to grab or drop, and buttons for Grab (hold), Throw (swip
 (hold, like `E`), Rotate, push/pull, Jump, Shelf, Split mode, Codex, Recipes, Hint and Pause. Landscape works best.
 Phones start on the Low graphics preset; change it in Settings.
 
+## Daily challenges
+
+Every day brings three new challenges, picked from the date so everyone gets the same set: craft a specific item, give
+anything a specific modifier (for example "Make anything Frozen"), and an activity goal such as "Use the Fusion Ring
+2 times". Progress is shown in the HUD (📅 Daily 1/3) and in the Codex's **Daily** tab. Finish all three on
+consecutive days to build a 🔥 streak.
+
 ## The lab
 
 - **Element pedestals** never run out. Grab the floating copy and a new one materialises.

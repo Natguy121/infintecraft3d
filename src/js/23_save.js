@@ -11,7 +11,7 @@ const Save = {
     const rec = {};
     for (const [k, s] of Progress.recipes) rec[k] = [...s];
     return {
-      v: 1, seed: GLOBAL_SEED, order: Progress.order, rec, stats: Progress.stats, ach: [...Progress.ach], wall: Progress.wallHue,
+      v: 1, seed: GLOBAL_SEED, order: Progress.order, rec, stats: Progress.stats, ach: [...Progress.ach], wall: Progress.wallHue, daily: Progress.daily,
       shelf: G.trophies.map(t => t ? t.id : null),
       llm: { pairs: Object.fromEntries(Universe.llmPairs), items: Object.fromEntries(Universe.llmItems) },
       t: Date.now(),
@@ -81,6 +81,7 @@ const Save = {
     Progress.stats.recipes = n;
     Progress.ach = new Set(d.ach || []);
     Progress.wallHue = d.wall ?? null;
+    Progress.daily = d.daily || null;
     this.pendingShelf = d.shelf || [];
   },
   restoreWorld() {

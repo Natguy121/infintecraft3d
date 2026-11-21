@@ -134,6 +134,9 @@ kbd { display: inline-block; min-width: 22px; padding: 2px 7px; border-radius: 6
 .mfoot { padding: 10px 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink2); display: flex; gap: 16px; flex-wrap: wrap; }
 .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; padding: 16px; overflow-y: auto; }
 .ach { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 14px; background: #fff; border: 1px solid var(--line); }
+.ach.done { box-shadow: 0 0 0 2px rgba(47,191,99,.5); }
+.daily-head { display: flex; flex-direction: column; gap: 2px; padding: 4px 2px; }
+.daily-head small { color: var(--ink2); }
 .ach.locked { opacity: .5; filter: grayscale(1); }
 .ach .ai { font-size: 30px; }
 .ach b { display: block; }
@@ -222,6 +225,7 @@ body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 2
   <div id="hud-tl" class="hidden">
     <div class="pill count">🧪 <span><b id="disc-count">4</b> <span class="sub">/ 300,000+ discovered</span></span></div>
     <div class="pill sub" id="hud-recipes">📜 0 recipes found</div>
+    <div class="pill sub" id="hud-daily">📅 Daily 0/3</div>
   </div>
   <div id="hud-tr" class="hidden">
     <div class="pill"><kbd>Tab</kbd> Codex</div>
@@ -244,7 +248,7 @@ body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 2
       </select>
       <select id="cx-tag" title="Filter by tag"><option value="">All tags</option></select>
       <div class="grow"></div>
-      <div class="tabs" id="cx-tabs"><button data-tab="items" class="on">Items</button><button data-tab="ach">Achievements</button><button data-tab="stats">Stats</button></div>
+      <div class="tabs" id="cx-tabs"><button data-tab="items" class="on">Items</button><button data-tab="ach">Achievements</button><button data-tab="stats">Stats</button><button data-tab="daily">Daily</button></div>
       <button class="close" data-close="codex" title="Close (Tab)">✕</button>
     </div>
     <div class="cx-body" id="cx-items">
@@ -253,6 +257,7 @@ body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 2
     </div>
     <div class="ach-grid hidden" id="cx-ach"></div>
     <div class="stats-grid hidden" id="cx-stats"></div>
+    <div class="ach-grid hidden" id="cx-daily" style="grid-template-columns:1fr;max-width:640px;margin:0 auto;width:100%"></div>
     <div class="mfoot"><span>Click an item to spawn a copy on the spawn pad — supply is infinite once discovered.</span><span id="cx-universe"></span></div>
   </div>
 
@@ -10960,7 +10965,7 @@ const Progress = {
   },
   recipeCount() { return this.stats.recipes || 0; },
 };
-const Stats = { add(k, n = 1) { Progress.stats[k] = (Progress.stats[k] || 0) + n; Save.markDirty(); } };
+const Stats = { add(k, n = 1) { Progress.stats[k] = (Progress.stats[k] || 0) + n; Save.markDirty(); if (k !== 'merges') Daily.count(k, n); } };
 
 const ACHIEVEMENTS = [
   { id: 'd10', icon: '🔟', name: 'Curious Mind', desc: 'Discover 10 items' },
@@ -11067,6 +11072,8 @@ const Crafting = {
     else if (recNew) { UI.banner('NEW RECIPE!', info, true); Sound.newRecipe(); }
     checkAchievements(info);
     Stats.add('merges');
+    Daily.count('merges');
+    Daily.onCraft(info, isNew, recNew);
     G.selected = id;
     if (info.secret) this.secret(info.secret, pos);
     if (keepHeld && ent && !Player.held) setTimeout(() => { if (!ent.dead && !ent.merging && !Player.held && Input.mouse.l) Player.grab(ent); }, 60);
@@ -11248,6 +11255,116 @@ const Crafting = {
     if (++this.tick % 3 === 0) this.updateZones();
     if (this.tick % 300 === 0) despawnIdle();
     this.updateEffects(dt);
+  },
+};
+
+// ===================================================================== 20b_daily.js
+// ============================================================================
+//  ELEMENTAL LAB — 20b · Daily challenges
+//  Three challenges per calendar day, picked deterministically from the date
+//  (so everyone gets the same ones): craft a target item, give anything a
+//  specific modifier, and hit an activity goal. Completing all three keeps a
+//  streak going.
+// ============================================================================
+
+const DAILY_MODS = ['frozen', 'golden', 'burning', 'electric', 'cosmic', 'giant', 'tiny', 'crystal', 'ancient', 'robotic', 'zombie', 'holy', 'cursed', 'shadow', 'rainbow', 'enchanted', 'sticky', 'spicy', 'king', 'baby'];
+const DAILY_GOALS = [
+  { stat: 'merges', n: 15, icon: '⚗️', text: 'Perform {n} fusions' },
+  { stat: 'newItems', n: 8, icon: '🧪', text: 'Discover {n} new items' },
+  { stat: 'fusions', n: 2, icon: '🔮', text: 'Use the Fusion Ring {n} times' },
+  { stat: 'thrown', n: 15, icon: '🎯', text: 'Throw {n} items' },
+  { stat: 'newRecipes', n: 10, icon: '📜', text: 'Find {n} new recipes' },
+  { stat: 'splits', n: 2, icon: '✂️', text: 'Split {n} items in the Fusion Ring' },
+];
+
+const Daily = {
+  list: [],
+  today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; },
+  state() {
+    const s = Progress.daily || (Progress.daily = { date: '', done: [], counts: {}, streak: 0, lastFull: '' });
+    const t = this.today();
+    if (s.date !== t) { s.date = t; s.done = []; s.counts = {}; s.target = null; }
+    return s;
+  },
+  init() { this.build(); this.builtFor = this.state().date; this.updateHud(); },
+  build() {
+    const date = this.state().date;
+    const rng = makeRng(hashStr('daily:' + date));
+    // 1. craft a target: a reachable mid-tier core item, ideally one the player hasn't found
+    const pool = Universe.items.filter(it => it.tier >= 2 && it.tier <= 7 && !it.secret && !it.unreachable && it.recipes.length);
+    const st = this.state();
+    let target = st.target && Universe.byId.get(st.target);
+    if (!target) {
+      target = pool[Math.floor(rng() * pool.length)];
+      for (let i = 0; i < 12 && Progress.has(target.id); i++) target = pool[Math.floor(rng() * pool.length)];
+      st.target = target.id;
+    }
+    const mod = MOD_BY_ID.get(DAILY_MODS[Math.floor(rng() * DAILY_MODS.length)]);
+    const src = Universe.get((Universe.modSources.get(mod.id) || [])[0]);
+    const goal = DAILY_GOALS[Math.floor(rng() * DAILY_GOALS.length)];
+    this.list = [
+      { id: 'craft', icon: target.emoji, title: `Craft ${target.name}`, desc: `Tier ${target.tier} · try things that are ${(TAG_PHRASE[target.primaryTag] || 'related')}`, target: target.id },
+      { id: 'mod', icon: mod.emoji, title: `Make anything ${mod.name}`, desc: src ? `Hint: combine something with ${src.emoji} ${src.name}` : '', mod: mod.id },
+      { id: 'goal', icon: goal.icon, title: goal.text.replace('{n}', goal.n), desc: 'Today', stat: goal.stat, n: goal.n },
+    ];
+  },
+  progress(c) {
+    const s = this.state();
+    if (s.done.includes(c.id)) return 1;
+    if (c.id === 'goal') return Math.min(1, (s.counts[c.stat] || 0) / c.n);
+    return 0;
+  },
+  /** called after every craft */
+  onCraft(info, isNew, recipeNew) {
+    const s = this.state();
+    if (s.date !== this.builtFor) { this.builtFor = s.date; this.build(); }
+    if (isNew) this.count('newItems');
+    if (recipeNew) this.count('newRecipes');
+    const base = info.base ? info.base.id : info.id;
+    if (info.id === this.list[0].target || base === this.list[0].target) this.complete('craft');
+    if (info.mods && info.mods.includes(this.list[1].mod)) this.complete('mod');
+  },
+  count(stat, n = 1) {
+    const s = this.state();
+    s.counts[stat] = (s.counts[stat] || 0) + n;
+    const g = this.list[2];
+    if (g && g.stat === stat && s.counts[stat] >= g.n) this.complete('goal');
+    this.updateHud();
+  },
+  complete(id) {
+    const s = this.state();
+    if (s.done.includes(id)) return;
+    s.done.push(id);
+    const c = this.list.find(x => x.id === id);
+    UI.toast(c.icon, 'Daily challenge complete!', c.title, 'ach');
+    Sound.achievement();
+    if (s.done.length === 3) {
+      const y = new Date(Date.now() - 86400000);
+      const yest = `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, '0')}-${String(y.getDate()).padStart(2, '0')}`;
+      s.streak = s.lastFull === yest ? s.streak + 1 : 1;
+      s.lastFull = s.date;
+      setTimeout(() => { UI.toast('🔥', `All dailies done! Streak: ${s.streak} day${s.streak > 1 ? 's' : ''}`, 'New challenges tomorrow.', 'ach'); UI.flash(0.35); }, 900);
+      if (G.camera) Particles.emit({ pos: _v1.copy(G.camera.position).addScaledVector(Player.dir, 1.5), color: [0xffe85a, 0xff5ad8, 0x5ab8ff], count: 120, speed: 3, size: 0.06, life: 1.2, gravity: -2 });
+    }
+    Save.markDirty();
+    this.updateHud();
+  },
+  updateHud() {
+    const s = this.state(), el2 = $('hud-daily');
+    if (el2) el2.textContent = `📅 Daily ${s.done.length}/3${s.streak ? ` · 🔥${s.streak}` : ''}`;
+    if (G.ui === 'codex' && Codex.tab === 'daily') this.render();
+  },
+  render() {
+    const s = this.state();
+    const left = new Date(); left.setHours(24, 0, 0, 0);
+    const hrs = Math.max(0, Math.round((left - Date.now()) / 3600000));
+    $('cx-daily').innerHTML = `<div class="daily-head"><b>Daily challenges · ${s.date}</b><small>Streak 🔥 ${s.streak || 0} · new challenges in ~${hrs}h</small></div>` +
+      this.list.map(c => {
+        const p = this.progress(c), done = s.done.includes(c.id);
+        const extra = c.id === 'goal' ? ` (${Math.min(c.n, s.counts[c.stat] || 0)}/${c.n})` : '';
+        return `<div class="ach ${done ? 'done' : ''}"><div class="ai">${done ? '✅' : c.icon}</div><div style="flex:1"><b>${escHtml(c.title)}${extra}</b><small>${escHtml(c.desc)}</small>
+          <div class="meter"><i style="width:${Math.round(p * 100)}%"></i></div></div></div>`;
+      }).join('');
   },
 };
 
@@ -11647,6 +11764,8 @@ const Codex = {
     $('cx-items').classList.toggle('hidden', t !== 'items');
     $('cx-ach').classList.toggle('hidden', t !== 'ach');
     $('cx-stats').classList.toggle('hidden', t !== 'stats');
+    $('cx-daily').classList.toggle('hidden', t !== 'daily');
+    if (t === 'daily') Daily.render();
     if (t === 'ach') this.renderAch();
     if (t === 'stats') this.renderStats();
     if (t === 'items') this.render();
@@ -11826,7 +11945,7 @@ const Save = {
     const rec = {};
     for (const [k, s] of Progress.recipes) rec[k] = [...s];
     return {
-      v: 1, seed: GLOBAL_SEED, order: Progress.order, rec, stats: Progress.stats, ach: [...Progress.ach], wall: Progress.wallHue,
+      v: 1, seed: GLOBAL_SEED, order: Progress.order, rec, stats: Progress.stats, ach: [...Progress.ach], wall: Progress.wallHue, daily: Progress.daily,
       shelf: G.trophies.map(t => t ? t.id : null),
       llm: { pairs: Object.fromEntries(Universe.llmPairs), items: Object.fromEntries(Universe.llmItems) },
       t: Date.now(),
@@ -11896,6 +12015,7 @@ const Save = {
     Progress.stats.recipes = n;
     Progress.ach = new Set(d.ach || []);
     Progress.wallHue = d.wall ?? null;
+    Progress.daily = d.daily || null;
     this.pendingShelf = d.shelf || [];
   },
   restoreWorld() {
@@ -12058,7 +12178,7 @@ async function boot() {
   await Save.load();
   Displays.init();
   Save.restoreWorld();
-  UI.init(); Codex.init(); Input.init(canvas); Touch.init();
+  UI.init(); Codex.init(); Input.init(canvas); Touch.init(); Daily.init();
   // a few starter elements on the table so the first smash is one grab away
   if (Progress.order.length <= 4) {
     [['water', -0.55], ['fire', 0.55]].forEach(([id, x]) => spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.3, 0.25), { noPop: true }));
@@ -12134,7 +12254,7 @@ function tick(rdt, render = true) {
 
 // ---------------------------------------------------------------- debug / automation API
 window.lab = {
-  G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save,
+  G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily,
   spawn(id, x = 0, z = 0.2) { return spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.4, z), { touched: true }); },
   combine(a, b) { const r = Universe.combine(a, b); return r && { ...r, name: Universe.get(r.id).name }; },
   merge(a, b) { Crafting.merge(a, b, 'force'); },

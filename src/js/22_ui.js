@@ -290,6 +290,8 @@ const Codex = {
     $('cx-items').classList.toggle('hidden', t !== 'items');
     $('cx-ach').classList.toggle('hidden', t !== 'ach');
     $('cx-stats').classList.toggle('hidden', t !== 'stats');
+    $('cx-daily').classList.toggle('hidden', t !== 'daily');
+    if (t === 'daily') Daily.render();
     if (t === 'ach') this.renderAch();
     if (t === 'stats') this.renderStats();
     if (t === 'items') this.render();

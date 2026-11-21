@@ -27,7 +27,7 @@ const Progress = {
   },
   recipeCount() { return this.stats.recipes || 0; },
 };
-const Stats = { add(k, n = 1) { Progress.stats[k] = (Progress.stats[k] || 0) + n; Save.markDirty(); } };
+const Stats = { add(k, n = 1) { Progress.stats[k] = (Progress.stats[k] || 0) + n; Save.markDirty(); if (k !== 'merges') Daily.count(k, n); } };
 
 const ACHIEVEMENTS = [
   { id: 'd10', icon: '🔟', name: 'Curious Mind', desc: 'Discover 10 items' },
@@ -134,6 +134,8 @@ const Crafting = {
     else if (recNew) { UI.banner('NEW RECIPE!', info, true); Sound.newRecipe(); }
     checkAchievements(info);
     Stats.add('merges');
+    Daily.count('merges');
+    Daily.onCraft(info, isNew, recNew);
     G.selected = id;
     if (info.secret) this.secret(info.secret, pos);
     if (keepHeld && ent && !Player.held) setTimeout(() => { if (!ent.dead && !ent.merging && !Player.held && Input.mouse.l) Player.grab(ent); }, 60);
