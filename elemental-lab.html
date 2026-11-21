@@ -227,6 +227,22 @@ body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 2
 body.horror { --ink: #e8dcd6; --ink2: #a8968f; --ink3: #75665f; --line: rgba(255, 60, 50, .14); --glass: rgba(14, 10, 12, .78); --glass2: rgba(20, 12, 14, .94); --accent: #c81e2a; --accent2: #ff5a3c; --shadow: 0 10px 40px rgba(0, 0, 0, .6), 0 0 12px rgba(160, 10, 20, .15); }
 body.horror #menu { background: radial-gradient(ellipse at 50% 30%, rgba(40, 6, 8, .55), rgba(0, 0, 0, .92)); backdrop-filter: blur(4px); }
 body:not(.horror) #horror-vig, body:not(.horror) #horror-grain, body:not(.horror) #horror-msg, body:not(.horror) .h-only { display: none; }
+.acct { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; font-size: 14px; color: var(--ink2); }
+.acct button { padding: 6px 12px; font-size: 13px; }
+.acct .primary-s { background: var(--accent); color: #fff; border: none; }
+#acct-panel { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: rgba(10, 12, 20, .45); backdrop-filter: blur(4px); }
+#acct-panel.hidden { display: none; }
+.acct-card { position: relative; width: min(420px, 92vw); max-height: 90vh; overflow-y: auto; padding: 26px; border-radius: 22px; background: var(--glass2); color: var(--ink); box-shadow: var(--shadow); }
+.acct-card h2 { margin: 0 0 6px; } .acct-card h3 { margin: 18px 0 8px; font-size: 14px; color: var(--ink2); }
+.acct-card .x { position: absolute; right: 14px; top: 14px; }
+.acct-note { font-size: 13px; color: var(--ink2); margin: 0 0 12px; }
+.acct-card input { display: block; width: 100%; box-sizing: border-box; margin: 0 0 8px; padding: 10px 12px; font-size: 15px; }
+.acct-btns { display: flex; gap: 8px; } .acct-btns button { flex: 1; }
+#acct-msg { min-height: 18px; margin-top: 8px; font-size: 13px; }
+.acct-p { display: flex; gap: 10px; padding: 8px 10px; border-radius: 10px; cursor: pointer; font-size: 14px; }
+.acct-p:hover { background: var(--line); } .acct-p.me { outline: 2px solid var(--accent); }
+.acct-p .rk { color: var(--ink3); width: 28px; } .acct-p .nm { flex: 1; font-weight: 700; } .acct-empty { font-size: 13px; color: var(--ink3); }
+body.horror .menu-card { background: rgba(16, 10, 12, .92); }
 #horror-vig { position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.92)); }
 #horror-vig.pulse { animation: hpulse .9s ease-out; }
 @keyframes hpulse { 0% { background-color: rgba(140,0,0,.45); } 100% { background-color: transparent; } }
@@ -294,12 +310,26 @@ body:not(.horror) #horror-vig, body:not(.horror) #horror-grain, body:not(.horror
     <div id="book-body"></div>
   </div>
 
+  <div id="acct-panel" class="hidden">
+    <div class="acct-card">
+      <button id="acct-close" class="x">✕</button>
+      <h2>👤 Your account</h2>
+      <p class="acct-note">Each account has its own discoveries, recipes, levels and trophies. Accounts live in this browser on this device only.</p>
+      <input id="acct-name" placeholder="Username" autocomplete="username" maxlength="20">
+      <input id="acct-pw" type="password" placeholder="Password" autocomplete="current-password">
+      <div class="acct-btns"><button id="acct-login" class="primary">Log in</button><button id="acct-signup">Create account</button></div>
+      <div id="acct-msg"></div>
+      <h3>Players on this device</h3>
+      <div id="acct-players"></div>
+    </div>
+  </div>
   <div id="menu">
     <div class="menu-card">
       <div class="logo">⚗️</div>
       <h1>Elemental Lab <span class="h-only" style="color:#c81e2a;font-family:Georgia,serif">· After Dark</span></h1>
       <p class="sub">Infinite Craft, in 3D. Grab, toss, smash and fuse the four elements into <b>300,000+</b> discoveries, from Steam to the Multiverse.</p>
       <div class="elems"><span>💨</span><span>🔥</span><span>🌍</span><span>💧</span></div>
+      <div id="acct-row" class="acct"></div>
       <button id="btn-play" class="primary">Enter the Lab</button>
       <div class="menu-row">
         <button id="btn-codex">📖 Codex</button>
@@ -12329,6 +12359,106 @@ const Book = {
   },
 };
 
+// ===================================================================== 22b_accounts.js
+// ============================================================================
+//  ELEMENTAL LAB — 22b · Local accounts: sign up / log in so each player on
+//  this device keeps their own discoveries. Passwords are salted + hashed
+//  (SHA-256) and everything stays in this browser's localStorage.
+// ============================================================================
+
+const Accounts = {
+  LS: 'elementalLab.accounts.v1', LS_USER: 'elementalLab.user.v1',
+  list() { try { return JSON.parse(localStorage.getItem(this.LS) || '{}'); } catch (e) { return {}; } },
+  store(a) { try { localStorage.setItem(this.LS, JSON.stringify(a)); } catch (e) { /* ignore */ } },
+  current() { try { const u = localStorage.getItem(this.LS_USER); return u && this.list()[u] ? u : null; } catch (e) { return null; } },
+  key(name) { return name ? 'elementalLab.save.v1.u.' + name : 'elementalLab.save.v1'; },
+  norm(n) { return String(n || '').trim().toLowerCase(); },
+
+  async hash(pw, salt) {
+    const txt = salt + ':' + pw;
+    if (window.crypto && crypto.subtle) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt));
+      return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    let h = ''; for (let i = 0; i < 8; i++) h += (hashStr(txt + i, 7919 + i) >>> 0).toString(16).padStart(8, '0');
+    return h;
+  },
+
+  async signUp(name, pw) {
+    const n = this.norm(name), a = this.list();
+    if (!/^[a-z0-9_ .-]{3,20}$/.test(n)) throw new Error('Username must be 3–20 letters, numbers, spaces, _ . or -');
+    if (String(pw).length < 4) throw new Error('Password must be at least 4 characters');
+    if (a[n]) throw new Error('That username is taken on this device');
+    const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    a[n] = { display: String(name).trim(), salt, hash: await this.hash(pw, salt), created: Date.now(), disc: 4 };
+    this.store(a);
+    this.switchTo(n);
+  },
+
+  async logIn(name, pw) {
+    const n = this.norm(name), u = this.list()[n];
+    if (!u || (await this.hash(pw, u.salt)) !== u.hash) throw new Error('Wrong username or password');
+    this.switchTo(n);
+  },
+
+  logOut() { this.switchTo(null); },
+
+  switchTo(n) {
+    try { if (Save.dirty || G.started) Save.save(); } catch (e) { /* ignore */ }
+    try { if (n) localStorage.setItem(this.LS_USER, n); else localStorage.removeItem(this.LS_USER); } catch (e) { /* ignore */ }
+    location.reload();
+  },
+
+  /** called on every save: keep the player list's discovery count fresh */
+  touch(count) {
+    const n = this.current(); if (!n) return;
+    const a = this.list(); if (!a[n]) return;
+    a[n].disc = count; a[n].last = Date.now(); this.store(a);
+  },
+
+  displayName() { const n = this.current(); return n ? this.list()[n].display : null; },
+
+  // ---------------------------------------------------------------- UI
+  init() {
+    const row = $('acct-row'); if (!row) return;
+    const who = this.displayName();
+    row.innerHTML = who
+      ? `<span>👤 Signed in as <b></b> · ${fmtInt(Progress.order.length)} discoveries</span> <button id="acct-switch">Switch</button> <button id="acct-out">Log out</button>`
+      : `<span>👤 Playing as <b>Guest</b></span> <button id="acct-in" class="primary-s">Log in / Sign up</button>`;
+    if (who) row.querySelector('b').textContent = who;
+    const open = () => this.openPanel();
+    $('acct-in') && ($('acct-in').onclick = open);
+    $('acct-switch') && ($('acct-switch').onclick = open);
+    $('acct-out') && ($('acct-out').onclick = () => this.logOut());
+    $('acct-close').onclick = () => $('acct-panel').classList.add('hidden');
+    const go = (fn) => async () => {
+      const m = $('acct-msg'); m.textContent = '';
+      try { await fn($('acct-name').value, $('acct-pw').value); m.textContent = '✅ Loading your lab…'; }
+      catch (e) { m.textContent = '❌ ' + e.message; }
+    };
+    $('acct-login').onclick = go((a, b) => this.logIn(a, b));
+    $('acct-signup').onclick = go((a, b) => this.signUp(a, b));
+    $('acct-pw').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('acct-login').click(); e.stopPropagation(); });
+    $('acct-name').addEventListener('keydown', (e) => e.stopPropagation());
+  },
+
+  openPanel() {
+    $('acct-panel').classList.remove('hidden'); $('acct-msg').textContent = '';
+    const a = this.list(), cur = this.current();
+    const rows = Object.entries(a).sort((x, y) => (y[1].disc || 0) - (x[1].disc || 0));
+    const box = $('acct-players'); box.innerHTML = '';
+    if (!rows.length) { box.innerHTML = '<div class="acct-empty">No accounts on this device yet. Create one above!</div>'; }
+    rows.forEach(([n, u], i) => {
+      const d = el('div'); d.className = 'acct-p' + (n === cur ? ' me' : '');
+      d.innerHTML = `<span class="rk">#${i + 1}</span><span class="nm"></span><span class="ct">${fmtInt(u.disc || 0)} 🧪</span>`;
+      d.querySelector('.nm').textContent = u.display;
+      d.onclick = () => { $('acct-name').value = u.display; $('acct-pw').focus(); };
+      box.appendChild(d);
+    });
+    setTimeout(() => $('acct-name').focus(), 50);
+  },
+};
+
 // ===================================================================== 23_save.js
 // ============================================================================
 //  ELEMENTAL LAB — 23 · Persistence: autosave to localStorage, plus a
@@ -12336,7 +12466,7 @@ const Book = {
 // ============================================================================
 
 const Save = {
-  KEY: 'elementalLab.save.v1', dirty: false, timer: 0, warned: false,
+  get KEY() { return Accounts.key(Accounts.current()); }, dirty: false, timer: 0, warned: false,
   markDirty() { this.dirty = true; },
 
   data() {
@@ -12362,7 +12492,7 @@ const Save = {
     this.write(json);
   },
   write(str) {
-    try { localStorage.setItem(this.KEY, str); }
+    try { localStorage.setItem(this.KEY, str); Accounts.touch(Progress.order.length); }
     catch (e) { if (!this.warned) { this.warned = true; UI.toast('⚠️', 'Could not save', 'Browser storage is full or disabled — use Save code in the menu.'); } }
   },
   async compress(json) {
@@ -12576,7 +12706,7 @@ async function boot() {
   await Save.load();
   Displays.init();
   Save.restoreWorld();
-  UI.init(); Codex.init(); Input.init(canvas); Touch.init(); Daily.init(); Fun.init(); Horror.init();
+  UI.init(); Codex.init(); Input.init(canvas); Touch.init(); Daily.init(); Fun.init(); Horror.init(); Accounts.init();
   // a few starter elements on the table so the first smash is one grab away
   if (Progress.order.length <= 4) {
     [['water', -0.55], ['fire', 0.55]].forEach(([id, x]) => spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.3, 0.25), { noPop: true }));
@@ -12653,7 +12783,7 @@ function tick(rdt, render = true) {
 
 // ---------------------------------------------------------------- debug / automation API
 window.lab = {
-  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily, Horror,
+  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily, Horror, Accounts,
   spawn(id, x = 0, z = 0.2) { return spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.4, z), { touched: true }); },
   combine(a, b) { const r = Universe.combine(a, b); return r && { ...r, name: Universe.get(r.id).name }; },
   merge(a, b) { Crafting.merge(a, b, 'force'); },

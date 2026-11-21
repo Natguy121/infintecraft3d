@@ -4,7 +4,7 @@
 // ============================================================================
 
 const Save = {
-  KEY: 'elementalLab.save.v1', dirty: false, timer: 0, warned: false,
+  get KEY() { return Accounts.key(Accounts.current()); }, dirty: false, timer: 0, warned: false,
   markDirty() { this.dirty = true; },
 
   data() {
@@ -30,7 +30,7 @@ const Save = {
     this.write(json);
   },
   write(str) {
-    try { localStorage.setItem(this.KEY, str); }
+    try { localStorage.setItem(this.KEY, str); Accounts.touch(Progress.order.length); }
     catch (e) { if (!this.warned) { this.warned = true; UI.toast('⚠️', 'Could not save', 'Browser storage is full or disabled — use Save code in the menu.'); } }
   },
   async compress(json) {
