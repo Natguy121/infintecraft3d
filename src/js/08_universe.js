@@ -232,7 +232,7 @@ const Universe = {
       it.glow = has('fire') && !has('living') ? 0.9 : has('energy') && !has('living') ? 0.75 : has('light') && !has('dark') ? 0.6 :
         has('electric') ? 0.5 : (has('magic') || has('holy')) ? 0.4 : it.shape === 'celestial' ? 0.8 : has('crystal') ? 0.2 : 0;
       it.glowColor = it.glow ? shiftColor(it.color, 0, 0.1, 0.12) : 0;
-      it.opacity = it.material === 'gas' ? 0.6 : (it.material === 'glass' || it.material === 'ice') ? 0.65 : 1;
+      it.opacity = it.material === 'gas' ? 0.6 : (it.material === 'glass' || it.material === 'ice') ? 0.65 : it.shape === 'abstract' ? 0.62 : 1;
       let size = 0.2;
       if (has('tiny')) size *= 0.72;
       if (has('huge')) size *= 1.3;
@@ -284,8 +284,9 @@ const Universe = {
     if (has('robot') || (has('machine') && has('metal'))) return 'metal';
     if (has('living') && !has('machine')) return 'organic';
     for (const m of ['metal', 'crystal', 'glass', 'ice', 'stone', 'wood', 'cloth', 'paper', 'plastic']) if (has(m)) return m;
-    if (has('fire')) return 'fire';
-    if ((has('energy') || has('electric'))) return 'energy';
+    const fiery = ['flame', 'bolt', 'celestial', 'abstract', 'gas', 'orb', 'liquid', 'star5'].includes(it.shape);
+    if (has('fire') && fiery && !has('building')) return 'fire';
+    if ((has('energy') || has('electric')) && fiery) return 'energy';
     if (has('liquid')) return 'liquid';
     if (has('gas')) return 'gas';
     if (has('abstract') || has('emotion') || has('knowledge') || has('time')) return 'ethereal';
@@ -293,6 +294,7 @@ const Universe = {
     if (has('edible')) return 'food';
     if (has('machine')) return 'metal';
     if (has('earth')) return 'soil';
+    if (has('fire')) return it.shape === 'landform' ? 'soil' : 'clay';
     return 'clay';
   },
 
