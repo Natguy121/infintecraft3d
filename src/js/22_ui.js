@@ -39,6 +39,7 @@ const UI = {
       n[prop] = Settings[key];
       n.addEventListener(prop === 'checked' ? 'change' : 'input', () => { Settings[key] = prop === 'checked' ? n.checked : (n.type === 'range' ? parseFloat(n.value) : n.value); saveSettings(); fn && fn(); });
     };
+    bind('set-theme', 'theme', () => Horror.apply(Settings.theme === 'horror'));
     bind('set-quality', 'quality', () => this.status('Quality saved — reload the page to fully apply reflections and shadows.'));
     bind('set-sens', 'sens'); bind('set-vol', 'vol', () => Sound.applyVolumes()); bind('set-music', 'music', () => Sound.applyVolumes());
     bind('set-invert', 'invert', null, 'checked'); bind('set-bob', 'bob', null, 'checked'); bind('set-dof', 'dof', null, 'checked');

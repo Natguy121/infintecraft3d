@@ -8,7 +8,7 @@ const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls)
 
 const LS_SETTINGS = 'elementalLab.settings.v1';
 const DEFAULT_SETTINGS = {
-  quality: 'high', sens: 1, vol: 0.8, music: 0.45, invert: false, bob: true, dof: true, fps: false,
+  quality: 'high', theme: 'normal', sens: 1, vol: 0.8, music: 0.45, invert: false, bob: true, dof: true, fps: false,
   ai: false, key: '', model: 'claude-opus-5-5',
 };
 const Settings = { ...DEFAULT_SETTINGS };

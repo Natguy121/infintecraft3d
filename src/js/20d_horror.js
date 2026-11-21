@@ -4,7 +4,7 @@
 // ============================================================================
 
 const Horror = {
-  hemi: 0.12, sun: 0.35, light: null, figure: null, next: 8, fig: 0, black: 0, beat: 0,
+  on: false, hemi: 0.62, sun: 2.7, light: null, figure: null, next: 8, fig: 0, black: 0, beat: 0,
   msgs: ['IT SEES YOU', 'DON\'T TURN AROUND', 'KEEP CRAFTING', 'YOU ARE NOT ALONE', 'LOOK BEHIND THE WALL', 'IT IS CLOSER'],
 
   init() {
@@ -20,6 +20,29 @@ const Horror = {
     for (const x of [-0.08, 0.08]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 6), eyeM); e.position.set(x, 2.55, 0.19); g.add(e); }
     for (const s of [-1, 1]) { const a = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 1.9, 5), dark); a.position.set(0.3 * s, 1.35, 0); a.rotation.z = 0.08 * s; g.add(a); }
     g.add(body, head); g.visible = false; G.scene.add(g);
+    this.apply(Settings.theme === 'horror');
+  },
+
+  apply(on) {
+    this.on = on;
+    document.body.classList.toggle('horror', on);
+    const S = G.scene, Rm = Room;
+    if (!this.env) this.env = S.environment;
+    S.environment = on ? null : this.env;
+    S.background = new THREE.Color(on ? 0x030305 : 0xeef0f4);
+    S.fog = on ? new THREE.FogExp2(0x050407, 0.045) : new THREE.Fog(0xeef0f4, 45, 150);
+    Rm.hemi.color.setHex(on ? 0x6a7090 : 0xf4f7ff); Rm.hemi.groundColor.setHex(on ? 0x1a0e0e : 0xc9ced8);
+    Rm.sun.color.setHex(on ? 0x9aa6ff : 0xfffaf2);
+    this.hemi = on ? 0.12 : 0.62; this.sun = on ? 0.35 : 2.7;
+    Rm.floorMat.color.setHex(on ? 0x3a3a40 : 0xe4e8ee); Rm.floorMat.envMapIntensity = on ? 0.05 : 0.35;
+    Rm.wallMat.color.setHex(on ? 0x4a4440 : 0xf3f5f9); Rm.wallMat.envMapIntensity = on ? 0.05 : 0.35;
+    if (Progress.wallHue != null) Rm.setWallHue(Progress.wallHue);
+    const cm = Rm.ceil.material; cm.color.setHex(on ? 0x1a1a1e : 0xf2f4f8); cm.emissive.setHex(on ? 0x000000 : 0xc8ccd6);
+    Rm.board.material.color.setScalar(on ? 0.22 : 1);
+    Rm.group.traverse(o => { if (o.userData.panel) o.visible = !on; });
+    this.light.visible = this.aura.visible = on;
+    this.black = 0; this.figure.visible = false;
+    if (!on) { const m = $('horror-msg'); m && m.classList.remove('on'); }
   },
 
   sound(kind) {
@@ -62,7 +85,7 @@ const Horror = {
   },
 
   update(dt) {
-    if (!this.light || !G.camera) return;
+    if (!this.light || !G.camera || !this.on) return;
     const cam = G.camera, L = this.light;
     const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
     L.position.copy(cam.position).addScaledVector(fwd, 0.2).y -= 0.15;

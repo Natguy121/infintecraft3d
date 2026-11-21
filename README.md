@@ -150,7 +150,7 @@ In the browser console, `window.lab` exposes a small debug API, for example `lab
 
 ## After Dark (horror theme)
 
-The lab now runs in the dark. A flashlight follows your gaze, the lights flicker and sometimes cut out completely, and the music is a low, dissonant drone.
+Pick **Theme → Normal or Horror** in Settings. It switches instantly and is remembered. In Horror mode the lab runs in the dark. A flashlight follows your gaze, the lights flicker and sometimes cut out completely, and the music is a low, dissonant drone.
 - **The watcher:** sometimes a tall figure with red eyes appears at the edge of the light, and a heartbeat plays while it's there. Stare at it and it vanishes… or it rushes you.
 - **Whispers:** you'll hear them now and then.
 - **Wall messages:** lines like "DON'T TURN AROUND" flash up.

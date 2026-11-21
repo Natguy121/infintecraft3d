@@ -464,6 +464,24 @@ BUILD.creature = (P, I, kw) => {
     P.seg([0, -0.1, -0.6], [0, -0.45, -1.3], 0.22, c, { cone: true, r2: 0.22 }); return;
   }
   if (K('teddy')) { P.s(0.55, [0, -0.25, 0], c); P.s(0.42, [0, 0.45, 0], c); P.s(0.14, [-0.3, 0.75, 0], c); P.s(0.14, [0.3, 0.75, 0], c); P.s(0.15, [0, 0.38, 0.35], belly); P.eyes(0.14, 0.52, 0.34, 0.07, COL.black, COL.black); for (const s of [-1, 1]) { P.s(0.2, [s * 0.5, -0.1, 0.1], c); P.s(0.22, [s * 0.3, -0.72, 0.15], c); } P.t(0.18, 0.05, [0, 0.1, 0.25], COL.red, [0.3, 0, 0]); return; }
+  if (/^(monster|demon)\b/i.test(I.name) || / (monster|demon)$/i.test(I.name) && !K('lake')) {
+    // hunched horned beast: big shoulders, long clawed arms, fanged maw, red eyes
+    const d = dk(c, 0.06);
+    P.s(0.55, [0, 0.05, -0.05], c, [1.05, 0.95, 0.8]); P.s(0.4, [0, -0.5, 0], d, [0.8, 0.7, 0.65]);
+    P.s(0.3, [0, 0.42, 0.42], c, [1.05, 0.9, 1]);
+    P.b(0.36, 0.1, 0.22, [0, 0.27, 0.6], 0x120608);
+    for (let i = -2; i <= 2; i++) { P.k(0.025, 0.09, [i * 0.07, 0.33, 0.66], 0xf2ead8, [Math.PI, 0, 0]); P.k(0.022, 0.07, [i * 0.07 + 0.035, 0.21, 0.66], 0xf2ead8); }
+    for (const s of [-1, 1]) {
+      P.s(0.06, [s * 0.11, 0.52, 0.66], 0xff1a10); P.s(0.025, [s * 0.11, 0.52, 0.71], 0xffe060);
+      P.k(0.07, 0.42, [s * 0.24, 0.8, 0.3], 0xd8cbb0, [-0.5, 0, -0.6 * s], { seg: 8 });
+      P.s(0.24, [s * 0.55, 0.28, 0], d);
+      P.seg([s * 0.6, 0.2, 0.05], [s * 0.72, -0.45, 0.3], 0.12, c); P.seg([s * 0.72, -0.45, 0.3], [s * 0.65, -0.95, 0.45], 0.1, c);
+      for (let f = -1; f <= 1; f++) P.k(0.025, 0.16, [s * 0.65 + f * 0.05, -1.05, 0.5], 0xe8dcc0, [Math.PI * 0.85, 0, 0]);
+      P.seg([s * 0.25, -0.7, 0], [s * 0.3, -1.05, 0.1], 0.15, d);
+      P.k(0.05, 0.2, [0, 0.45 - (s + 1) * 0.2, -0.45], d, [-1.2, 0, 0]);
+    }
+    return;
+  }
   const upright = K('monkey', 'gorilla', 'kangaroo', 'yeti', 'bigfoot', 'minotaur', 'werewolf', 'sloth', 'meerkat');
   const longLeg = K('horse', 'zebra', 'donkey', 'pony', 'unicorn', 'pegasus', 'deer', 'moose', 'reindeer', 'camel', 'llama', 'goat', 'giraffe', 'centaur', 'cow', 'bull', ' ox ', 'bison', 'cheetah');
   const lowLeg = K('lizard', 'gecko', 'iguana', 'chameleon', 'crocodile', 'alligator', 'turtle', 'tortoise', 'dinosaur', 'dragon', 'armadillo', 'platypus', 'salamander', 'hydra', 'basilisk', 'mole', 'hedgehog', 'snail', 'frog', 'toad');

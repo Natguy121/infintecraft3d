@@ -159,7 +159,7 @@ Reaper|💀|death,evil,mythical,@humanoid,#1a1a24|Death+Scythe;Skeleton+Scythe;D
 Grim Reaper|💀|death,evil,mythical,@humanoid,#0f0f14,!epic|Reaper+Death;Death+Scythe+Cape;Reaper+Darkness
 
 // ---------------- mythical beings ----------------
-Monster|👹|mythical,evil,huge,@creature,#5a8a3a|Animal+Evil;Nightmare+Life;Animal+Huge+Evil;Fear+Life
+Monster|👹|mythical,evil,huge,@creature,#2e2230|Animal+Evil;Nightmare+Life;Animal+Huge+Evil;Fear+Life
 Dragon|🐉|animal,mythical,fire,flying,huge,@creature,#2fa84a,!rare|Lizard+Fire;Lizard+Magic;Dinosaur+Fire;Snake+Wing;Lizard+Wing+Fire
 Baby Dragon|🐲|animal,mythical,fire,tiny,@creature,#5ad86a|Dragon+Egg;Dragon+Baby;Egg+Fire+Magic;Lizard+Fire+Baby
 Ice Dragon|🐉|animal,mythical,cold,ice,flying,@creature,#8ae0ff,!epic|Dragon+Ice;Dragon+Snow;Dragon+Glacier;Dragon+Blizzard
