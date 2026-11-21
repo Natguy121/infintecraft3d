@@ -250,10 +250,10 @@ const Sound = {
     this.musicTimer = setInterval(() => this.scheduleMusic(), 250);
   },
   chords: [
-    [130.81, 196.0, 246.94, 293.66, 329.63],   // Cmaj9
-    [110.0, 164.81, 196.0, 246.94, 261.63],    // Am9
-    [87.31, 174.61, 220.0, 261.63, 329.63],    // Fmaj9
-    [98.0, 146.83, 196.0, 220.0, 293.66],      // G6/9
+    [55.0, 82.41, 130.81, 155.56, 164.81],     // A minor, low, with a clashing E-flat
+    [51.91, 77.78, 123.47, 138.59, 155.56],    // A-flat drone cluster
+    [58.27, 87.31, 138.59, 146.83, 174.61],    // B-flat minor with a semitone rub
+    [49.0, 73.42, 116.54, 146.83, 155.56],     // G diminished smear
   ],
   scheduleMusic() {
     const ctx = this.ctx;
@@ -267,10 +267,10 @@ const Sound = {
     }
     while (this.nextBell < ahead) {
       const chord = this.chords[(this.chordIdx + 3) % this.chords.length];
-      const f = chord[1 + Math.floor(Math.random() * 4)] * (Math.random() < 0.5 ? 4 : 2);
+      const f = chord[1 + Math.floor(Math.random() * 4)] * (Math.random() < 0.5 ? 4 : 2) * (1 + (Math.random() - 0.5) * 0.03);
       const t = this.nextBell - ctx.currentTime;
       if (t >= 0) this.bell(f, { vol: 0.05 + Math.random() * 0.03, dur: 2.2, delay: t, pan: Math.random() * 1.2 - 0.6, verb: 0.9, dest: this.music });
-      this.nextBell += (1.1 + Math.random() * 2.6) * speed;
+      this.nextBell += (3 + Math.random() * 7) * speed;
     }
     if (G.effects.disco > 0) {
       if (this.nextBeat < ctx.currentTime) this.nextBeat = ctx.currentTime + 0.05;

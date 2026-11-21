@@ -147,3 +147,11 @@ In the browser console, `window.lab` exposes a small debug API, for example `lab
 - **Bonus XP:** your first discovery of the day pays ×3, and a 6% lucky craft pays a ×5 jackpot.
 - **"✨ N new items within reach":** this counter shows how many new items your current discoveries can make.
 - **Big Item Yard:** anything big you craft or spawn (houses, castles, whales, clouds…) is delivered to the yard behind the shelf wall, laid out in neat rows.
+
+## After Dark (horror theme)
+
+The lab now runs in the dark. A flashlight follows your gaze, the lights flicker and sometimes cut out completely, and the music is a low, dissonant drone.
+- **The watcher:** sometimes a tall figure with red eyes appears at the edge of the light, and a heartbeat plays while it's there. Stare at it and it vanishes… or it rushes you.
+- **Whispers:** you'll hear them now and then.
+- **Wall messages:** lines like "DON'T TURN AROUND" flash up.
+- **The look:** film grain, a heavy vignette and a dark red UI.

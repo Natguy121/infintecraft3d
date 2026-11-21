@@ -52,15 +52,15 @@ const Room = {
     scene.add(g);
     const R = LAYOUT.room;
     const W = R.x1 - R.x0, D = R.z1 - R.z0, cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2;
-    scene.background = new THREE.Color(0xeef0f4);
-    scene.fog = new THREE.Fog(0xeef0f4, 45, 150);
+    scene.background = new THREE.Color(0x030305);
+    scene.fog = new THREE.FogExp2(0x050407, 0.045);
 
     // ---- environment map (soft studio box) for reflections on metal/glass
     const env = new THREE.Scene();
-    const envBox = new THREE.Mesh(new THREE.BoxGeometry(W, R.h, D), new THREE.MeshBasicMaterial({ color: 0xdfe3ea, side: THREE.BackSide }));
+    const envBox = new THREE.Mesh(new THREE.BoxGeometry(W, R.h, D), new THREE.MeshBasicMaterial({ color: 0x141218, side: THREE.BackSide }));
     envBox.position.set(cx, R.h / 2, cz); env.add(envBox);
     for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(5, 5, 5.2), side: THREE.DoubleSide }));
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 0.15, 0.12), side: THREE.DoubleSide }));
       p.rotation.x = Math.PI / 2; p.position.set(-45 + i * 30, R.h - 0.05, -45 + j * 30); env.add(p);
     }
     const envFloor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ color: 0x9aa0aa }));
@@ -70,9 +70,9 @@ const Room = {
     pmrem.dispose();
 
     // ---- lights
-    const hemi = new THREE.HemisphereLight(0xf4f7ff, 0xc9ced8, 0.62);
+    const hemi = new THREE.HemisphereLight(0x6a7090, 0x1a0e0e, 0.12);
     scene.add(hemi);
-    const sun = this.sun = new THREE.DirectionalLight(0xfffaf2, 2.7);
+    const sun = this.sun = new THREE.DirectionalLight(0x9aa6ff, 0.35);
     sun.position.set(13, 37, 17);
     sun.target.position.set(0, 0, 0);
     sun.castShadow = true;
@@ -84,7 +84,7 @@ const Room = {
 
     // ---- floor with planar reflection
     const floorTex = Tex.floor(); floorTex.repeat.set(W / 4, D / 4);
-    const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, color: 0xe4e8ee, roughness: 0.34, metalness: 0, envMapIntensity: 0.35 });
+    const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, color: 0x3a3a40, roughness: 0.22, metalness: 0, envMapIntensity: 0.35 });
     if (Q().reflection) {
       floorMat.onBeforeCompile = (sh) => {
         Object.assign(sh.uniforms, Reflector.uniforms);
@@ -103,16 +103,16 @@ const Room = {
 
     // ---- walls & ceiling
     const wallTex = Tex.wall(); wallTex.repeat.set(4, 1.4);
-    this.wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.92, color: 0xf3f5f9, envMapIntensity: 0.35 });
+    this.wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.92, color: 0x4a4440, envMapIntensity: 0.35 });
     const wall = (w, h, x, y, z, ry) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), this.wallMat); m.position.set(x, y, z); m.rotation.y = ry; m.receiveShadow = true; g.add(m); return m; };
     wall(W, R.h, cx, R.h / 2, R.z0, 0);
     wall(W, R.h, cx, R.h / 2, R.z1, Math.PI);
     wall(D, R.h, R.x0, R.h / 2, cz, Math.PI / 2);
     wall(D, R.h, R.x1, R.h / 2, cz, -Math.PI / 2);
-    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: 0xf2f4f8, roughness: 1, emissive: 0xc8ccd6, emissiveIntensity: 0.55 }));
+    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 1, emissive: 0x000000, emissiveIntensity: 0 }));
     ceil.rotation.x = Math.PI / 2; ceil.position.set(cx, R.h, cz); g.add(ceil);
     for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.6, 1.65), fog: false }));
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.25, 0.22, 0.2), fog: false }));
       p.rotation.x = Math.PI / 2; p.position.set(-45 + i * 30, R.h - 0.02, -45 + j * 30); g.add(p);
     }
     // freestanding partition behind the Discovery Shelf (the room walls are far away now)
@@ -142,8 +142,8 @@ const Room = {
     const sub = labelPlane('Combine · Discover · Repeat', 30, 3, { font: '700 54px', color: '#6b7388' });
     sub.position.set(R.x0 + 0.05, 20, 0); sub.rotation.y = Math.PI / 2; g.add(sub);
     const board = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.7), new THREE.MeshBasicMaterial({ map: canvasTex(1024, 512, (c, w, h) => {
-      c.fillStyle = '#fbfcfe'; roundRect(c, 4, 4, w - 8, h - 8, 30); c.fill(); c.strokeStyle = '#dfe3ea'; c.lineWidth = 6; c.stroke();
-      c.fillStyle = '#2b3245'; c.font = '900 44px ui-rounded, system-ui'; c.fillText('THE FOUR ELEMENTS', 50, 80);
+      c.fillStyle = '#1a1214'; roundRect(c, 4, 4, w - 8, h - 8, 30); c.fill(); c.strokeStyle = '#5a1a1e'; c.lineWidth = 6; c.stroke();
+      c.fillStyle = '#d8c8c0'; c.font = '900 44px ui-rounded, system-ui'; c.fillText('THE FOUR ELEMENTS', 50, 80);
       const els = [['💨', 'Air', '#9fd8ff'], ['🔥', 'Fire', '#ff7a2a'], ['🌍', 'Earth', '#b08850'], ['💧', 'Water', '#2f8cff']];
       els.forEach(([e, n, col], i) => { const x = 50 + i * 235; c.fillStyle = col; c.globalAlpha = 0.18; roundRect(c, x, 120, 210, 230, 24); c.fill(); c.globalAlpha = 1; c.font = `110px ${EMOJI_FONT}`; c.fillText(e, x + 45, 270); c.fillStyle = '#2b3245'; c.font = '800 38px ui-rounded, system-ui'; c.fillText(n, x + 60, 335); });
       c.fillStyle = '#6b7388'; c.font = '600 30px ui-rounded, system-ui'; c.fillText('Smash two things together, hold them touching, or press E.', 50, 430);
@@ -314,12 +314,12 @@ const Room = {
       const a = G.time * (1.3 + i * 0.3) + i * 1.6;
       L.position.set(Math.cos(a) * 3.5, 2.2 + Math.sin(a * 1.7) * 0.8, 1 + Math.sin(a) * 3);
     });
-    this.hemi.intensity = d > 0 ? 0.25 : lerp(this.hemi.intensity, G.effects.starfield > 0 ? 0.12 : 0.62, 1 - Math.exp(-dt * 2));
-    this.sun.intensity = d > 0 ? 0.5 : lerp(this.sun.intensity, G.effects.starfield > 0 ? 0.25 : 2.7, 1 - Math.exp(-dt * 2));
+    this.hemi.intensity = d > 0 ? 0.25 : lerp(this.hemi.intensity, G.effects.starfield > 0 ? 0.05 : Horror.hemi, 1 - Math.exp(-dt * 8));
+    this.sun.intensity = d > 0 ? 0.5 : lerp(this.sun.intensity, G.effects.starfield > 0 ? 0.1 : Horror.sun, 1 - Math.exp(-dt * 8));
   },
 
   setWallHue(hue) {
-    const target = hue == null ? new THREE.Color(0xffffff) : new THREE.Color().setHSL(hue, 0.55, 0.82);
+    const target = hue == null ? new THREE.Color(0x4a4440) : new THREE.Color().setHSL(hue, 0.4, 0.3);
     const from = this.wallMat.color.clone();
     Tweens.add(1.6, (k) => this.wallMat.color.copy(from).lerp(target, ease.inOut(k)));
   },

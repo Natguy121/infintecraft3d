@@ -8,10 +8,10 @@
 <meta name="description" content="Elemental Lab — Infinite Craft in 3D. A physics crafting sandbox with 300,000+ procedurally generated discoveries.">
 <style>
 :root {
-  --ink: #1d2230; --ink2: #5b6375; --ink3: #8b93a5; --line: rgba(20, 28, 50, .1);
-  --glass: rgba(255, 255, 255, .78); --glass2: rgba(255, 255, 255, .92); --accent: #6d5cff; --accent2: #22c7e8;
+  --ink: #e8dcd6; --ink2: #a8968f; --ink3: #75665f; --line: rgba(255, 60, 50, .14);
+  --glass: rgba(14, 10, 12, .78); --glass2: rgba(20, 12, 14, .94); --accent: #c81e2a; --accent2: #ff5a3c;
   --r0: #9aa1ab; --r1: #2fbf63; --r2: #3b82f6; --r3: #a855f7; --r4: #f5b301; --r5: #ff4fd8;
-  --shadow: 0 10px 40px rgba(30, 40, 80, .16), 0 2px 8px rgba(30, 40, 80, .08);
+  --shadow: 0 10px 40px rgba(0, 0, 0, .6), 0 0 12px rgba(160, 10, 20, .15);
   --font: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 * { box-sizing: border-box; }
@@ -163,7 +163,7 @@ kbd { display: inline-block; min-width: 22px; padding: 2px 7px; border-radius: 6
 #book-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
 
 /* ---------- menu ---------- */
-#menu { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, .55), rgba(225, 230, 242, .78)); backdrop-filter: blur(6px); }
+#menu { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 30%, rgba(40, 6, 8, .55), rgba(0, 0, 0, .92)); backdrop-filter: blur(4px); }
 .menu-card { width: min(720px, 94vw); max-height: 94vh; overflow-y: auto; padding: 34px 38px 28px; border-radius: 28px; background: rgba(255, 255, 255, .9); box-shadow: 0 30px 90px rgba(30, 40, 80, .25); text-align: center; }
 .logo { font-size: 58px; filter: drop-shadow(0 8px 16px rgba(109, 92, 255, .35)); animation: bob 3s ease-in-out infinite; }
 @keyframes bob { 50% { transform: translateY(-6px) rotate(-4deg); } }
@@ -224,10 +224,18 @@ body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 2
   #hint-bar { display: none; }
   .menu-card { padding: 24px 16px; }
 }
+#horror-vig { position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.92)); }
+#horror-vig.pulse { animation: hpulse .9s ease-out; }
+@keyframes hpulse { 0% { background-color: rgba(140,0,0,.45); } 100% { background-color: transparent; } }
+#horror-grain { position: absolute; inset: -50%; pointer-events: none; z-index: 1; opacity: .07; background-image: repeating-radial-gradient(circle at 17% 32%, #fff 0 1px, transparent 1px 3px); animation: grain .4s steps(4) infinite; }
+@keyframes grain { 0% { transform: translate(0,0); } 25% { transform: translate(-3%,2%); } 50% { transform: translate(2%,-3%); } 75% { transform: translate(-1%,3%); } }
+#horror-msg { position: absolute; left: 50%; top: 38%; transform: translateX(-50%); z-index: 2; pointer-events: none; font: 900 34px Georgia, serif; color: #b0101a; letter-spacing: .25em; text-shadow: 0 0 18px #000; opacity: 0; transition: opacity 1.2s; }
+#horror-msg.on { opacity: .85; }
 </style>
 </head>
 <body>
 <canvas id="c" tabindex="0"></canvas>
+<div id="horror-vig"></div><div id="horror-grain"></div><div id="horror-msg"></div>
 <div id="ui">
   <div id="vignette"></div>
   <div id="labels"></div>
@@ -286,7 +294,7 @@ body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 2
   <div id="menu">
     <div class="menu-card">
       <div class="logo">⚗️</div>
-      <h1>Elemental Lab</h1>
+      <h1>Elemental Lab <span style="color:#c81e2a;font-family:Georgia,serif">· After Dark</span></h1>
       <p class="sub">Infinite Craft, in 3D. Grab, toss, smash and fuse the four elements into <b>300,000+</b> discoveries, from Steam to the Multiverse.</p>
       <div class="elems"><span>💨</span><span>🔥</span><span>🌍</span><span>💧</span></div>
       <button id="btn-play" class="primary">Enter the Lab</button>
@@ -7655,10 +7663,10 @@ const Sound = {
     this.musicTimer = setInterval(() => this.scheduleMusic(), 250);
   },
   chords: [
-    [130.81, 196.0, 246.94, 293.66, 329.63],   // Cmaj9
-    [110.0, 164.81, 196.0, 246.94, 261.63],    // Am9
-    [87.31, 174.61, 220.0, 261.63, 329.63],    // Fmaj9
-    [98.0, 146.83, 196.0, 220.0, 293.66],      // G6/9
+    [55.0, 82.41, 130.81, 155.56, 164.81],     // A minor, low, with a clashing E-flat
+    [51.91, 77.78, 123.47, 138.59, 155.56],    // A-flat drone cluster
+    [58.27, 87.31, 138.59, 146.83, 174.61],    // B-flat minor with a semitone rub
+    [49.0, 73.42, 116.54, 146.83, 155.56],     // G diminished smear
   ],
   scheduleMusic() {
     const ctx = this.ctx;
@@ -7672,10 +7680,10 @@ const Sound = {
     }
     while (this.nextBell < ahead) {
       const chord = this.chords[(this.chordIdx + 3) % this.chords.length];
-      const f = chord[1 + Math.floor(Math.random() * 4)] * (Math.random() < 0.5 ? 4 : 2);
+      const f = chord[1 + Math.floor(Math.random() * 4)] * (Math.random() < 0.5 ? 4 : 2) * (1 + (Math.random() - 0.5) * 0.03);
       const t = this.nextBell - ctx.currentTime;
       if (t >= 0) this.bell(f, { vol: 0.05 + Math.random() * 0.03, dur: 2.2, delay: t, pan: Math.random() * 1.2 - 0.6, verb: 0.9, dest: this.music });
-      this.nextBell += (1.1 + Math.random() * 2.6) * speed;
+      this.nextBell += (3 + Math.random() * 7) * speed;
     }
     if (G.effects.disco > 0) {
       if (this.nextBeat < ctx.currentTime) this.nextBeat = ctx.currentTime + 0.05;
@@ -9953,15 +9961,15 @@ const Room = {
     scene.add(g);
     const R = LAYOUT.room;
     const W = R.x1 - R.x0, D = R.z1 - R.z0, cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2;
-    scene.background = new THREE.Color(0xeef0f4);
-    scene.fog = new THREE.Fog(0xeef0f4, 45, 150);
+    scene.background = new THREE.Color(0x030305);
+    scene.fog = new THREE.FogExp2(0x050407, 0.045);
 
     // ---- environment map (soft studio box) for reflections on metal/glass
     const env = new THREE.Scene();
-    const envBox = new THREE.Mesh(new THREE.BoxGeometry(W, R.h, D), new THREE.MeshBasicMaterial({ color: 0xdfe3ea, side: THREE.BackSide }));
+    const envBox = new THREE.Mesh(new THREE.BoxGeometry(W, R.h, D), new THREE.MeshBasicMaterial({ color: 0x141218, side: THREE.BackSide }));
     envBox.position.set(cx, R.h / 2, cz); env.add(envBox);
     for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(5, 5, 5.2), side: THREE.DoubleSide }));
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 0.15, 0.12), side: THREE.DoubleSide }));
       p.rotation.x = Math.PI / 2; p.position.set(-45 + i * 30, R.h - 0.05, -45 + j * 30); env.add(p);
     }
     const envFloor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ color: 0x9aa0aa }));
@@ -9971,9 +9979,9 @@ const Room = {
     pmrem.dispose();
 
     // ---- lights
-    const hemi = new THREE.HemisphereLight(0xf4f7ff, 0xc9ced8, 0.62);
+    const hemi = new THREE.HemisphereLight(0x6a7090, 0x1a0e0e, 0.12);
     scene.add(hemi);
-    const sun = this.sun = new THREE.DirectionalLight(0xfffaf2, 2.7);
+    const sun = this.sun = new THREE.DirectionalLight(0x9aa6ff, 0.35);
     sun.position.set(13, 37, 17);
     sun.target.position.set(0, 0, 0);
     sun.castShadow = true;
@@ -9985,7 +9993,7 @@ const Room = {
 
     // ---- floor with planar reflection
     const floorTex = Tex.floor(); floorTex.repeat.set(W / 4, D / 4);
-    const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, color: 0xe4e8ee, roughness: 0.34, metalness: 0, envMapIntensity: 0.35 });
+    const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, color: 0x3a3a40, roughness: 0.22, metalness: 0, envMapIntensity: 0.35 });
     if (Q().reflection) {
       floorMat.onBeforeCompile = (sh) => {
         Object.assign(sh.uniforms, Reflector.uniforms);
@@ -10004,16 +10012,16 @@ const Room = {
 
     // ---- walls & ceiling
     const wallTex = Tex.wall(); wallTex.repeat.set(4, 1.4);
-    this.wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.92, color: 0xf3f5f9, envMapIntensity: 0.35 });
+    this.wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.92, color: 0x4a4440, envMapIntensity: 0.35 });
     const wall = (w, h, x, y, z, ry) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), this.wallMat); m.position.set(x, y, z); m.rotation.y = ry; m.receiveShadow = true; g.add(m); return m; };
     wall(W, R.h, cx, R.h / 2, R.z0, 0);
     wall(W, R.h, cx, R.h / 2, R.z1, Math.PI);
     wall(D, R.h, R.x0, R.h / 2, cz, Math.PI / 2);
     wall(D, R.h, R.x1, R.h / 2, cz, -Math.PI / 2);
-    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: 0xf2f4f8, roughness: 1, emissive: 0xc8ccd6, emissiveIntensity: 0.55 }));
+    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 1, emissive: 0x000000, emissiveIntensity: 0 }));
     ceil.rotation.x = Math.PI / 2; ceil.position.set(cx, R.h, cz); g.add(ceil);
     for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.6, 1.65), fog: false }));
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.25, 0.22, 0.2), fog: false }));
       p.rotation.x = Math.PI / 2; p.position.set(-45 + i * 30, R.h - 0.02, -45 + j * 30); g.add(p);
     }
     // freestanding partition behind the Discovery Shelf (the room walls are far away now)
@@ -10043,8 +10051,8 @@ const Room = {
     const sub = labelPlane('Combine · Discover · Repeat', 30, 3, { font: '700 54px', color: '#6b7388' });
     sub.position.set(R.x0 + 0.05, 20, 0); sub.rotation.y = Math.PI / 2; g.add(sub);
     const board = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.7), new THREE.MeshBasicMaterial({ map: canvasTex(1024, 512, (c, w, h) => {
-      c.fillStyle = '#fbfcfe'; roundRect(c, 4, 4, w - 8, h - 8, 30); c.fill(); c.strokeStyle = '#dfe3ea'; c.lineWidth = 6; c.stroke();
-      c.fillStyle = '#2b3245'; c.font = '900 44px ui-rounded, system-ui'; c.fillText('THE FOUR ELEMENTS', 50, 80);
+      c.fillStyle = '#1a1214'; roundRect(c, 4, 4, w - 8, h - 8, 30); c.fill(); c.strokeStyle = '#5a1a1e'; c.lineWidth = 6; c.stroke();
+      c.fillStyle = '#d8c8c0'; c.font = '900 44px ui-rounded, system-ui'; c.fillText('THE FOUR ELEMENTS', 50, 80);
       const els = [['💨', 'Air', '#9fd8ff'], ['🔥', 'Fire', '#ff7a2a'], ['🌍', 'Earth', '#b08850'], ['💧', 'Water', '#2f8cff']];
       els.forEach(([e, n, col], i) => { const x = 50 + i * 235; c.fillStyle = col; c.globalAlpha = 0.18; roundRect(c, x, 120, 210, 230, 24); c.fill(); c.globalAlpha = 1; c.font = `110px ${EMOJI_FONT}`; c.fillText(e, x + 45, 270); c.fillStyle = '#2b3245'; c.font = '800 38px ui-rounded, system-ui'; c.fillText(n, x + 60, 335); });
       c.fillStyle = '#6b7388'; c.font = '600 30px ui-rounded, system-ui'; c.fillText('Smash two things together, hold them touching, or press E.', 50, 430);
@@ -10215,12 +10223,12 @@ const Room = {
       const a = G.time * (1.3 + i * 0.3) + i * 1.6;
       L.position.set(Math.cos(a) * 3.5, 2.2 + Math.sin(a * 1.7) * 0.8, 1 + Math.sin(a) * 3);
     });
-    this.hemi.intensity = d > 0 ? 0.25 : lerp(this.hemi.intensity, G.effects.starfield > 0 ? 0.12 : 0.62, 1 - Math.exp(-dt * 2));
-    this.sun.intensity = d > 0 ? 0.5 : lerp(this.sun.intensity, G.effects.starfield > 0 ? 0.25 : 2.7, 1 - Math.exp(-dt * 2));
+    this.hemi.intensity = d > 0 ? 0.25 : lerp(this.hemi.intensity, G.effects.starfield > 0 ? 0.05 : Horror.hemi, 1 - Math.exp(-dt * 8));
+    this.sun.intensity = d > 0 ? 0.5 : lerp(this.sun.intensity, G.effects.starfield > 0 ? 0.1 : Horror.sun, 1 - Math.exp(-dt * 8));
   },
 
   setWallHue(hue) {
-    const target = hue == null ? new THREE.Color(0xffffff) : new THREE.Color().setHSL(hue, 0.55, 0.82);
+    const target = hue == null ? new THREE.Color(0x4a4440) : new THREE.Color().setHSL(hue, 0.4, 0.3);
     const from = this.wallMat.color.clone();
     Tweens.add(1.6, (k) => this.wallMat.color.copy(from).lerp(target, ease.inOut(k)));
   },
@@ -11595,6 +11603,102 @@ const Fun = {
   },
 };
 
+// ===================================================================== 20d_horror.js
+// ============================================================================
+//  ELEMENTAL LAB — 20d · Horror atmosphere: flashlight, flickering lights,
+//  blackouts, a watcher in the dark, whispers, heartbeat and wall messages
+// ============================================================================
+
+const Horror = {
+  hemi: 0.12, sun: 0.35, light: null, figure: null, next: 8, fig: 0, black: 0, beat: 0,
+  msgs: ['IT SEES YOU', 'DON\'T TURN AROUND', 'KEEP CRAFTING', 'YOU ARE NOT ALONE', 'LOOK BEHIND THE WALL', 'IT IS CLOSER'],
+
+  init() {
+    const L = this.light = new THREE.SpotLight(0xfff1d6, 26, 38, 0.42, 0.55, 1.6);
+    G.scene.add(L, L.target);
+    const am = new THREE.PointLight(0xffd9b0, 0.9, 4, 2); G.scene.add(am); this.aura = am;
+    // the watcher: a tall, thin silhouette with two red eyes
+    const g = this.figure = new THREE.Group();
+    const dark = new THREE.MeshBasicMaterial({ color: 0x000000, fog: false });
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.32, 2.3, 8), dark); body.position.y = 1.15;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), dark); head.position.y = 2.5; head.scale.y = 1.25;
+    const eyeM = new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 0.1, 0.05), fog: false });
+    for (const x of [-0.08, 0.08]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 6), eyeM); e.position.set(x, 2.55, 0.19); g.add(e); }
+    for (const s of [-1, 1]) { const a = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 1.9, 5), dark); a.position.set(0.3 * s, 1.35, 0); a.rotation.z = 0.08 * s; g.add(a); }
+    g.add(body, head); g.visible = false; G.scene.add(g);
+  },
+
+  sound(kind) {
+    const S = typeof Sound !== 'undefined' ? Sound : null;
+    if (!S || !S.ctx || S.muted) return;
+    try {
+      if (kind === 'whisper') for (let i = 0; i < 6; i++) S.noiseBurst(0.12 + Math.random() * 0.2, { vol: 0.05, type: 'bandpass', freq: 1800 + Math.random() * 2500, delay: i * 0.18, verb: 0.9 });
+      else if (kind === 'beat') { S.tone(52, 0.18, { vol: 0.5, glide: 38, verb: 0.1 }); S.tone(48, 0.2, { vol: 0.4, glide: 35, delay: 0.24, verb: 0.1 }); }
+      else if (kind === 'sting') { S.tone(1244, 1.2, { type: 'sawtooth', vol: 0.06, glide: 1180, verb: 0.8 }); S.tone(1318, 1.2, { type: 'sawtooth', vol: 0.06, verb: 0.8 }); S.noiseBurst(0.6, { vol: 0.12, type: 'lowpass', freq: 400, verb: 0.6 }); }
+      else if (kind === 'buzz') S.tone(120, 0.08, { type: 'square', vol: 0.03, verb: 0.2 });
+    } catch (e) { /* audio optional */ }
+  },
+
+  say(text) {
+    const m = $('horror-msg'); if (!m) return;
+    m.textContent = text; m.classList.add('on');
+    clearTimeout(this._mt); this._mt = setTimeout(() => m.classList.remove('on'), 2600);
+  },
+
+  scare() {
+    const v = $('horror-vig'); if (v) { v.classList.remove('pulse'); void v.offsetWidth; v.classList.add('pulse'); }
+    this.sound('sting');
+  },
+
+  event() {
+    const r = Math.random();
+    if (r < 0.35) { this.black = 1.2 + Math.random() * 1.8; this.sound('buzz'); }
+    else if (r < 0.7) this.showFigure();
+    else if (r < 0.88) this.sound('whisper');
+    else this.say(this.msgs[Math.floor(Math.random() * this.msgs.length)]);
+  },
+
+  showFigure() {
+    const cam = G.camera, yaw = Player.yaw || 0;
+    // appear somewhere in front-ish, out at the edge of the flashlight
+    const a = yaw + Math.PI + (Math.random() - 0.5) * 1.6, d = 14 + Math.random() * 10;
+    const x = clamp(cam.position.x - Math.sin(a + Math.PI) * d, LAYOUT.room.x0 + 2, LAYOUT.room.x1 - 2);
+    const z = clamp(cam.position.z - Math.cos(a + Math.PI) * d, LAYOUT.room.z0 + 2, LAYOUT.room.z1 - 2);
+    this.figure.position.set(x, 0, z); this.figure.visible = true; this.fig = 6; this.seen = 0;
+  },
+
+  update(dt) {
+    if (!this.light || !G.camera) return;
+    const cam = G.camera, L = this.light;
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
+    L.position.copy(cam.position).addScaledVector(fwd, 0.2).y -= 0.15;
+    L.target.position.copy(cam.position).addScaledVector(fwd, 10);
+    this.aura.position.copy(cam.position);
+    // flicker + blackouts
+    const flick = Math.random() < 0.02 ? 0.25 : 1;
+    if (this.black > 0) { this.black -= dt; L.intensity = Math.random() < 0.06 ? 10 : 0; this.hemi = 0.0; this.sun = 0.0; }
+    else { L.intensity = 26 * flick; this.hemi = 0.12 * (Math.random() < 0.03 ? 0.2 : 1); this.sun = 0.35; }
+    if (!G.started || G.ui) return;
+    this.next -= dt;
+    if (this.next <= 0) { this.event(); this.next = 14 + Math.random() * 26; }
+    // heartbeat speeds up while the watcher is out there
+    this.beat -= dt;
+    if (this.figure.visible && this.beat <= 0) { this.sound('beat'); this.beat = 0.8; }
+    if (this.figure.visible) {
+      const f = this.figure; f.lookAt(cam.position.x, 0, cam.position.z);
+      this.fig -= dt;
+      const to = new THREE.Vector3().subVectors(f.position, cam.position); to.y += 1.4;
+      const dist = to.length(); to.normalize();
+      if (to.dot(fwd) > 0.93) this.seen += dt;
+      // stare at it and it vanishes… or it rushes you
+      if (this.seen > 0.7) {
+        if (Math.random() < 0.3) { f.position.lerp(cam.position, 0.75); f.position.y = 0; this.scare(); this.black = 0.6; }
+        f.visible = false;
+      } else if (this.fig <= 0 || dist < 4) f.visible = false;
+    }
+  },
+};
+
 // ===================================================================== 21_llm.js
 // ============================================================================
 //  ELEMENTAL LAB — 21 · Optional LLM fallback (Layer E)
@@ -12419,7 +12523,7 @@ async function boot() {
   await Save.load();
   Displays.init();
   Save.restoreWorld();
-  UI.init(); Codex.init(); Input.init(canvas); Touch.init(); Daily.init(); Fun.init();
+  UI.init(); Codex.init(); Input.init(canvas); Touch.init(); Daily.init(); Fun.init(); Horror.init();
   // a few starter elements on the table so the first smash is one grab away
   if (Progress.order.length <= 4) {
     [['water', -0.55], ['fire', 0.55]].forEach(([id, x]) => spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.3, 0.25), { noPop: true }));
@@ -12482,7 +12586,7 @@ function tick(rdt, render = true) {
   Labels.update();
   UI.update(rdt);
   Touch.update();
-  Fun.update(rdt);
+  Fun.update(rdt); Horror.update(rdt);
   EmojiAtlas.flush();
   if (!render) { Save.update(rdt); Input.endFrame(); return; }
   const r = G.renderer, cam = G.camera;
@@ -12496,7 +12600,7 @@ function tick(rdt, render = true) {
 
 // ---------------------------------------------------------------- debug / automation API
 window.lab = {
-  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily,
+  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily, Horror,
   spawn(id, x = 0, z = 0.2) { return spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.4, z), { touched: true }); },
   combine(a, b) { const r = Universe.combine(a, b); return r && { ...r, name: Universe.get(r.id).name }; },
   merge(a, b) { Crafting.merge(a, b, 'force'); },
