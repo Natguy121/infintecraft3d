@@ -33,6 +33,13 @@ Items also merge when they **collide hard** (one of them thrown or swung by you 
 **two or more items into the glowing Fusion Ring** on the table for multi-input recipes such as
 Fire + Water + Earth = Life.
 
+### On phones and tablets
+
+Touch devices get their own controls automatically: a left thumbstick (push to the edge to sprint), drag anywhere on
+the right to look, tap to grab or drop, and buttons for Grab (hold), Throw (swipe just before for power), Fuse
+(hold, like `E`), Rotate, push/pull, Jump, Shelf, Split mode, Codex, Recipes, Hint and Pause. Landscape works best.
+Phones start on the Low graphics preset; change it in Settings.
+
 ## The lab
 
 - **Element pedestals** never run out. Grab the floating copy and a new one materialises.

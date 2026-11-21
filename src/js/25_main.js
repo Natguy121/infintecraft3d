@@ -34,7 +34,7 @@ async function boot() {
   await Save.load();
   Displays.init();
   Save.restoreWorld();
-  UI.init(); Codex.init(); Input.init(canvas);
+  UI.init(); Codex.init(); Input.init(canvas); Touch.init();
   // a few starter elements on the table so the first smash is one grab away
   if (Progress.order.length <= 4) {
     [['water', -0.55], ['fire', 0.55]].forEach(([id, x]) => spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.3, 0.25), { noPop: true }));
@@ -96,6 +96,7 @@ function tick(rdt, render = true) {
   G.lookTarget = G.locked && !G.ui ? pickTarget(REACH, Player.held) : null;
   Labels.update();
   UI.update(rdt);
+  Touch.update();
   EmojiAtlas.flush();
   if (!render) { Save.update(rdt); Input.endFrame(); return; }
   const r = G.renderer, cam = G.camera;

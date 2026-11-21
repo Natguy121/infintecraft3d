@@ -92,8 +92,9 @@ const Player = {
       const f = (K.has('KeyW') ? 1 : 0) - (K.has('KeyS') ? 1 : 0), s = (K.has('KeyD') ? 1 : 0) - (K.has('KeyA') ? 1 : 0);
       mx = fx * f + rx * s; mz = fz * f + rz * s;
       const l = Math.hypot(mx, mz); if (l > 0) { mx /= l; mz /= l; }
+      if (!l && (Touch.move.x || Touch.move.y)) { mx = fx * Touch.move.y + rx * Touch.move.x; mz = fz * Touch.move.y + rz * Touch.move.x; }
     }
-    const sprint = K.has('ShiftLeft') || K.has('ShiftRight');
+    const sprint = K.has('ShiftLeft') || K.has('ShiftRight') || Touch.sprint;
     const speed = sprint ? 6.2 : 3.6;
     this.grounded = this.checkGround();
     const acc = this.grounded ? 14 : 3.5;

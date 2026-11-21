@@ -13,6 +13,8 @@ const DEFAULT_SETTINGS = {
 };
 const Settings = { ...DEFAULT_SETTINGS };
 try { Object.assign(Settings, JSON.parse(localStorage.getItem(LS_SETTINGS) || '{}')); } catch (e) { /* private mode */ }
+// phones & tablets start on the fastest preset unless the player chose otherwise
+try { if (!localStorage.getItem(LS_SETTINGS) && typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) { Settings.quality = 'low'; Settings.bob = false; } } catch (e) { /* ignore */ }
 function saveSettings() { try { localStorage.setItem(LS_SETTINGS, JSON.stringify(Settings)); } catch (e) { /* ignore */ } }
 
 const QUALITY = {

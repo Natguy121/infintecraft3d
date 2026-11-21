@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#eef0f4">
 <title>Elemental Lab</title>
 <meta name="description" content="Elemental Lab — Infinite Craft in 3D. A physics crafting sandbox with 300,000+ procedurally generated discoveries.">
 <style>
@@ -172,6 +173,34 @@ textarea { width: 100%; min-height: 90px; font-size: 12px; font-family: ui-monos
 #loading .spin { width: 44px; height: 44px; border-radius: 50%; border: 4px solid rgba(109, 92, 255, .2); border-top-color: var(--accent); animation: sp 0.8s linear infinite; }
 @keyframes sp { to { transform: rotate(360deg); } }
 #err { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: 80vw; background: #fff0f0; color: #a3202d; padding: 10px 14px; border-radius: 12px; font-size: 13px; box-shadow: var(--shadow); white-space: pre-wrap; z-index: 20; }
+/* ---------- touch controls ---------- */
+canvas#c { touch-action: none; }
+body.touch #hint-bar, body.touch #hud-tr .pill:not(#fps-pill), body.touch #tooltip .tt-act { display: none !important; }
+body.touch { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.touch-ui { position: absolute; inset: 0; pointer-events: none !important; }
+.touch-ui > * { pointer-events: auto; }
+.t-look { position: absolute; inset: 0; touch-action: none; }
+.t-stick { position: absolute; left: calc(22px + env(safe-area-inset-left)); bottom: calc(26px + env(safe-area-inset-bottom)); width: 132px; height: 132px; border-radius: 50%; background: rgba(255,255,255,.35); border: 2px solid rgba(255,255,255,.7); box-shadow: var(--shadow); backdrop-filter: blur(6px); touch-action: none; }
+.t-knob { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: linear-gradient(135deg, #7a6bff, #22c7e8); box-shadow: 0 6px 18px rgba(109,92,255,.45); pointer-events: none; }
+.t-top { position: absolute; top: calc(66px + env(safe-area-inset-top)); left: calc(14px + env(safe-area-inset-left)); display: flex; gap: 8px; }
+.t-right { position: absolute; right: calc(14px + env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, 58px); gap: 8px; justify-items: center; align-items: center; }
+.touch-ui button { width: 52px; height: 52px; padding: 0; border-radius: 50%; font-size: 22px; background: rgba(255,255,255,.75); backdrop-filter: blur(8px); box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; touch-action: none; }
+.touch-ui button small { font-size: 9px; font-weight: 800; color: var(--ink2); margin-top: 2px; }
+.touch-ui button.on { background: linear-gradient(135deg, #7a6bff, #22c7e8); color: #fff; }
+.touch-ui button.on small { color: #fff; }
+.t-right .t-big { grid-column: 1 / -1; width: 84px; height: 84px; font-size: 32px; order: 9; }
+.t-right .t-mid { width: 58px; height: 58px; }
+.t-right .t-sm { width: 44px; height: 44px; font-size: 18px; }
+body.touch #toasts { top: auto; bottom: 150px; right: auto; left: 50%; transform: translateX(-50%); align-items: center; }
+body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 28px; }
+@media (max-height: 520px) {
+  .modal { width: 100vw; height: 100vh; border-radius: 0; }
+  .mhead { padding: 8px 12px; gap: 6px; } .mtitle { font-size: 17px; } .mhead input, .mhead select { padding: 5px 8px; font-size: 13px; }
+  .tabs button { padding: 5px 9px; } .close { width: 30px; height: 30px; }
+  .mfoot { display: none; } #cx-detail { width: 260px; padding: 10px; } .det-emo { font-size: 40px; } .det-name { font-size: 18px; }
+  .menu-card { padding: 14px 18px; } .logo { font-size: 34px; } .menu-card h1 { font-size: 28px; } .elems { display: none; } .menu-card .sub { font-size: 13px; margin-bottom: 10px; }
+}
+@media (max-height: 460px) { .t-right { grid-template-columns: repeat(5, 50px); } .t-right .t-big { grid-column: auto; order: 0; width: 70px; height: 70px; } .t-stick { width: 112px; height: 112px; } #hud-tl .pill.sub { display: none; } }
 @media (max-width: 760px) {
   #cx-detail { display: none; }
   .controls, .setgrid { grid-template-columns: 1fr; }

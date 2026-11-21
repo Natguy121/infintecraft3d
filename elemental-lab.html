@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#eef0f4">
 <title>Elemental Lab</title>
 <meta name="description" content="Elemental Lab — Infinite Craft in 3D. A physics crafting sandbox with 300,000+ procedurally generated discoveries.">
 <style>
@@ -172,6 +173,34 @@ textarea { width: 100%; min-height: 90px; font-size: 12px; font-family: ui-monos
 #loading .spin { width: 44px; height: 44px; border-radius: 50%; border: 4px solid rgba(109, 92, 255, .2); border-top-color: var(--accent); animation: sp 0.8s linear infinite; }
 @keyframes sp { to { transform: rotate(360deg); } }
 #err { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: 80vw; background: #fff0f0; color: #a3202d; padding: 10px 14px; border-radius: 12px; font-size: 13px; box-shadow: var(--shadow); white-space: pre-wrap; z-index: 20; }
+/* ---------- touch controls ---------- */
+canvas#c { touch-action: none; }
+body.touch #hint-bar, body.touch #hud-tr .pill:not(#fps-pill), body.touch #tooltip .tt-act { display: none !important; }
+body.touch { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.touch-ui { position: absolute; inset: 0; pointer-events: none !important; }
+.touch-ui > * { pointer-events: auto; }
+.t-look { position: absolute; inset: 0; touch-action: none; }
+.t-stick { position: absolute; left: calc(22px + env(safe-area-inset-left)); bottom: calc(26px + env(safe-area-inset-bottom)); width: 132px; height: 132px; border-radius: 50%; background: rgba(255,255,255,.35); border: 2px solid rgba(255,255,255,.7); box-shadow: var(--shadow); backdrop-filter: blur(6px); touch-action: none; }
+.t-knob { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: linear-gradient(135deg, #7a6bff, #22c7e8); box-shadow: 0 6px 18px rgba(109,92,255,.45); pointer-events: none; }
+.t-top { position: absolute; top: calc(66px + env(safe-area-inset-top)); left: calc(14px + env(safe-area-inset-left)); display: flex; gap: 8px; }
+.t-right { position: absolute; right: calc(14px + env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, 58px); gap: 8px; justify-items: center; align-items: center; }
+.touch-ui button { width: 52px; height: 52px; padding: 0; border-radius: 50%; font-size: 22px; background: rgba(255,255,255,.75); backdrop-filter: blur(8px); box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; touch-action: none; }
+.touch-ui button small { font-size: 9px; font-weight: 800; color: var(--ink2); margin-top: 2px; }
+.touch-ui button.on { background: linear-gradient(135deg, #7a6bff, #22c7e8); color: #fff; }
+.touch-ui button.on small { color: #fff; }
+.t-right .t-big { grid-column: 1 / -1; width: 84px; height: 84px; font-size: 32px; order: 9; }
+.t-right .t-mid { width: 58px; height: 58px; }
+.t-right .t-sm { width: 44px; height: 44px; font-size: 18px; }
+body.touch #toasts { top: auto; bottom: 150px; right: auto; left: 50%; transform: translateX(-50%); align-items: center; }
+body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 28px; }
+@media (max-height: 520px) {
+  .modal { width: 100vw; height: 100vh; border-radius: 0; }
+  .mhead { padding: 8px 12px; gap: 6px; } .mtitle { font-size: 17px; } .mhead input, .mhead select { padding: 5px 8px; font-size: 13px; }
+  .tabs button { padding: 5px 9px; } .close { width: 30px; height: 30px; }
+  .mfoot { display: none; } #cx-detail { width: 260px; padding: 10px; } .det-emo { font-size: 40px; } .det-name { font-size: 18px; }
+  .menu-card { padding: 14px 18px; } .logo { font-size: 34px; } .menu-card h1 { font-size: 28px; } .elems { display: none; } .menu-card .sub { font-size: 13px; margin-bottom: 10px; }
+}
+@media (max-height: 460px) { .t-right { grid-template-columns: repeat(5, 50px); } .t-right .t-big { grid-column: auto; order: 0; width: 70px; height: 70px; } .t-stick { width: 112px; height: 112px; } #hud-tl .pill.sub { display: none; } }
 @media (max-width: 760px) {
   #cx-detail { display: none; }
   .controls, .setgrid { grid-template-columns: 1fr; }
@@ -7258,6 +7287,8 @@ const DEFAULT_SETTINGS = {
 };
 const Settings = { ...DEFAULT_SETTINGS };
 try { Object.assign(Settings, JSON.parse(localStorage.getItem(LS_SETTINGS) || '{}')); } catch (e) { /* private mode */ }
+// phones & tablets start on the fastest preset unless the player chose otherwise
+try { if (!localStorage.getItem(LS_SETTINGS) && typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) { Settings.quality = 'low'; Settings.bob = false; } } catch (e) { /* ignore */ }
 function saveSettings() { try { localStorage.setItem(LS_SETTINGS, JSON.stringify(Settings)); } catch (e) { /* ignore */ } }
 
 const QUALITY = {
@@ -10592,8 +10623,9 @@ const Player = {
       const f = (K.has('KeyW') ? 1 : 0) - (K.has('KeyS') ? 1 : 0), s = (K.has('KeyD') ? 1 : 0) - (K.has('KeyA') ? 1 : 0);
       mx = fx * f + rx * s; mz = fz * f + rz * s;
       const l = Math.hypot(mx, mz); if (l > 0) { mx /= l; mz /= l; }
+      if (!l && (Touch.move.x || Touch.move.y)) { mx = fx * Touch.move.y + rx * Touch.move.x; mz = fz * Touch.move.y + rz * Touch.move.x; }
     }
-    const sprint = K.has('ShiftLeft') || K.has('ShiftRight');
+    const sprint = K.has('ShiftLeft') || K.has('ShiftRight') || Touch.sprint;
     const speed = sprint ? 6.2 : 3.6;
     this.grounded = this.checkGround();
     const acc = this.grounded ? 14 : 3.5;
@@ -10777,6 +10809,123 @@ const Player = {
     } else if (this.touchPartner) {
       this.touchGrace -= dt;
       if (this.touchGrace <= 0) { this.touchPartner = null; this.touchT = 0; ProgressRing.hide(); if (this.eCharge <= 0) Sound.chargeStop(); }
+    }
+  },
+};
+
+// ===================================================================== 19z_touch.js
+// ============================================================================
+//  ELEMENTAL LAB — 19z · Mobile / touch controls
+//  Left thumb: virtual joystick (push to the edge to sprint).
+//  Right side: drag to look, quick tap to grab / drop what's under the crosshair.
+//  Buttons: Grab (hold), Throw, Fuse (hold = E), Rotate (toggle = R),
+//  push/pull, Jump, Shelf, Split mode, Codex, Recipes, Hint, Pause.
+// ============================================================================
+
+const IS_TOUCH = (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+
+const Touch = {
+  move: { x: 0, y: 0 }, sprint: false, split: false, rotate: false, root: null,
+  init() {
+    if (!IS_TOUCH) return;
+    document.body.classList.add('touch');
+    const root = this.root = el('div', 'touch-ui hidden');
+    root.innerHTML = `
+      <div class="t-look" id="t-look"></div>
+      <div class="t-stick" id="t-stick"><div class="t-knob" id="t-knob"></div></div>
+      <div class="t-top">
+        <button data-a="pause">⏸</button><button data-a="codex">📖</button><button data-a="book">📜</button><button data-a="hint">💡</button>
+      </div>
+      <div class="t-right">
+        <button class="t-big" data-a="grab">✋<small>Grab</small></button>
+        <button class="t-mid" data-a="throw">🎯<small>Throw</small></button>
+        <button class="t-mid" data-a="fuse">⚗️<small>Fuse</small></button>
+        <button class="t-mid" data-a="rotate">🔄<small>Rotate</small></button>
+        <button class="t-sm" data-a="far">➕</button><button class="t-sm" data-a="near">➖</button>
+        <button class="t-sm" data-a="jump">⤒</button><button class="t-sm" data-a="shelf">🏺</button><button class="t-sm" data-a="split">✂️</button>
+      </div>`;
+    $('ui').appendChild(root);
+    const opt = { passive: false };
+    // ---- joystick
+    const stick = $('t-stick'), knob = $('t-knob');
+    let sid = null, sx = 0, sy = 0;
+    stick.addEventListener('touchstart', (e) => { e.preventDefault(); const t = e.changedTouches[0]; sid = t.identifier; const r = stick.getBoundingClientRect(); sx = r.left + r.width / 2; sy = r.top + r.height / 2; this.stickMove(t, sx, sy, knob); }, opt);
+    stick.addEventListener('touchmove', (e) => { e.preventDefault(); for (const t of e.changedTouches) if (t.identifier === sid) this.stickMove(t, sx, sy, knob); }, opt);
+    const endStick = (e) => { for (const t of e.changedTouches) if (t.identifier === sid) { sid = null; this.move.x = this.move.y = 0; this.sprint = false; knob.style.transform = ''; } };
+    stick.addEventListener('touchend', endStick); stick.addEventListener('touchcancel', endStick);
+    // ---- look pad: drag to look, quick tap to grab/drop
+    const look = $('t-look');
+    let lid = null, lx = 0, ly = 0, l0 = 0, moved = 0;
+    look.addEventListener('touchstart', (e) => { e.preventDefault(); if (lid !== null) return; const t = e.changedTouches[0]; lid = t.identifier; lx = t.clientX; ly = t.clientY; l0 = performance.now(); moved = 0; }, opt);
+    look.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (const t of e.changedTouches) if (t.identifier === lid) {
+        const dx = (t.clientX - lx) * 1.8, dy = (t.clientY - ly) * 1.8;
+        lx = t.clientX; ly = t.clientY; moved += Math.abs(dx) + Math.abs(dy);
+        Input.dx += dx; Input.dy += dy;
+        Input.samples.push({ t: performance.now(), x: dx, y: dy }); if (Input.samples.length > 40) Input.samples.shift();
+      }
+    }, opt);
+    const endLook = (e) => {
+      for (const t of e.changedTouches) if (t.identifier === lid) {
+        lid = null;
+        if (moved < 14 && performance.now() - l0 < 280 && this.active()) this.tapGrab();
+      }
+    };
+    look.addEventListener('touchend', endLook); look.addEventListener('touchcancel', endLook);
+    // ---- buttons
+    for (const b of root.querySelectorAll('button')) {
+      const a = b.dataset.a;
+      b.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); b.classList.add('on'); this.press(a, true, b); }, opt);
+      const up = (e) => { e.preventDefault(); if (!['rotate', 'split'].includes(a)) b.classList.remove('on'); this.press(a, false, b); };
+      b.addEventListener('touchend', up, opt); b.addEventListener('touchcancel', up, opt);
+      b.addEventListener('click', (e) => e.preventDefault());
+    }
+    // menu text for touch players
+    $('help').innerHTML = `<div>🕹️ Left stick: move (push to the edge to sprint)</div><div>👆 Drag right side: look · tap: grab / drop</div>
+      <div>✋ Hold Grab: carry · 🎯 Throw (swipe first for power)</div><div>⚗️ Hold Fuse while looking at another item</div>
+      <div>🔄 Rotate: then drag to spin the held item</div><div>➕ ➖ push / pull · ⤒ jump · 🏺 shelf</div>
+      <div>✂️ Split mode, then tap an item in the Fusion Ring</div><div>📖 Codex · 📜 recipes · 💡 hint · ⏸ menu</div>`;
+    $('help').classList.add('hidden');
+  },
+  active() { return G.started && G.locked && !G.ui; },
+  update() { if (this.root) this.root.classList.toggle('hidden', !this.active()); },
+  stickMove(t, cx, cy, knob) {
+    const R = 52;
+    let dx = t.clientX - cx, dy = t.clientY - cy;
+    const d = Math.hypot(dx, dy);
+    if (d > R) { dx *= R / d; dy *= R / d; }
+    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+    this.move.x = dx / R; this.move.y = -dy / R;
+    this.sprint = d > R * 1.25;
+  },
+  tapGrab() {
+    if (Player.held) { Player.drop(); return; }
+    Player.onPrimaryDown({ altKey: this.split });
+    if (this.split) this.setSplit(false);
+  },
+  setSplit(v) { this.split = v; this.root.querySelector('[data-a=split]').classList.toggle('on', v); },
+  press(a, down, btn) {
+    const K = Input.keys;
+    const key = (code, d) => { if (d) { K.add(code); Input.pressed.add(code); } else K.delete(code); };
+    const fake = (code) => UI.onKey({ code, preventDefault() {} });
+    switch (a) {
+      case 'grab':
+        if (down) { Input.mouse.l = true; if (!Player.held) Player.onPrimaryDown({ altKey: this.split }); if (this.split) this.setSplit(false); }
+        else { Input.mouse.l = false; Player.onPrimaryUp(); }
+        break;
+      case 'throw': if (down && Player.held) Player.onSecondaryDown(); break;
+      case 'fuse': key('KeyE', down); break;
+      case 'rotate': if (down) { this.rotate = !this.rotate; btn.classList.toggle('on', this.rotate); key('KeyR', this.rotate); } break;
+      case 'far': if (down) Input.wheel -= 2; break;
+      case 'near': if (down) Input.wheel += 2; break;
+      case 'jump': if (down) Input.pressed.add('Space'); break;
+      case 'shelf': if (down) Input.pressed.add('KeyF'); break;
+      case 'split': if (down) this.setSplit(!this.split); break;
+      case 'codex': if (down) fake('Tab'); break;
+      case 'book': if (down) fake('KeyC'); break;
+      case 'hint': if (down) fake('KeyH'); break;
+      case 'pause': if (down) { if (Player.held) Player.drop(); G.locked = false; UI.showMenu(true); } break;
     }
   },
 };
@@ -11270,7 +11419,7 @@ const UI = {
     if (!Progress.stats.welcomed) { Progress.stats.welcomed = 1; setTimeout(() => this.toast('👋', 'Welcome to the lab!', 'Grab an element from a pedestal and smash it into another.'), 900); }
   },
   requestLock() {
-    if (G.debugNoLock) { G.locked = true; return; }
+    if (G.debugNoLock || IS_TOUCH) { G.locked = true; this.hideMenu(); if (G.ui === 'menu') G.ui = null; return; }
     const c = G.canvas;
     try { const p = c.requestPointerLock({ unadjustedMovement: false }); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ignored */ }
   },
@@ -11909,7 +12058,7 @@ async function boot() {
   await Save.load();
   Displays.init();
   Save.restoreWorld();
-  UI.init(); Codex.init(); Input.init(canvas);
+  UI.init(); Codex.init(); Input.init(canvas); Touch.init();
   // a few starter elements on the table so the first smash is one grab away
   if (Progress.order.length <= 4) {
     [['water', -0.55], ['fire', 0.55]].forEach(([id, x]) => spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.3, 0.25), { noPop: true }));
@@ -11971,6 +12120,7 @@ function tick(rdt, render = true) {
   G.lookTarget = G.locked && !G.ui ? pickTarget(REACH, Player.held) : null;
   Labels.update();
   UI.update(rdt);
+  Touch.update();
   EmojiAtlas.flush();
   if (!render) { Save.update(rdt); Input.endFrame(); return; }
   const r = G.renderer, cam = G.camera;

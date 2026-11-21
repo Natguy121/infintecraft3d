@@ -62,7 +62,7 @@ const UI = {
     if (!Progress.stats.welcomed) { Progress.stats.welcomed = 1; setTimeout(() => this.toast('👋', 'Welcome to the lab!', 'Grab an element from a pedestal and smash it into another.'), 900); }
   },
   requestLock() {
-    if (G.debugNoLock) { G.locked = true; return; }
+    if (G.debugNoLock || IS_TOUCH) { G.locked = true; this.hideMenu(); if (G.ui === 'menu') G.ui = null; return; }
     const c = G.canvas;
     try { const p = c.requestPointerLock({ unadjustedMovement: false }); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ignored */ }
   },
