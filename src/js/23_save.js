@@ -18,8 +18,34 @@ const Save = {
     };
   },
   save() {
-    try { localStorage.setItem(this.KEY, JSON.stringify(this.data())); this.dirty = false; }
-    catch (e) { this.dirty = false; if (!this.warned) { this.warned = true; UI.toast('⚠️', 'Could not save', 'Browser storage is full or disabled — use Save code in the menu.'); } }
+    if (this.saving) return;
+    this.dirty = false;
+    const json = JSON.stringify(this.data());
+    // big collections are stored deflate-compressed so they fit in localStorage
+    if (json.length > 1500000 && typeof CompressionStream !== 'undefined') {
+      this.saving = true;
+      this.compress(json).then((code) => this.write(code)).finally(() => { this.saving = false; });
+      return;
+    }
+    this.write(json);
+  },
+  write(str) {
+    try { localStorage.setItem(this.KEY, str); }
+    catch (e) { if (!this.warned) { this.warned = true; UI.toast('⚠️', 'Could not save', 'Browser storage is full or disabled — use Save code in the menu.'); } }
+  },
+  async compress(json) {
+    const cs = new Blob([new TextEncoder().encode(json)]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    return 'ELAB1:' + toB64(new Uint8Array(await new Response(cs).arrayBuffer()));
+  },
+  async decode(code) {
+    const tag = code.slice(0, 6), body = code.slice(6).replace(/\s+/g, '');
+    const bytes = fromB64(body);
+    if (tag === 'ELAB1:') {
+      if (typeof DecompressionStream === 'undefined') throw new Error('This browser cannot read compressed codes.');
+      return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+    }
+    if (tag === 'ELAB0:') return new TextDecoder().decode(bytes);
+    throw new Error('Unknown save format — codes start with ELAB.');
   },
   update(dt) {
     this.timer += dt;
@@ -29,9 +55,13 @@ const Save = {
   wipe() { try { localStorage.removeItem(this.KEY); } catch (e) { /* ignore */ } },
 
   /** Load progress (call after Universe.build, before Displays/Trophies). */
-  load() {
+  async load() {
     let d = null;
-    try { d = JSON.parse(localStorage.getItem(this.KEY) || 'null'); } catch (e) { d = null; }
+    try {
+      let raw = localStorage.getItem(this.KEY) || 'null';
+      if (raw.startsWith('ELAB')) raw = await this.decode(raw);
+      d = JSON.parse(raw);
+    } catch (e) { d = null; }
     if (d) this.apply(d);
     for (const id of ['air', 'fire', 'earth', 'water']) if (!Progress.disc.has(id)) { Progress.disc.set(id, Progress.order.length); Progress.order.push(id); }
     this.dirty = false;
@@ -63,32 +93,17 @@ const Save = {
   // ---------------------------------------------------------- export / import
   async exportCode() {
     const json = JSON.stringify(this.data());
-    const bytes = new TextEncoder().encode(json);
-    if (typeof CompressionStream !== 'undefined') {
-      try {
-        const cs = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'));
-        const buf = new Uint8Array(await new Response(cs).arrayBuffer());
-        return 'ELAB1:' + toB64(buf);
-      } catch (e) { /* fall through */ }
-    }
-    return 'ELAB0:' + toB64(bytes);
+    if (typeof CompressionStream !== 'undefined') { try { return await this.compress(json); } catch (e) { /* fall through */ } }
+    return 'ELAB0:' + toB64(new TextEncoder().encode(json));
   },
   async importCode(code) {
     if (!code) throw new Error('Paste a save code first.');
-    const [tag, body] = [code.slice(0, 6), code.slice(6).replace(/\s+/g, '')];
-    let bytes;
-    try { bytes = fromB64(body); } catch (e) { throw new Error('That code is not valid base64.'); }
     let json;
-    if (tag === 'ELAB1:') {
-      if (typeof DecompressionStream === 'undefined') throw new Error('This browser cannot read compressed codes.');
-      const ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-      json = await new Response(ds).text();
-    } else if (tag === 'ELAB0:') json = new TextDecoder().decode(bytes);
-    else throw new Error('Unknown save format — codes start with ELAB.');
+    try { json = await this.decode(code.trim()); } catch (e) { throw new Error(e.message.startsWith('Unknown') || e.message.startsWith('This browser') ? e.message : 'That code is damaged or incomplete.'); }
     let d;
     try { d = JSON.parse(json); } catch (e) { throw new Error('The save data is corrupted.'); }
     if (!d || !Array.isArray(d.order)) throw new Error('The save data is missing discoveries.');
-    localStorage.setItem(this.KEY, JSON.stringify(d));
+    this.write(json.length > 1500000 ? code.trim() : json);
     return d;
   },
 };

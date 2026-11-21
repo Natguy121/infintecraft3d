@@ -1,0 +1,119 @@
+# ⚗️ Elemental Lab — Infinite Craft in 3D
+
+A first-person physics crafting sandbox that runs in the browser. You stand in a bright white lab with four glowing
+pedestals (💨 Air, 🔥 Fire, 🌍 Earth, 💧 Water). Grab copies of the elements, toss them, smash them together, and fuse
+your way through **more than 300,000 nameable items** (5.5 million, counting every modifier pair and composite).
+
+**Play:** open [`elemental-lab.html`](elemental-lab.html) in any modern desktop browser. It's one self-contained,
+fully offline file (Three.js, cannon-es and the game are all inlined), so no server or install is needed.
+
+![The lab: element pedestals, the Fusion Ring and a table full of procedurally built discoveries](docs/screenshot-lab.jpg)
+
+![The Codex: searchable, virtualised list of discoveries with per-item recipe progress](docs/screenshot-codex.jpg)
+
+## Controls
+
+| Input | Action |
+| --- | --- |
+| `W A S D` · `Shift` · `Space` | move · sprint · jump |
+| Mouse | look |
+| **Hold left click** | grab an item; it floats on a soft spring, so it sways, lags and swings as you move |
+| Release left click | drop |
+| **Right click** (while holding) | throw. Flick the mouse as you click for more power and to aim the throw |
+| Mouse wheel | push the held item away or pull it closer |
+| **Hold R** + mouse | rotate the held item |
+| **Hold E** while holding, looking at another item | force-combine the two |
+| Touch the held item to another for ~0.8 s | fuse them (a progress ring fills around both) |
+| `Alt` + click an item in the Fusion Ring | split it back into its likely ingredients |
+| `F` | put the held (or targeted) item on the Discovery Shelf |
+| `Tab` · `C` · `H` | Codex · Recipe Book · hint |
+| `M` · `Esc` | mute · menu |
+
+Items also merge when they **collide hard** (one of them thrown or swung by you in the last couple of seconds). Drop
+**two or more items into the glowing Fusion Ring** on the table for multi-input recipes such as
+Fire + Water + Earth = Life.
+
+## The lab
+
+- **Element pedestals** never run out. Grab the floating copy and a new one materialises.
+- The **Fusion Ring** has a containment field that holds items (and floating gases) in place while it charges.
+- The **Codex pad** (left pillar) is where anything you spawn from the Codex appears. Supply is infinite once an item
+  is discovered.
+- The **trash bin** (right) vaporises whatever falls in.
+- The **Discovery Shelf** on the back wall holds 30 trophies. Drop an item near a free slot or press `F`.
+- Everything is a real rigid body. Mass, friction and bounce come from the item's material: stone is heavy, ice is
+  slippery, plastic bounces, air is nearly weightless and gases drift up to hover near the ceiling.
+- Up to 80 loose items are simulated at once. Once the lab holds more than 60, items left untouched for 5 minutes
+  fade away.
+
+## The item universe (no hardcoded list of 300,000)
+
+Everything is deterministic: the same pair always produces the same result, and `A + B` always equals `B + A`.
+
+| Layer | What it does | Where |
+| --- | --- | --- |
+| **A · Core items** | ~1,620 hand-authored items across nature, weather, space, life, food, materials, tools, weapons, buildings, vehicles, technology, music, sport, medicine, history, magic, mythical beings, emotions and cosmic concepts. Each one has an emoji, tags, material, state, shape template, colour, glow, rarity, tier and sound. Tier and rarity come from how deep the item sits in the recipe graph. | `src/js/01–05_data_*.js` |
+| **B · Tag rules** | ~260 rules over tags (`hot + wet → Steam / Hot Spring / Geyser`, `living + hot → Cooked X / Burnt X`, `metal + electric → Magnet / Circuit` …). Each rule outputs a weighted pool of core items, modifiers or composites. Pairs of high-tier mystical items get a chance at legendary results. | `src/js/07_rules.js` |
+| **C · Modifiers** | 76 prefixes and suffixes (Tiny, Giant, Frozen, Burning, Golden, Ancient, Cursed, Holy, Electric, Rusty, Crystal, Shadow, Cosmic, Robotic, Zombie, Baby, … King). An item takes up to two from different groups. Each modifier changes tags, colour, material, mass, glow, scale and adds visual effects (crowns, halos, frost, flames, glitches). Combining an item with one of a modifier's source items applies it: Gold + Dragon → Golden Dragon, Zombie + Pizza → Zombie Pizza. | `src/js/06_modifiers.js` |
+| **D · Composites** | Named fusions such as Fire Whale, Lava Lake and Ice Cream Volcano. The head noun is chosen by type, so a creature or a place beats a material. If a composite's name matches a real item, you get that item. | `src/js/08_universe.js` |
+| **E · Creative AI (optional)** | With your own Anthropic API key (Settings → Creative AI), pairs that no authored rule covers are sent to Claude. Each answer is cached for that pair and mapped back onto the universe when possible ("Frozen Dragon" becomes the real modified item). Without a key, the procedural generator answers. | `src/js/21_llm.js` |
+
+**Many recipes per item.** Every authored recipe is expanded by ingredient substitution: similar items, judged by tags
+and depth, make the same result. Every core item ends up with 5 or more recipes (about 13 on average), and common
+items with around 24. Steam, for example, comes from Water + Fire, Ice + Fire, Cloud + Sun, Flame + Water,
+Puddle + Fire, Glacier + Fire and more. Modified items and composites are reachable many ways as well, through
+modifier sources and through inheritance (Golden Water + Fire → Golden Steam). The Codex shows
+**"Known recipes: 7 of 23 found"** with undiscovered ones hidden as `???`. A recipe you find outside the listed set
+counts as a **WILD** recipe.
+
+**Secrets.** A few recipes trigger room-wide effects: a disco light show, walls that change colour, bullet time,
+zero gravity, fireworks, indoor snowfall and a Big Bang.
+
+## Visuals, audio and polish
+
+- No model files. Each item is assembled from primitives by one of about 40 shape templates (creature, bird, fish,
+  humanoid, robot, tool, blade, building, vehicle, plane, boat, rocket, machine, device, planet, galaxy, food, potion,
+  instrument, landform, …). Keyword variants handle cases such as a T-Rex, a lighthouse, a pirate ship or a pizza.
+  Each item's parts are merged into one vertex-coloured mesh plus a glow mesh, which costs about 2 draw calls per item.
+- Material shading: reflective metals, clear-coated glass and ice, faceted stone, emissive fire and energy, liquids
+  that wobble in a vertex shader, translucent gases, rainbow, glitch and pixel effects.
+- Living things breathe, hop and flap. Energy pulses, fire flickers, gases drift. Particle emitters cover flames,
+  sparkles, smoke, frost, bubbles, hearts and musical notes.
+- Juicy merges: the inputs pull together, then a flash, shockwave rings, a burst of particles coloured by the result,
+  an elastic pop, a floating name label, a rarity sound, and a NEW DISCOVERY or NEW RECIPE banner.
+- Planar floor reflection, soft shadows, depth of field that focuses on the held item, head bob, a sprint FOV kick and
+  screen shake on heavy impacts only.
+- All audio is synthesized with WebAudio: material-specific impacts, rarity-scaled stingers and generative ambient
+  music.
+- Performance: pooled particles, labels and glows each render in a single draw call, plus geometry and material
+  caches, a body cap, a virtualised Codex that stays smooth at 300,000 entries, and dynamic resolution to hold 60 FPS.
+
+Progress (discoveries, recipes, stats, achievements, shelf trophies, wall colour, AI results) saves automatically to
+`localStorage`. **Save code** in the menu exports and imports a compressed `ELAB1:` code.
+
+## Building from source
+
+The playable file is generated. Edit the sources in `src/`, then rebuild:
+
+```bash
+npm install
+npm run build     # → elemental-lab.html (libraries minified, game code readable)
+npm test          # validates the item universe: references, reachability, recipe counts
+node tools/test-engine.mjs --deep        # + fuzzes 30,000 random pairs and checks inverse recipes
+node tools/smoke-test.cjs screenshots    # headless Chromium run with screenshots
+```
+
+```
+src/template.html        HTML shell + CSS (menu, HUD, Codex, Recipe Book)
+src/js/00_util.js        hashing, seeded RNG, colour helpers
+src/js/01–05_data_*.js   Layer A: core item data
+src/js/06_modifiers.js   Layer C
+src/js/07_rules.js       Layer B (+ multi-input Fusion Ring recipes)
+src/js/08_universe.js    parser, recipe tables, combine(), recipesFor(), composites (Layer D)
+src/js/10–25_*.js        audio, textures, shape templates, materials, effects, room, physics,
+                         entities, player, crafting, AI fallback, UI, saving, post-FX, main loop
+build.mjs                bundles three + cannon-es + @anthropic-ai/sdk and inlines everything
+```
+
+In the browser console, `window.lab` exposes a small debug API, for example `lab.spawn('dragon~frozen~golden')`,
+`lab.combine('ice', 'dragon')` and `lab.discoverRandom(300000)` (a Codex stress test).

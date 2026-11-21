@@ -165,7 +165,7 @@ const Room = {
     }
     const strip = new THREE.Mesh(new THREE.BoxGeometry(T.w - 0.2, 0.012, 0.012), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 1.6, 2.2) }));
     strip.position.set(0, T.top - 0.05, T.z + T.d / 2 + 0.002); g.add(strip);
-    Phys.addStaticBox([0, T.top - 0.04, T.z], [T.w, 0.08, T.d]);
+    Phys.addStaticBox([0, T.top - 0.16, T.z], [T.w, 0.32, T.d]); // thick so fast throws can't tunnel
   },
 
   buildPedestals(g, scene) {
@@ -262,7 +262,7 @@ const Room = {
     for (const y of S.rows) {
       const board = new THREE.Mesh(new THREE.BoxGeometry(width, 0.05, 0.34), mat);
       board.position.set(0, y, R.z0 + 0.17); board.castShadow = board.receiveShadow = true; g.add(board);
-      Phys.addStaticBox([0, y, R.z0 + 0.17], [width, 0.05, 0.34]);
+      Phys.addStaticBox([0, y - 0.05, R.z0 + 0.17], [width, 0.15, 0.34]);
       const glow = new THREE.Mesh(new THREE.BoxGeometry(width - 0.1, 0.008, 0.008), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.4, 1.3, 2.0) }));
       glow.position.set(0, y - 0.03, R.z0 + 0.335); g.add(glow);
       for (let i = 0; i < S.cols; i++) {

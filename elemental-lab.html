@@ -9929,7 +9929,7 @@ const Room = {
     }
     const strip = new THREE.Mesh(new THREE.BoxGeometry(T.w - 0.2, 0.012, 0.012), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 1.6, 2.2) }));
     strip.position.set(0, T.top - 0.05, T.z + T.d / 2 + 0.002); g.add(strip);
-    Phys.addStaticBox([0, T.top - 0.04, T.z], [T.w, 0.08, T.d]);
+    Phys.addStaticBox([0, T.top - 0.16, T.z], [T.w, 0.32, T.d]); // thick so fast throws can't tunnel
   },
 
   buildPedestals(g, scene) {
@@ -10026,7 +10026,7 @@ const Room = {
     for (const y of S.rows) {
       const board = new THREE.Mesh(new THREE.BoxGeometry(width, 0.05, 0.34), mat);
       board.position.set(0, y, R.z0 + 0.17); board.castShadow = board.receiveShadow = true; g.add(board);
-      Phys.addStaticBox([0, y, R.z0 + 0.17], [width, 0.05, 0.34]);
+      Phys.addStaticBox([0, y - 0.05, R.z0 + 0.17], [width, 0.15, 0.34]);
       const glow = new THREE.Mesh(new THREE.BoxGeometry(width - 0.1, 0.008, 0.008), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.4, 1.3, 2.0) }));
       glow.position.set(0, y - 0.03, R.z0 + 0.335); g.add(glow);
       for (let i = 0; i < S.cols; i++) {
@@ -10192,7 +10192,8 @@ const Phys = {
   },
 
   step(dt) {
-    this.world.step(1 / 60, dt, 4);
+    this.world.step(1 / 75, dt, 5);
+    for (const e of G.entities) { const v = e.body && e.body.velocity; if (v) { const l = v.length(); if (l > 22) v.scale(22 / l, v); } }
   },
 };
 
@@ -11683,8 +11684,34 @@ const Save = {
     };
   },
   save() {
-    try { localStorage.setItem(this.KEY, JSON.stringify(this.data())); this.dirty = false; }
-    catch (e) { this.dirty = false; if (!this.warned) { this.warned = true; UI.toast('⚠️', 'Could not save', 'Browser storage is full or disabled — use Save code in the menu.'); } }
+    if (this.saving) return;
+    this.dirty = false;
+    const json = JSON.stringify(this.data());
+    // big collections are stored deflate-compressed so they fit in localStorage
+    if (json.length > 1500000 && typeof CompressionStream !== 'undefined') {
+      this.saving = true;
+      this.compress(json).then((code) => this.write(code)).finally(() => { this.saving = false; });
+      return;
+    }
+    this.write(json);
+  },
+  write(str) {
+    try { localStorage.setItem(this.KEY, str); }
+    catch (e) { if (!this.warned) { this.warned = true; UI.toast('⚠️', 'Could not save', 'Browser storage is full or disabled — use Save code in the menu.'); } }
+  },
+  async compress(json) {
+    const cs = new Blob([new TextEncoder().encode(json)]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    return 'ELAB1:' + toB64(new Uint8Array(await new Response(cs).arrayBuffer()));
+  },
+  async decode(code) {
+    const tag = code.slice(0, 6), body = code.slice(6).replace(/\s+/g, '');
+    const bytes = fromB64(body);
+    if (tag === 'ELAB1:') {
+      if (typeof DecompressionStream === 'undefined') throw new Error('This browser cannot read compressed codes.');
+      return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+    }
+    if (tag === 'ELAB0:') return new TextDecoder().decode(bytes);
+    throw new Error('Unknown save format — codes start with ELAB.');
   },
   update(dt) {
     this.timer += dt;
@@ -11694,9 +11721,13 @@ const Save = {
   wipe() { try { localStorage.removeItem(this.KEY); } catch (e) { /* ignore */ } },
 
   /** Load progress (call after Universe.build, before Displays/Trophies). */
-  load() {
+  async load() {
     let d = null;
-    try { d = JSON.parse(localStorage.getItem(this.KEY) || 'null'); } catch (e) { d = null; }
+    try {
+      let raw = localStorage.getItem(this.KEY) || 'null';
+      if (raw.startsWith('ELAB')) raw = await this.decode(raw);
+      d = JSON.parse(raw);
+    } catch (e) { d = null; }
     if (d) this.apply(d);
     for (const id of ['air', 'fire', 'earth', 'water']) if (!Progress.disc.has(id)) { Progress.disc.set(id, Progress.order.length); Progress.order.push(id); }
     this.dirty = false;
@@ -11728,32 +11759,17 @@ const Save = {
   // ---------------------------------------------------------- export / import
   async exportCode() {
     const json = JSON.stringify(this.data());
-    const bytes = new TextEncoder().encode(json);
-    if (typeof CompressionStream !== 'undefined') {
-      try {
-        const cs = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'));
-        const buf = new Uint8Array(await new Response(cs).arrayBuffer());
-        return 'ELAB1:' + toB64(buf);
-      } catch (e) { /* fall through */ }
-    }
-    return 'ELAB0:' + toB64(bytes);
+    if (typeof CompressionStream !== 'undefined') { try { return await this.compress(json); } catch (e) { /* fall through */ } }
+    return 'ELAB0:' + toB64(new TextEncoder().encode(json));
   },
   async importCode(code) {
     if (!code) throw new Error('Paste a save code first.');
-    const [tag, body] = [code.slice(0, 6), code.slice(6).replace(/\s+/g, '')];
-    let bytes;
-    try { bytes = fromB64(body); } catch (e) { throw new Error('That code is not valid base64.'); }
     let json;
-    if (tag === 'ELAB1:') {
-      if (typeof DecompressionStream === 'undefined') throw new Error('This browser cannot read compressed codes.');
-      const ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-      json = await new Response(ds).text();
-    } else if (tag === 'ELAB0:') json = new TextDecoder().decode(bytes);
-    else throw new Error('Unknown save format — codes start with ELAB.');
+    try { json = await this.decode(code.trim()); } catch (e) { throw new Error(e.message.startsWith('Unknown') || e.message.startsWith('This browser') ? e.message : 'That code is damaged or incomplete.'); }
     let d;
     try { d = JSON.parse(json); } catch (e) { throw new Error('The save data is corrupted.'); }
     if (!d || !Array.isArray(d.order)) throw new Error('The save data is missing discoveries.');
-    localStorage.setItem(this.KEY, JSON.stringify(d));
+    this.write(json.length > 1500000 ? code.trim() : json);
     return d;
   },
 };
@@ -11890,7 +11906,7 @@ async function boot() {
   Particles.init(scene); Labels.init(scene); Glows.init(scene); Rings.init(scene); ProgressRing.init(scene);
   Player.init();
   Post.init(renderer);
-  Save.load();
+  await Save.load();
   Displays.init();
   Save.restoreWorld();
   UI.init(); Codex.init(); Input.init(canvas);
@@ -11906,6 +11922,8 @@ async function boot() {
     Post.resize(renderer);
   };
   window.addEventListener('resize', resize);
+  window.addEventListener('pagehide', () => { if (Save.dirty) Save.save(); });
+  G.onResize = resize;
   resize();
   Player.update(0);
   // warm up shaders so the first frames don't hitch
@@ -11922,6 +11940,22 @@ async function boot() {
   };
   requestAnimationFrame(loop);
 }
+
+const DynRes = {
+  acc: 0, n: 0, scale: 1,
+  update(rdt) {
+    this.acc += rdt; this.n++;
+    if (this.acc < 1.5) return;
+    const avg = this.acc / this.n; this.acc = 0; this.n = 0;
+    const max = Math.min(window.devicePixelRatio || 1, Q().pixelRatio);
+    let pr = G.renderer.getPixelRatio();
+    if (avg > 1 / 50 && pr > 0.7) pr = Math.max(0.7, pr - 0.15);
+    else if (avg < 1 / 70 && pr < max) pr = Math.min(max, pr + 0.1);
+    else return;
+    G.renderer.setPixelRatio(pr);
+    G.onResize && G.onResize();
+  },
+};
 
 function tick(rdt, render = true) {
   const dt = rdt * G.timeScale;
@@ -11944,12 +11978,13 @@ function tick(rdt, render = true) {
   if (Q().reflection && (Settings.quality === 'high' || G.frame % 2 === 0)) Reflector.update(r, G.scene, cam);
   Post.render(r, G.scene, cam, rdt);
   Save.update(rdt);
+  if (G.started && !document.hidden) DynRes.update(rdt);
   Input.endFrame();
 }
 
 // ---------------------------------------------------------------- debug / automation API
 window.lab = {
-  G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints,
+  G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save,
   spawn(id, x = 0, z = 0.2) { return spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.4, z), { touched: true }); },
   combine(a, b) { const r = Universe.combine(a, b); return r && { ...r, name: Universe.get(r.id).name }; },
   merge(a, b) { Crafting.merge(a, b, 'force'); },
@@ -11973,7 +12008,7 @@ window.lab = {
       if (!Universe.isValidId(id) || Progress.disc.has(id)) continue;
       Progress.disc.set(id, Progress.order.length); Progress.order.push(id); added++;
     }
-    Codex.dirty = true; UI.updateHud();
+    Codex.dirty = true; UI.updateHud(); Save.markDirty();
     return added;
   },
 };

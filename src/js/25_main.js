@@ -31,7 +31,7 @@ async function boot() {
   Particles.init(scene); Labels.init(scene); Glows.init(scene); Rings.init(scene); ProgressRing.init(scene);
   Player.init();
   Post.init(renderer);
-  Save.load();
+  await Save.load();
   Displays.init();
   Save.restoreWorld();
   UI.init(); Codex.init(); Input.init(canvas);
@@ -47,6 +47,8 @@ async function boot() {
     Post.resize(renderer);
   };
   window.addEventListener('resize', resize);
+  window.addEventListener('pagehide', () => { if (Save.dirty) Save.save(); });
+  G.onResize = resize;
   resize();
   Player.update(0);
   // warm up shaders so the first frames don't hitch
@@ -63,6 +65,22 @@ async function boot() {
   };
   requestAnimationFrame(loop);
 }
+
+const DynRes = {
+  acc: 0, n: 0, scale: 1,
+  update(rdt) {
+    this.acc += rdt; this.n++;
+    if (this.acc < 1.5) return;
+    const avg = this.acc / this.n; this.acc = 0; this.n = 0;
+    const max = Math.min(window.devicePixelRatio || 1, Q().pixelRatio);
+    let pr = G.renderer.getPixelRatio();
+    if (avg > 1 / 50 && pr > 0.7) pr = Math.max(0.7, pr - 0.15);
+    else if (avg < 1 / 70 && pr < max) pr = Math.min(max, pr + 0.1);
+    else return;
+    G.renderer.setPixelRatio(pr);
+    G.onResize && G.onResize();
+  },
+};
 
 function tick(rdt, render = true) {
   const dt = rdt * G.timeScale;
@@ -85,12 +103,13 @@ function tick(rdt, render = true) {
   if (Q().reflection && (Settings.quality === 'high' || G.frame % 2 === 0)) Reflector.update(r, G.scene, cam);
   Post.render(r, G.scene, cam, rdt);
   Save.update(rdt);
+  if (G.started && !document.hidden) DynRes.update(rdt);
   Input.endFrame();
 }
 
 // ---------------------------------------------------------------- debug / automation API
 window.lab = {
-  G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints,
+  G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save,
   spawn(id, x = 0, z = 0.2) { return spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.4, z), { touched: true }); },
   combine(a, b) { const r = Universe.combine(a, b); return r && { ...r, name: Universe.get(r.id).name }; },
   merge(a, b) { Crafting.merge(a, b, 'force'); },
@@ -114,7 +133,7 @@ window.lab = {
       if (!Universe.isValidId(id) || Progress.disc.has(id)) continue;
       Progress.disc.set(id, Progress.order.length); Progress.order.push(id); added++;
     }
-    Codex.dirty = true; UI.updateHud();
+    Codex.dirty = true; UI.updateHud(); Save.markDirty();
     return added;
   },
 };

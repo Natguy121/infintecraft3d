@@ -110,6 +110,7 @@ const Phys = {
   },
 
   step(dt) {
-    this.world.step(1 / 60, dt, 4);
+    this.world.step(1 / 75, dt, 5);
+    for (const e of G.entities) { const v = e.body && e.body.velocity; if (v) { const l = v.length(); if (l > 22) v.scale(22 / l, v); } }
   },
 };
