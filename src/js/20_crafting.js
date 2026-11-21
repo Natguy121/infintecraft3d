@@ -126,7 +126,8 @@ const Crafting = {
     const info = Universe.get(id);
     if (!info) return;
     const r0 = buildVisual(info).radius;
-    if (r0 > 0.6) pos = pos.clone().setY(Math.max(pos.y, r0 * 0.9 + 0.05));
+    const big = r0 > 0.6;
+    if (big) pos = Fun.deliverBig(info, r0);
     const ent = spawnItem(id, pos, { popDur: 0.55, touched: true, vel: new THREE.Vector3(0, 1.4, 0) });
     this.fx(pos, info);
     const isNew = Progress.discover(id);
@@ -138,9 +139,10 @@ const Crafting = {
     Stats.add('merges');
     Daily.count('merges');
     Daily.onCraft(info, isNew, recNew);
+    Fun.onCraft(info, isNew, recNew, big ? (ent ? ent.root.position : pos) : pos);
     G.selected = id;
     if (info.secret) this.secret(info.secret, pos);
-    if (keepHeld && ent && !Player.held) setTimeout(() => { if (!ent.dead && !ent.merging && !Player.held && Input.mouse.l) Player.grab(ent); }, 60);
+    if (keepHeld && ent && !big && !Player.held) setTimeout(() => { if (!ent.dead && !ent.merging && !Player.held && Input.mouse.l) Player.grab(ent); }, 60);
     UI.updateHud();
   },
 

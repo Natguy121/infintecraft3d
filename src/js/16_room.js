@@ -119,6 +119,10 @@ const Room = {
     const part = new THREE.Mesh(new THREE.BoxGeometry(14, 4.2, 0.2), this.wallMat);
     part.position.set(0, 2.1, LAYOUT.shelf.wallZ - 0.1); part.castShadow = part.receiveShadow = true; g.add(part);
     Phys.addStaticBox([0, 2.1, LAYOUT.shelf.wallZ - 0.1], [14, 4.2, 0.2]);
+    const yard = labelPlane('BIG ITEM YARD', 9, 1.3, { font: '900 90px', color: '#7a5cff' });
+    yard.position.set(0, 3.2, LAYOUT.shelf.wallZ - 0.21); yard.rotation.y = Math.PI; g.add(yard);
+    const yard2 = labelPlane('← walk around the wall to see your big creations →', 12, 0.8, { font: '700 60px', color: '#6b7388' });
+    yard2.position.set(0, 4.6, LAYOUT.shelf.wallZ + 0.02); g.add(yard2);
     // baseboards
     const bb = new THREE.MeshStandardMaterial({ color: 0xe3e7ee, roughness: 0.6 });
     for (const [w, x, z, ry] of [[W, cx, R.z0 + 0.01, 0], [W, cx, R.z1 - 0.01, Math.PI], [D, R.x0 + 0.01, cz, Math.PI / 2], [D, R.x1 - 0.01, cz, -Math.PI / 2]]) {

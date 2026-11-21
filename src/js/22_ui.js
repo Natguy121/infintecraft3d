@@ -186,6 +186,17 @@ const UI = {
     this.labels.push(L);
     if (this.labels.length > 8) { this.labels[0].el.remove(); this.labels.shift(); }
   },
+  bigText(text, color) {
+    const b = el('div', 'bigtext', escHtml(text)); b.style.color = color;
+    $('ui').appendChild(b); setTimeout(() => b.remove(), 1900);
+  },
+  xpPop(text, pos) {
+    _v1.copy(pos).project(G.camera);
+    if (_v1.z > 1) return;
+    const e = el('div', 'xppop', escHtml(text));
+    e.style.left = (_v1.x * 0.5 + 0.5) * innerWidth + 'px'; e.style.top = (-_v1.y * 0.5 + 0.5) * innerHeight + 'px';
+    $('ui').appendChild(e); setTimeout(() => e.remove(), 1400);
+  },
   flash(a = 1) {
     const f = $('flash');
     f.style.transition = 'none'; f.style.opacity = a;
@@ -420,7 +431,7 @@ const Spawner = {
     const r = buildVisual(Universe.get(id)).radius;
     // big things are delivered onto the floor beside the pad instead of on top of it
     const pos = r < 0.5 ? new THREE.Vector3(P.x + (Math.random() - 0.5) * 0.1, P.top + 0.45, P.z + (Math.random() - 0.5) * 0.1)
-      : new THREE.Vector3(P.x - 0.8 - r, r + 0.3, P.z + 1);
+      : r < 0.9 ? new THREE.Vector3(P.x - 0.8 - r, r + 0.3, P.z + 1) : Fun.deliverBig(Universe.get(id), r);
     const e = spawnItem(id, pos, { popDur: 0.45, touched: false, vel: new THREE.Vector3(0, 0.5, 0) });
     if (!e) return;
     Particles.emit({ pos, color: [0x22c7e8, 0xffffff], count: 26, size: 0.06, speed: 1.4, life: 0.6 });

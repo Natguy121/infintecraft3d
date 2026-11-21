@@ -139,3 +139,11 @@ build.mjs                bundles three + cannon-es + @anthropic-ai/sdk and inlin
 
 In the browser console, `window.lab` exposes a small debug API, for example `lab.spawn('dragon~frozen~golden')`,
 `lab.combine('ice', 'dragon')` and `lab.discoverRandom(300000)` (a Codex stress test).
+
+## Levels, combos and the Big Item Yard
+
+- **XP and levels:** every craft earns XP. Each level-up brings confetti and a free hint, and every 5 levels unlocks a new wall colour.
+- **Combos:** chain crafts within 9 seconds for up to ×5 XP.
+- **Bonus XP:** your first discovery of the day pays ×3, and a 6% lucky craft pays a ×5 jackpot.
+- **"✨ N new items within reach":** this counter shows how many new items your current discoveries can make.
+- **Big Item Yard:** anything big you craft or spawn (houses, castles, whales, clouds…) is delivered to the yard behind the shelf wall, laid out in neat rows.
