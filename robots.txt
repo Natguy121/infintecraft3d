@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://natguy121.github.io/infintecraft3d/sitemap.xml

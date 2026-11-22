@@ -49,8 +49,7 @@ const html = template
   .replace('/*__GAME__*/', () => game);
 
 fs.writeFileSync(path.join(root, 'elemental-lab.html'), html);
-// tiny index.html so the repo can be served as-is (e.g. GitHub Pages)
-fs.writeFileSync(path.join(root, 'index.html'), '<!doctype html><meta charset="utf-8"><title>Elemental Lab</title>'
-  + '<meta http-equiv="refresh" content="0; url=elemental-lab.html"><a href="elemental-lab.html">Play Elemental Lab</a>\n');
+// landing page (index.html) with real text for search engines; the game itself is elemental-lab.html
+fs.copyFileSync(path.join(src, 'landing.html'), path.join(root, 'index.html'));
 const kb = (Buffer.byteLength(html) / 1024).toFixed(0);
 console.log(`built elemental-lab.html (${kb} KB) from ${files.length} source files`);

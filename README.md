@@ -4,7 +4,9 @@ A first-person physics crafting sandbox that runs in the browser. You stand in a
 pedestals (💨 Air, 🔥 Fire, 🌍 Earth, 💧 Water). Grab copies of the elements, toss them, smash them together, and fuse
 your way through **more than 300,000 nameable items** (about 1 million, counting every sensible modifier pair and composite).
 
-**Play:** open [`elemental-lab.html`](elemental-lab.html) in any modern desktop browser. It's one self-contained,
+**▶ Play online, free: https://natguy121.github.io/infintecraft3d/**
+
+Or open [`elemental-lab.html`](elemental-lab.html) in any modern browser. It's one self-contained,
 fully offline file (Three.js, cannon-es and the game are all inlined), so no server or install is needed.
 
 ![The lab: element pedestals, the Fusion Ring and a table full of procedurally built discoveries](docs/screenshot-lab.jpg)
