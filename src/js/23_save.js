@@ -26,7 +26,7 @@ const Save = {
     };
   },
   save() {
-    if (this.saving) return;
+    if (this.saving || this.locked) return;
     this.dirty = false;
     const json = JSON.stringify(this.data());
     // big collections are stored deflate-compressed so they fit in localStorage

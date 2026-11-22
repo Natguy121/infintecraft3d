@@ -49,6 +49,7 @@ const Accounts = {
 
   switchTo(n) {
     try { if (!this.carried && (Save.dirty || G.started)) Save.save(); } catch (e) { /* ignore */ }
+    Save.dirty = false; Save.locked = true;   // nothing may write into the new account's save while we reload
     try { if (n) localStorage.setItem(this.LS_USER, n); else localStorage.removeItem(this.LS_USER); } catch (e) { /* ignore */ }
     location.reload();
   },
@@ -87,6 +88,26 @@ const Accounts = {
     return added;
   },
 
+  /** transfer code = account record + its save, so it can move to Safari ⇄ Home Screen app ⇄ another device */
+  exportCode() {
+    const n = this.current(); if (!n) throw new Error('Log in first, then copy your code.');
+    try { if (Save.dirty || G.started) Save.save(); } catch (e) { /* */ }
+    const payload = { v: 1, n, a: this.list()[n], s: localStorage.getItem(this.key(n)) || '' };
+    return 'ELACC1:' + toB64(new TextEncoder().encode(JSON.stringify(payload)));
+  },
+  importCode(code) {
+    code = String(code || '').trim().replace(/\s+/g, '');
+    if (!code.startsWith('ELACC1:')) throw new Error('That isn\'t a transfer code. It should start with ELACC1:');
+    let d; try { d = JSON.parse(new TextDecoder().decode(fromB64(code.slice(7)))); } catch (e) { throw new Error('That code is incomplete. Copy the whole thing.'); }
+    if (!d || typeof d.n !== 'string' || !d.a || !d.a.hash || !d.a.salt) throw new Error('That code is damaged.');
+    const n = this.norm(d.n); if (!/^[a-z0-9_ .-]{3,20}$/.test(n)) throw new Error('That code is damaged.');
+    const a = this.list();
+    a[n] = { display: String(d.a.display || d.n).slice(0, 20), salt: String(d.a.salt), hash: String(d.a.hash), created: d.a.created || Date.now(), disc: d.a.disc || 4 };
+    this.store(a);
+    if (typeof d.s === 'string' && d.s) localStorage.setItem(this.key(n), d.s);
+    this.carried = true; this.switchTo(n);
+  },
+
   displayName() { const n = this.current(); return n ? this.list()[n].display : null; },
 
   // ---------------------------------------------------------------- UI
@@ -116,6 +137,14 @@ const Accounts = {
       catch (e) { m.textContent = '❌ ' + e.message; }
     };
     $('acct-login').onclick = go((a, b) => this.logIn(a, b));
+    $('acct-export').onclick = async () => {
+      const m = $('acct-msg');
+      try { const c = this.exportCode(); $('acct-code').value = c; $('acct-code').select();
+        try { await navigator.clipboard.writeText(c); m.textContent = '✅ Code copied! Open the game on the other side, tap Log in / Sign up and paste it.'; } catch (e) { m.textContent = '✅ Code is in the box below: select it all and copy it.'; } }
+      catch (e) { m.textContent = '❌ ' + e.message; }
+    };
+    $('acct-import').onclick = () => { const m = $('acct-msg'); try { this.importCode($('acct-code').value); m.textContent = '✅ Account moved! Loading…'; } catch (e) { m.textContent = '❌ ' + e.message; } };
+    $('acct-code').addEventListener('keydown', (e) => e.stopPropagation());
     $('acct-signup').onclick = go((a, b) => this.signUp(a, b));
     $('acct-pw').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('acct-login').click(); e.stopPropagation(); });
     $('acct-name').addEventListener('keydown', (e) => e.stopPropagation());
