@@ -101,7 +101,7 @@ const Powers = {
     }
     const pd = G.camera.position.distanceTo(p);
     if (pd < R && Player.body) { const r = G.camera.position.clone().sub(p).normalize(); Player.body.velocity.x += r.x * 8 * (1 - pd / R); Player.body.velocity.y += 4 * (1 - pd / R); Player.body.velocity.z += r.z * 8 * (1 - pd / R); }
-    Stats.add('explosions');
+    Stats.add('explosions'); Coop.bump('boom');
   },
 };
 

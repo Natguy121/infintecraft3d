@@ -283,6 +283,10 @@ body.horror .menu-card { background: rgba(16, 10, 12, .92); }
 .swatch { min-width: 30px; height: 30px; padding: 0 8px; border-radius: 10px; border: 2px solid transparent; font-size: 12px; }
 .swatch.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 body.th-underwater { --accent: #1aa0d8; } body.th-candy { --accent: #ff5ab0; } body.th-space { --accent: #8a7aff; } body.th-blocky { --accent: #4aa83a; }
+#tut { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 30; width: min(440px, 92vw); padding: 12px 16px 10px; border-radius: 16px; background: var(--glass2); box-shadow: var(--shadow); text-align: center; pointer-events: auto; }
+#tut.hidden { display: none; } #tut .tut-k { font-size: 11px; letter-spacing: .15em; font-weight: 900; color: var(--accent); text-transform: uppercase; }
+#tut b { display: block; font-size: 18px; margin: 2px 0; } #tut div#tut-d { font-size: 14px; color: var(--ink2); }
+#tut button { margin-top: 6px; font-size: 12px; padding: 4px 10px; }
 #horror-vig { position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.92)); }
 #horror-vig.pulse { animation: hpulse .9s ease-out; }
 @keyframes hpulse { 0% { background-color: rgba(140,0,0,.45); } 100% { background-color: transparent; } }

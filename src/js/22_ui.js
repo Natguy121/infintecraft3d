@@ -211,6 +211,7 @@ const UI = {
 const Hints = {
   recent: [],
   show() {
+    this.used = (this.used || 0) + 1;
     if (UI.hintCooldown > 0) { UI.toast('⏳', 'Hint recharging', `Next hint in ${Math.ceil(UI.hintCooldown)}s.`); return; }
     const disc = new Set(Progress.order);
     let text, again = false;
@@ -304,6 +305,7 @@ const Codex = {
     $('cx-ach').classList.toggle('hidden', t !== 'ach');
     $('cx-stats').classList.toggle('hidden', t !== 'stats');
     $('cx-daily').classList.toggle('hidden', t !== 'daily');
+    $('cx-coll').classList.toggle('hidden', t !== 'coll'); if (t === 'coll') Collections.render();
     if (t === 'daily') Daily.render();
     if (t === 'ach') this.renderAch();
     if (t === 'stats') this.renderStats();
@@ -402,6 +404,7 @@ const Codex = {
     box.innerHTML = `<div class="det-emo">${itemLabel(I)}</div><div class="det-name ${I.rarity >= 5 ? 'r5' : ''}">${escHtml(I.name)}</div>
       <div class="det-meta"><span class="rar r${I.rarity}">${rarityName(I.rarity)}</span> · Tier ${I.tier} · ${kind}</div>
       <div class="det-meta">${I.material === I.state ? I.material : I.material + ' · ' + I.state} · discovered #${fmtInt((Progress.disc.get(id) ?? -1) + 1)}</div>
+      <div class="det-meta">${Firsts.label(id)}</div>
       <div class="det-tags">${I.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
       <div class="det-btns"><button id="d-spawn">✨ Spawn</button><button id="d-book">📜 Recipe book</button><button id="d-shelf">🏺 Display on shelf</button><button id="d-hint">🔍 Use as hint</button><button id="d-share">📤 Share</button></div>
       ${this.recipeBlock(id, 5)}`;
@@ -429,7 +432,7 @@ const Codex = {
 
 const Spawner = {
   spawn(id) {
-    if (!Progress.has(id)) return;
+    if (!Progress.has(id) || !Speedrun.allowSpawn(id)) return;
     const P = LAYOUT.pad;
     const r = buildVisual(Universe.get(id)).radius;
     // big things are delivered onto the floor beside the pad instead of on top of it

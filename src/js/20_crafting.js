@@ -86,6 +86,7 @@ const Crafting = {
     if (!a || !b || a === b || a.merging || b.merging || a.dead || b.dead) return;
     const keepHeld = (Player.held === a || Player.held === b) && reason !== 'impact';
     if (Player.held === a || Player.held === b) Player.drop(false);
+    if (a.remote || b.remote) Coop.bump('cross');
     for (const e of [a, b]) { e.merging = true; e.removeBody(); Net.consume(e); }
     const mid = a.root.position.clone().add(b.root.position).multiplyScalar(0.5);
     mid.y += 0.05;
@@ -139,7 +140,7 @@ const Crafting = {
     Stats.add('merges');
     Daily.count('merges');
     Daily.onCraft(info, isNew, recNew);
-    Pets.onCraft(); if (Voices.kind(info) && ent) setTimeout(() => Voices.play(Voices.kind(info), ent.root.position), 350);
+    Pets.onCraft(); Speedrun.onCraft(info); Collections.onCraft(info, isNew); Firsts.onCraft(info, isNew); Coop.onCraft(info, isNew, big); if (Voices.kind(info) && ent) setTimeout(() => Voices.play(Voices.kind(info), ent.root.position), 350);
     Fun.onCraft(info, isNew, recNew, big ? (ent ? ent.root.position : pos) : pos);
     G.selected = id;
     if (info.secret) this.secret(info.secret, pos);

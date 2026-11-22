@@ -190,3 +190,23 @@ Open **👥 Multiplayer** in the menu:
 Connections are peer-to-peer (WebRTC via PeerJS). Only the initial handshake goes through PeerJS's free public
 server, so multiplayer needs an internet connection. The rest of the game still works offline. The room creator
 relays messages, so the room closes when they leave.
+
+## More to do
+
+| Feature | How |
+| --- | --- |
+| **Item powers** | Bombs, dynamite and TNT explode when thrown, in chain reactions. Black holes swallow nearby items, and magnets pull metal. Fans and tornadoes blow things around, and rockets fly when thrown. Balloons float, trampolines bounce, and lamps, lanterns and torches give off light. |
+| **Creature sounds** | Animals bark, meow, moo, roar, chirp, hiss, quack and more, especially when they're made. |
+| **Pets** | Hold or look at an animal and press `G` (🐾 on mobile). It follows you, hops along, levels up as you craft and is saved. |
+| **Build mode** | Hold an item where you want it and press `B` (📌) to pin it in place. Pinned builds are saved. Press `B` again or grab the item to unpin it. |
+| **The Island** | Walk out the 🏝️ doorway in the east wall to a palm-tree island surrounded by sea. |
+| **First-person hands** | You can see your arms. They follow your Character colours. |
+| **Character** | Menu → 🧍 Character: skin, hair, hairstyle, shirt, trousers and a hat (cap, top hat, crown, wizard, beanie, cowboy). Other players see it. |
+| **Themes** | Normal, Horror, Underwater (floaty, bubbles), Space station (low gravity, stars), Candy land and Blocky (pixel style). |
+| **Photo mode** | Press `P` (📷) to take a screenshot with a watermark, then save or share it. |
+| **Speedrun** | Menu → ⏱️ Speedrun: make a random target item from the 4 elements as fast as you can. Your best time for each target is saved. |
+| **Collections** | Codex → Collections: badges for finding animals, plants, food, mythology, space, sea life, buildings and more. |
+| **Firsts** | The Codex shows the date you first made each item. In multiplayer, whoever makes something first gets 🥇 *first in the room* and bonus XP. |
+| **Co-op goals** | Every multiplayer room gets 3 shared team goals, such as "Fuse your item with a friend's 3 times". |
+| **Share** | 📤 buttons in the menu and the Codex share your progress or a discovery with a link to the game. |
+| **Tutorial** | New players get a short 5-step guide, which can be skipped. |

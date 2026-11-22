@@ -47,7 +47,7 @@ const Net = {
     this.isHost = true; this.code = code;
     this.status('Creating room…');
     const p = this.peer = new Peer('elab-' + code, this.opts());
-    p.on('open', (id) => { this.myId = id; this.status('Room ready! Tell your friends the code.'); this.refresh(); });
+    p.on('open', (id) => { this.myId = id; this.status('Room ready! Tell your friends the code.'); Coop.setup(code); Firsts.room.clear(); this.refresh(); });
     p.on('connection', (c) => this.addConn(c));
     p.on('error', (e) => this.fail(e));
     this.refresh();
@@ -62,6 +62,7 @@ const Net = {
     const p = this.peer = new Peer(undefined, this.opts());
     p.on('open', (id) => {
       this.myId = id;
+      Coop.setup(code); Firsts.room.clear();
       const c = p.connect('elab-' + code, { reliable: true });
       this.addConn(c);
       setTimeout(() => { if (this.peer === p && !this.conns.size) this.fail({ type: 'timeout' }); }, 12000);
@@ -130,9 +131,11 @@ const Net = {
       }
       case 'disc': {
         const a = this.avatars.get(src), info = typeof m.id === 'string' && Universe.isValidId(m.id) ? Universe.get(m.id) : null;
+        if (a && info) Firsts.onRemote(m.id, a.name);
         if (a && info) UI.toast(info.emoji || '✨', `${a.name} discovered ${info.name}`, Progress.disc.has(m.id) ? 'You already have it.' : 'You haven\'t found that one yet!');
         break;
       }
+      case 'coop': if (typeof m.k === 'string') Coop.bump(m.k, false); break;
       case 'bye': this.dropPlayer(src); break;
     }
   },
