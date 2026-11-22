@@ -50,6 +50,6 @@ const html = template
 
 fs.writeFileSync(path.join(root, 'elemental-lab.html'), html);
 // landing page (index.html) with real text for search engines; the game itself is elemental-lab.html
-fs.copyFileSync(path.join(src, 'landing.html'), path.join(root, 'index.html'));
+fs.writeFileSync(path.join(root, 'index.html'), html);  // the link opens straight into the game
 const kb = (Buffer.byteLength(html) / 1024).toFixed(0);
 console.log(`built elemental-lab.html (${kb} KB) from ${files.length} source files`);

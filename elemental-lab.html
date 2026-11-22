@@ -6,9 +6,28 @@
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#eef0f4">
 <title>Elemental Lab – Infinite Craft in 3D (Play Free)</title>
 <meta name="description" content="Play Elemental Lab, a free Infinite Craft-style crafting game in 3D. Smash Air, Fire, Earth and Water together with real physics to discover 300,000+ items. Multiplayer, PC and mobile.">
-<link rel="canonical" href="https://natguy121.github.io/infintecraft3d/elemental-lab.html">
+<link rel="canonical" href="https://natguy121.github.io/infintecraft3d/">
 <meta property="og:title" content="Elemental Lab – Infinite Craft in 3D"><meta property="og:type" content="website">
-<meta property="og:url" content="https://natguy121.github.io/infintecraft3d/elemental-lab.html">
+<meta property="og:url" content="https://natguy121.github.io/infintecraft3d/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Elemental Lab – Infinite Craft in 3D",
+  "alternateName": ["Infinite Craft 3D", "Elemental Lab"],
+  "url": "https://natguy121.github.io/infintecraft3d/",
+  "image": "https://natguy121.github.io/infintecraft3d/docs/screenshot-lab.jpg",
+  "description": "A free first-person 3D crafting game in the style of Infinite Craft. Combine Air, Fire, Earth and Water with real physics to discover over 300,000 items.",
+  "genre": ["Crafting", "Sandbox", "Puzzle"],
+  "gamePlatform": ["Web browser", "PC", "Mobile"],
+  "playMode": ["SinglePlayer", "MultiPlayer"],
+  "applicationCategory": "Game",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:description" content="Smash elements together in a 3D physics lab and discover 300,000+ items. Free, in your browser, with multiplayer.">
 <meta property="og:image" content="https://natguy121.github.io/infintecraft3d/docs/screenshot-lab.jpg">
 <style>
 :root {
@@ -12781,7 +12800,7 @@ const Accounts = {
     const n = this.norm(name), a = this.list();
     if (!/^[a-z0-9_ .-]{3,20}$/.test(n)) throw new Error('Username must be 3–20 letters, numbers, spaces, _ . or -');
     if (String(pw).length < 4) throw new Error('Password must be at least 4 characters');
-    if (a[n]) throw new Error('That username is taken on this device');
+    if (a[n]) throw new Error('That username already exists on this device. Tap "Log in" instead.');
     const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
     a[n] = { display: String(name).trim(), salt, hash: await this.hash(pw, salt), created: Date.now(), disc: Progress.order.length };
     // the new account starts with everything discovered so far
@@ -12794,7 +12813,9 @@ const Accounts = {
 
   async logIn(name, pw) {
     const n = this.norm(name), u = this.list()[n];
-    if (!u || (await this.hash(pw, u.salt)) !== u.hash) throw new Error('Wrong username or password');
+    if (!n) throw new Error('Type your username first');
+    if (!u) throw new Error(`No account called "${String(name).trim()}" on this device yet. Accounts are saved in this browser only, so tap "Create account" to make it here.`);
+    if ((await this.hash(String(pw), u.salt)) !== u.hash) throw new Error('Wrong password');
     this.switchTo(n);
   },
 

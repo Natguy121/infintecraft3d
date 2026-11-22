@@ -26,7 +26,7 @@ const Accounts = {
     const n = this.norm(name), a = this.list();
     if (!/^[a-z0-9_ .-]{3,20}$/.test(n)) throw new Error('Username must be 3–20 letters, numbers, spaces, _ . or -');
     if (String(pw).length < 4) throw new Error('Password must be at least 4 characters');
-    if (a[n]) throw new Error('That username is taken on this device');
+    if (a[n]) throw new Error('That username already exists on this device. Tap "Log in" instead.');
     const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
     a[n] = { display: String(name).trim(), salt, hash: await this.hash(pw, salt), created: Date.now(), disc: Progress.order.length };
     // the new account starts with everything discovered so far
@@ -39,7 +39,9 @@ const Accounts = {
 
   async logIn(name, pw) {
     const n = this.norm(name), u = this.list()[n];
-    if (!u || (await this.hash(pw, u.salt)) !== u.hash) throw new Error('Wrong username or password');
+    if (!n) throw new Error('Type your username first');
+    if (!u) throw new Error(`No account called "${String(name).trim()}" on this device yet. Accounts are saved in this browser only, so tap "Create account" to make it here.`);
+    if ((await this.hash(String(pw), u.salt)) !== u.hash) throw new Error('Wrong password');
     this.switchTo(n);
   },
 
