@@ -77,11 +77,12 @@ const Cloud = {
     if (raw.length > 950000) { if (!this.warned) { this.warned = true; UI.toast('☁️', 'Save too big for the cloud', 'Your progress is still saved on this device.'); } return; }
     const t = Date.now();
     try {
-      localStorage.setItem(Accounts.key(Accounts.current()) + '.t', String(t));
+      localStorage.setItem(Accounts.key('c:' + this.user.uid) + '.t', String(t));
       await FB.setDoc(FB.doc(this.db, 'saves', this.user.uid), { data: raw, t });
-      await FB.setDoc(FB.doc(this.db, 'users', this.user.uid), { name: Accounts.displayName() || 'Player', disc: Progress.order.length, level: Progress.stats.level || 1, t }, { merge: true });
+      await FB.setDoc(FB.doc(this.db, 'users', this.user.uid), { name: localStorage.getItem('elementalLab.cloudName') || Accounts.displayName() || 'Player', disc: this.discOf(raw), level: Progress.stats.level || 1, t }, { merge: true });
     } catch (e) { console.warn('push failed', e); this.pending = this.pending || raw; }
   },
+  discOf(raw) { try { if (!raw.startsWith('ELAB')) return (JSON.parse(raw).order || []).length; } catch (e) { /* */ } return Progress.order.length; },
   flush() { if (this.pending) { clearTimeout(this.upT); this.push(); } },
 
   /** worldwide first discoverer: claim it if nobody has */
@@ -91,7 +92,7 @@ const Cloud = {
     try {
       const won = await FB.runTransaction(this.db, async (tx) => {
         const s = await tx.get(ref); if (s.exists()) return false;
-        tx.set(ref, { name: Accounts.displayName() || 'Player', uid: this.user.uid, t: Date.now() }); return true;
+        tx.set(ref, { name: localStorage.getItem('elementalLab.cloudName') || 'Player', uid: this.user.uid, t: Date.now() }); return true;
       });
       if (won) { UI.toast('🌍', `WORLD FIRST: ${info.name}!`, 'Nobody in the world had made this before you. Your name is on it! +50 XP'); Fun.gain(50, null); }
     } catch (e) { /* offline or rules */ }
