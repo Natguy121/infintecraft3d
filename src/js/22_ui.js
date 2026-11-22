@@ -61,7 +61,7 @@ const UI = {
     this.hideMenu();
     $('crosshair').classList.remove('hidden'); $('hud-tl').classList.remove('hidden'); $('hud-tr').classList.remove('hidden'); $('hint-bar').classList.remove('hidden');
     this.requestLock();
-    if (!Progress.stats.welcomed) { Progress.stats.welcomed = 1; setTimeout(() => this.toast('👋', 'Welcome to the lab!', 'Grab an element from a pedestal and smash it into another.'), 900); }
+    if (!Progress.stats.welcomed) { if (Tutorial.step >= 0) { Progress.stats.welcomed = 1; } else { Progress.stats.welcomed = 1; setTimeout(() => this.toast('👋', 'Welcome to the lab!', 'Grab an element from a pedestal and smash it into another.'), 900); } }
   },
   requestLock() {
     if (G.debugNoLock || IS_TOUCH) { G.locked = true; this.hideMenu(); if (G.ui === 'menu') G.ui = null; return; }

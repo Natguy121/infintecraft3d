@@ -1,0 +1,16 @@
+{
+  "name": "Elemental Lab – Infinite Craft in 3D",
+  "short_name": "Elemental Lab",
+  "description": "Smash elements together in a 3D physics lab and discover 300,000+ items.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#eef0f4",
+  "theme_color": "#6d5cff",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

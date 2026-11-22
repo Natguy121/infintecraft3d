@@ -18,17 +18,25 @@ const Touch = {
       <div class="t-look" id="t-look"></div>
       <div class="t-stick" id="t-stick"><div class="t-knob" id="t-knob"></div></div>
       <div class="t-top">
-        <button data-a="pause">⏸</button><button data-a="codex">📖</button><button data-a="book">📜</button><button data-a="hint">💡</button><button data-a="pet">🐾</button><button data-a="build">📌</button><button data-a="photo">📷</button>
+        <button data-a="codex">📖</button><button data-a="more">⋯</button><button data-a="fs">⛶</button><button data-a="pause">⏸</button>
+      </div>
+      <div class="t-more hidden" id="t-more">
+        <button data-a="book">📜<small>Recipes</small></button><button data-a="hint">💡<small>Hint</small></button>
+        <button data-a="pet">🐾<small>Pet</small></button><button data-a="build">📌<small>Pin</small></button>
+        <button data-a="photo">📷<small>Photo</small></button><button data-a="shelf">🏺<small>Shelf</small></button>
+        <button data-a="split">✂️<small>Split</small></button>
+      </div>
+      <div class="t-hold" id="t-hold">
+        <button data-a="rotate">🔄<small>Rotate</small></button><button data-a="far">➕</button><button data-a="near">➖</button>
       </div>
       <div class="t-right">
-        <button class="t-big" data-a="grab">✋<small>Grab</small></button>
-        <button class="t-mid" data-a="throw">🎯<small>Throw</small></button>
+        <button class="t-mid" data-a="jump">⤒<small>Jump</small></button>
         <button class="t-mid" data-a="fuse">⚗️<small>Fuse</small></button>
-        <button class="t-mid" data-a="rotate">🔄<small>Rotate</small></button>
-        <button class="t-sm" data-a="far">➕</button><button class="t-sm" data-a="near">➖</button>
-        <button class="t-sm" data-a="jump">⤒</button><button class="t-sm" data-a="shelf">🏺</button><button class="t-sm" data-a="split">✂️</button>
+        <button class="t-mid" data-a="throw">🎯<small>Throw</small></button>
+        <button class="t-big" data-a="grab">✋<small>Grab</small></button>
       </div>`;
     $('ui').appendChild(root);
+    $('btn-play').addEventListener('click', () => { FullScreen.enter().then(ok => { if (!ok && IS_IOS) setTimeout(() => FullScreen.iosTip(false), 1500); }); });
     const opt = { passive: false };
     // ---- joystick
     const stick = $('t-stick'), knob = $('t-knob');
@@ -73,7 +81,7 @@ const Touch = {
     $('help').classList.add('hidden');
   },
   active() { return G.started && G.locked && !G.ui; },
-  update() { if (this.root) this.root.classList.toggle('hidden', !this.active()); },
+  update() { if (this.root) { this.root.classList.toggle('hidden', !this.active()); this.syncHold(); } },
   stickMove(t, cx, cy, knob) {
     const R = 52;
     let dx = t.clientX - cx, dy = t.clientY - cy;
@@ -88,8 +96,10 @@ const Touch = {
     Player.onPrimaryDown({ altKey: this.split });
     if (this.split) this.setSplit(false);
   },
+  syncHold() { if (this.root) this.root.classList.toggle('holding', !!Player.held); },
   setSplit(v) { this.split = v; this.root.querySelector('[data-a=split]').classList.toggle('on', v); },
   press(a, down, btn) {
+    if (down && ['book', 'hint', 'pet', 'build', 'photo', 'shelf', 'split'].includes(a)) setTimeout(() => $('t-more').classList.add('hidden'), 120);
     const K = Input.keys;
     const key = (code, d) => { if (d) { K.add(code); Input.pressed.add(code); } else K.delete(code); };
     const fake = (code) => UI.onKey({ code, preventDefault() {} });
@@ -112,7 +122,44 @@ const Touch = {
       case 'codex': if (down) fake('Tab'); break;
       case 'book': if (down) fake('KeyC'); break;
       case 'hint': if (down) fake('KeyH'); break;
+      case 'more': if (down) $('t-more').classList.toggle('hidden'); break;
+      case 'fs': if (down) FullScreen.toggle(); break;
       case 'pause': if (down) { if (Player.held) Player.drop(); G.locked = false; UI.showMenu(true); } break;
     }
+  },
+};
+
+// ---------------------------------------------------------------- fullscreen (Android/desktop) / Home Screen app (iPhone)
+const IS_IOS = /iPhone|iPod/.test(navigator.userAgent) || (/iPad|Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const STANDALONE = (typeof matchMedia !== 'undefined' && matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches) || navigator.standalone === true;
+const FullScreen = {
+  can() { const d = document.documentElement; return !!(d.requestFullscreen || d.webkitRequestFullscreen) && !(/iPhone|iPod/.test(navigator.userAgent)); },
+  active() { return !!(document.fullscreenElement || document.webkitFullscreenElement) || STANDALONE; },
+  async enter() {
+    if (STANDALONE || this.active()) return true;
+    if (!this.can()) return false;
+    const d = document.documentElement;
+    try { await (d.requestFullscreen ? d.requestFullscreen({ navigationUI: 'hide' }) : d.webkitRequestFullscreen()); } catch (e) { return false; }
+    try { await screen.orientation.lock('landscape'); } catch (e) { /* not supported everywhere */ }
+    return true;
+  },
+  async toggle() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+    if (!(await this.enter())) this.iosTip(true);
+  },
+  iosTip(force) {
+    if (STANDALONE) return;
+    try { if (!force && localStorage.getItem('elab.iosTip')) return; localStorage.setItem('elab.iosTip', '1'); } catch (e) { /* */ }
+    let b = $('ios-tip');
+    if (!b) {
+      b = el('div'); b.id = 'ios-tip';
+      b.innerHTML = `<div class="acct-card"><button class="x" id="ios-x">✕</button><h2>⛶ Play full screen</h2>
+        <p class="acct-note">iPhone doesn't let websites go full screen, but you can install the game as an app. Then it opens full screen with no browser bars:</p>
+        <ol class="ios-steps"><li>Tap the <b>Share</b> button <span class="ios-ico">⬆️</span> at the bottom (or top) of Safari.</li><li>Scroll down and tap <b>Add to Home Screen</b> ➕.</li><li>Open <b>Elemental Lab</b> from your home screen.</li></ol>
+        <button class="primary" id="ios-ok" style="width:100%">Got it</button></div>`;
+      document.body.appendChild(b);
+      $('ios-x').onclick = $('ios-ok').onclick = () => b.classList.add('hidden');
+    }
+    b.classList.remove('hidden');
   },
 };

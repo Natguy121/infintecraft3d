@@ -194,7 +194,7 @@ const Tutorial = {
   update() {
     if (this.step < 0 || !this.box) return;
     const show = G.started && (!G.ui || G.ui === 'codex');
-    this.box.classList.toggle('hidden', !show);
+    this.box.classList.toggle('hidden', !show); document.body.classList.toggle('tut-on', show);
     if (!show && G.ui !== 'codex') return;
     const S = this.STEPS[this.step];
     if (S.ok()) {
@@ -206,7 +206,7 @@ const Tutorial = {
     $('tut-k').textContent = `Tutorial ${this.step + 1}/${this.STEPS.length}`; $('tut-t').textContent = C.t; $('tut-d').textContent = C.d();
   },
   finish(skipped) {
-    this.step = -1; if (this.box) this.box.remove(); Settings.tutDone = true; saveSettings();
+    this.step = -1; if (this.box) this.box.remove(); document.body.classList.remove('tut-on'); Settings.tutDone = true; saveSettings();
     if (!skipped) { UI.bigText('🎓 You\'re ready!', '#2fbf63'); UI.toast('🎓', 'Tutorial complete! +50 XP', 'Try making Life, walk out the east door to the 🏝️ Island, adopt a pet with G, and pin builds with B.'); Fun.gain(50, null); }
   },
 };

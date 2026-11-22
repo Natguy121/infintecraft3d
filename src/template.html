@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#eef0f4">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Elemental Lab">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><meta name="theme-color" content="#eef0f4">
 <title>Elemental Lab – Infinite Craft in 3D (Play Free)</title>
 <meta name="description" content="Play Elemental Lab, a free Infinite Craft-style crafting game in 3D. Smash Air, Fire, Earth and Water together with real physics to discover 300,000+ items. Multiplayer, PC and mobile.">
 <link rel="canonical" href="https://natguy121.github.io/infintecraft3d/">
@@ -222,16 +223,41 @@ body.touch { -webkit-user-select: none; user-select: none; -webkit-touch-callout
 .t-look { position: absolute; inset: 0; touch-action: none; }
 .t-stick { position: absolute; left: calc(22px + env(safe-area-inset-left)); bottom: calc(26px + env(safe-area-inset-bottom)); width: 132px; height: 132px; border-radius: 50%; background: rgba(255,255,255,.35); border: 2px solid rgba(255,255,255,.7); box-shadow: var(--shadow); backdrop-filter: blur(6px); touch-action: none; }
 .t-knob { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: linear-gradient(135deg, #7a6bff, #22c7e8); box-shadow: 0 6px 18px rgba(109,92,255,.45); pointer-events: none; }
-.t-top { position: absolute; top: calc(66px + env(safe-area-inset-top)); left: calc(14px + env(safe-area-inset-left)); display: flex; gap: 8px; }
-.t-right { position: absolute; right: calc(14px + env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, 58px); gap: 8px; justify-items: center; align-items: center; }
-.touch-ui button { width: 52px; height: 52px; padding: 0; border-radius: 50%; font-size: 22px; background: rgba(255,255,255,.75); backdrop-filter: blur(8px); box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; touch-action: none; }
+.t-top { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right)); display: flex; gap: 6px; }
+.t-top button { width: 42px; height: 42px; font-size: 18px; }
+.t-more { position: absolute; top: calc(60px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right)); display: grid; grid-template-columns: repeat(4, 56px); gap: 8px; padding: 10px; border-radius: 20px; background: var(--glass2); box-shadow: var(--shadow); }
+.t-more.hidden { display: none; } .t-more button { width: 56px; height: 56px; border-radius: 16px; }
+.t-right { position: absolute; right: calc(14px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); display: flex; align-items: flex-end; gap: 8px; }
+.t-hold { position: absolute; right: calc(14px + env(safe-area-inset-right)); bottom: calc(112px + env(safe-area-inset-bottom)); display: none; gap: 8px; }
+.touch-ui.holding .t-hold { display: flex; }
+.touch-ui button { width: 52px; height: 52px; padding: 0; border-radius: 50%; font-size: 22px; background: rgba(255,255,255,.72); backdrop-filter: blur(8px); box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; touch-action: none; }
 .touch-ui button small { font-size: 9px; font-weight: 800; color: var(--ink2); margin-top: 2px; }
 .touch-ui button.on { background: linear-gradient(135deg, #7a6bff, #22c7e8); color: #fff; }
 .touch-ui button.on small { color: #fff; }
-.t-right .t-big { grid-column: 1 / -1; width: 84px; height: 84px; font-size: 32px; order: 9; }
-.t-right .t-mid { width: 58px; height: 58px; }
-.t-right .t-sm { width: 44px; height: 44px; font-size: 18px; }
-body.touch #toasts { top: auto; bottom: 150px; right: auto; left: 50%; transform: translateX(-50%); align-items: center; }
+.t-right .t-big { width: 82px; height: 82px; font-size: 32px; }
+.t-right .t-mid { width: 56px; height: 56px; }
+.t-hold button { width: 48px; height: 48px; font-size: 18px; }
+body.touch #hud-tl .pill.sub, body.touch #hud-possible, body.touch #hud-recipes, body.touch #hud-daily { display: none !important; }
+body.touch #hud-tl { top: calc(10px + env(safe-area-inset-top)); left: calc(10px + env(safe-area-inset-left)); gap: 6px; }
+body.touch #hud-tl .pill { padding: 6px 12px; font-size: 13px; }
+body.touch #hud-tl .lvl .lvl-track { width: 60px; }
+body.touch #toasts { top: calc(58px + env(safe-area-inset-top)); bottom: auto; right: auto; left: 50%; transform: translateX(-50%); align-items: center; max-width: min(380px, 70vw); }
+body.touch #toasts > *:nth-last-child(n+3) { display: none; }
+body.touch #toasts .toast { padding: 8px 12px; font-size: 12px; }
+body.touch #tut { top: calc(8px + env(safe-area-inset-top)); width: min(340px, 52vw); padding: 8px 12px; }
+body.touch #tut b { font-size: 15px; } body.touch #tut div#tut-d { font-size: 12px; } body.touch #tut button { display: none; }
+body.touch #hud-tl .count .sub { display: none; }
+body.touch #tut { width: min(320px, 38vw); left: calc(50% - 40px); }
+@media (orientation: portrait) {
+  body.touch #tut { top: calc(62px + env(safe-area-inset-top)); width: 90vw; left: 50%; }
+  body.touch #hud-tl .lvl { display: none; }
+  body.touch.tut-on #toasts { top: calc(150px + env(safe-area-inset-top)) !important; }
+  .t-right { flex-direction: column-reverse; align-items: flex-end; }
+  .t-hold { flex-direction: column-reverse; right: calc(104px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); }
+}
+body.touch.tut-on #toasts { top: calc(96px + env(safe-area-inset-top)); }
+#ios-tip { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; background: rgba(10,12,20,.5); }
+#ios-tip.hidden { display: none; } .ios-steps { text-align: left; padding-left: 20px; line-height: 1.6; } .ios-ico { font-size: 18px; }
 body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 28px; }
 @media (max-height: 520px) {
   .modal { width: 100vw; height: 100vh; border-radius: 0; }
@@ -240,7 +266,7 @@ body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 2
   .mfoot { display: none; } #cx-detail { width: 260px; padding: 10px; } .det-emo { font-size: 40px; } .det-name { font-size: 18px; }
   .menu-card { padding: 14px 18px; } .logo { font-size: 34px; } .menu-card h1 { font-size: 28px; } .elems { display: none; } .menu-card .sub { font-size: 13px; margin-bottom: 10px; }
 }
-@media (max-height: 460px) { .t-right { grid-template-columns: repeat(5, 50px); } .t-right .t-big { grid-column: auto; order: 0; width: 70px; height: 70px; } .t-stick { width: 112px; height: 112px; } #hud-tl .pill.sub { display: none; } }
+@media (max-height: 460px) { .t-right .t-big { width: 70px; height: 70px; } .t-right .t-mid { width: 50px; height: 50px; } .t-stick { width: 112px; height: 112px; } .t-hold { bottom: calc(92px + env(safe-area-inset-bottom)); } }
 @media (max-width: 760px) {
   #cx-detail { display: none; }
   .controls, .setgrid { grid-template-columns: 1fr; }

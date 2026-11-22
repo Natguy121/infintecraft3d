@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#eef0f4">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Elemental Lab">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><meta name="theme-color" content="#eef0f4">
 <title>Elemental Lab – Infinite Craft in 3D (Play Free)</title>
 <meta name="description" content="Play Elemental Lab, a free Infinite Craft-style crafting game in 3D. Smash Air, Fire, Earth and Water together with real physics to discover 300,000+ items. Multiplayer, PC and mobile.">
 <link rel="canonical" href="https://natguy121.github.io/infintecraft3d/">
@@ -222,16 +223,41 @@ body.touch { -webkit-user-select: none; user-select: none; -webkit-touch-callout
 .t-look { position: absolute; inset: 0; touch-action: none; }
 .t-stick { position: absolute; left: calc(22px + env(safe-area-inset-left)); bottom: calc(26px + env(safe-area-inset-bottom)); width: 132px; height: 132px; border-radius: 50%; background: rgba(255,255,255,.35); border: 2px solid rgba(255,255,255,.7); box-shadow: var(--shadow); backdrop-filter: blur(6px); touch-action: none; }
 .t-knob { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: linear-gradient(135deg, #7a6bff, #22c7e8); box-shadow: 0 6px 18px rgba(109,92,255,.45); pointer-events: none; }
-.t-top { position: absolute; top: calc(66px + env(safe-area-inset-top)); left: calc(14px + env(safe-area-inset-left)); display: flex; gap: 8px; }
-.t-right { position: absolute; right: calc(14px + env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, 58px); gap: 8px; justify-items: center; align-items: center; }
-.touch-ui button { width: 52px; height: 52px; padding: 0; border-radius: 50%; font-size: 22px; background: rgba(255,255,255,.75); backdrop-filter: blur(8px); box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; touch-action: none; }
+.t-top { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right)); display: flex; gap: 6px; }
+.t-top button { width: 42px; height: 42px; font-size: 18px; }
+.t-more { position: absolute; top: calc(60px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right)); display: grid; grid-template-columns: repeat(4, 56px); gap: 8px; padding: 10px; border-radius: 20px; background: var(--glass2); box-shadow: var(--shadow); }
+.t-more.hidden { display: none; } .t-more button { width: 56px; height: 56px; border-radius: 16px; }
+.t-right { position: absolute; right: calc(14px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); display: flex; align-items: flex-end; gap: 8px; }
+.t-hold { position: absolute; right: calc(14px + env(safe-area-inset-right)); bottom: calc(112px + env(safe-area-inset-bottom)); display: none; gap: 8px; }
+.touch-ui.holding .t-hold { display: flex; }
+.touch-ui button { width: 52px; height: 52px; padding: 0; border-radius: 50%; font-size: 22px; background: rgba(255,255,255,.72); backdrop-filter: blur(8px); box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; touch-action: none; }
 .touch-ui button small { font-size: 9px; font-weight: 800; color: var(--ink2); margin-top: 2px; }
 .touch-ui button.on { background: linear-gradient(135deg, #7a6bff, #22c7e8); color: #fff; }
 .touch-ui button.on small { color: #fff; }
-.t-right .t-big { grid-column: 1 / -1; width: 84px; height: 84px; font-size: 32px; order: 9; }
-.t-right .t-mid { width: 58px; height: 58px; }
-.t-right .t-sm { width: 44px; height: 44px; font-size: 18px; }
-body.touch #toasts { top: auto; bottom: 150px; right: auto; left: 50%; transform: translateX(-50%); align-items: center; }
+.t-right .t-big { width: 82px; height: 82px; font-size: 32px; }
+.t-right .t-mid { width: 56px; height: 56px; }
+.t-hold button { width: 48px; height: 48px; font-size: 18px; }
+body.touch #hud-tl .pill.sub, body.touch #hud-possible, body.touch #hud-recipes, body.touch #hud-daily { display: none !important; }
+body.touch #hud-tl { top: calc(10px + env(safe-area-inset-top)); left: calc(10px + env(safe-area-inset-left)); gap: 6px; }
+body.touch #hud-tl .pill { padding: 6px 12px; font-size: 13px; }
+body.touch #hud-tl .lvl .lvl-track { width: 60px; }
+body.touch #toasts { top: calc(58px + env(safe-area-inset-top)); bottom: auto; right: auto; left: 50%; transform: translateX(-50%); align-items: center; max-width: min(380px, 70vw); }
+body.touch #toasts > *:nth-last-child(n+3) { display: none; }
+body.touch #toasts .toast { padding: 8px 12px; font-size: 12px; }
+body.touch #tut { top: calc(8px + env(safe-area-inset-top)); width: min(340px, 52vw); padding: 8px 12px; }
+body.touch #tut b { font-size: 15px; } body.touch #tut div#tut-d { font-size: 12px; } body.touch #tut button { display: none; }
+body.touch #hud-tl .count .sub { display: none; }
+body.touch #tut { width: min(320px, 38vw); left: calc(50% - 40px); }
+@media (orientation: portrait) {
+  body.touch #tut { top: calc(62px + env(safe-area-inset-top)); width: 90vw; left: 50%; }
+  body.touch #hud-tl .lvl { display: none; }
+  body.touch.tut-on #toasts { top: calc(150px + env(safe-area-inset-top)) !important; }
+  .t-right { flex-direction: column-reverse; align-items: flex-end; }
+  .t-hold { flex-direction: column-reverse; right: calc(104px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); }
+}
+body.touch.tut-on #toasts { top: calc(96px + env(safe-area-inset-top)); }
+#ios-tip { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; background: rgba(10,12,20,.5); }
+#ios-tip.hidden { display: none; } .ios-steps { text-align: left; padding-left: 20px; line-height: 1.6; } .ios-ico { font-size: 18px; }
 body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 28px; }
 @media (max-height: 520px) {
   .modal { width: 100vw; height: 100vh; border-radius: 0; }
@@ -240,7 +266,7 @@ body.touch .ban .bname { font-size: 22px; } body.touch .ban .bemo { font-size: 2
   .mfoot { display: none; } #cx-detail { width: 260px; padding: 10px; } .det-emo { font-size: 40px; } .det-name { font-size: 18px; }
   .menu-card { padding: 14px 18px; } .logo { font-size: 34px; } .menu-card h1 { font-size: 28px; } .elems { display: none; } .menu-card .sub { font-size: 13px; margin-bottom: 10px; }
 }
-@media (max-height: 460px) { .t-right { grid-template-columns: repeat(5, 50px); } .t-right .t-big { grid-column: auto; order: 0; width: 70px; height: 70px; } .t-stick { width: 112px; height: 112px; } #hud-tl .pill.sub { display: none; } }
+@media (max-height: 460px) { .t-right .t-big { width: 70px; height: 70px; } .t-right .t-mid { width: 50px; height: 50px; } .t-stick { width: 112px; height: 112px; } .t-hold { bottom: calc(92px + env(safe-area-inset-bottom)); } }
 @media (max-width: 760px) {
   #cx-detail { display: none; }
   .controls, .setgrid { grid-template-columns: 1fr; }
@@ -11458,17 +11484,25 @@ const Touch = {
       <div class="t-look" id="t-look"></div>
       <div class="t-stick" id="t-stick"><div class="t-knob" id="t-knob"></div></div>
       <div class="t-top">
-        <button data-a="pause">⏸</button><button data-a="codex">📖</button><button data-a="book">📜</button><button data-a="hint">💡</button><button data-a="pet">🐾</button><button data-a="build">📌</button><button data-a="photo">📷</button>
+        <button data-a="codex">📖</button><button data-a="more">⋯</button><button data-a="fs">⛶</button><button data-a="pause">⏸</button>
+      </div>
+      <div class="t-more hidden" id="t-more">
+        <button data-a="book">📜<small>Recipes</small></button><button data-a="hint">💡<small>Hint</small></button>
+        <button data-a="pet">🐾<small>Pet</small></button><button data-a="build">📌<small>Pin</small></button>
+        <button data-a="photo">📷<small>Photo</small></button><button data-a="shelf">🏺<small>Shelf</small></button>
+        <button data-a="split">✂️<small>Split</small></button>
+      </div>
+      <div class="t-hold" id="t-hold">
+        <button data-a="rotate">🔄<small>Rotate</small></button><button data-a="far">➕</button><button data-a="near">➖</button>
       </div>
       <div class="t-right">
-        <button class="t-big" data-a="grab">✋<small>Grab</small></button>
-        <button class="t-mid" data-a="throw">🎯<small>Throw</small></button>
+        <button class="t-mid" data-a="jump">⤒<small>Jump</small></button>
         <button class="t-mid" data-a="fuse">⚗️<small>Fuse</small></button>
-        <button class="t-mid" data-a="rotate">🔄<small>Rotate</small></button>
-        <button class="t-sm" data-a="far">➕</button><button class="t-sm" data-a="near">➖</button>
-        <button class="t-sm" data-a="jump">⤒</button><button class="t-sm" data-a="shelf">🏺</button><button class="t-sm" data-a="split">✂️</button>
+        <button class="t-mid" data-a="throw">🎯<small>Throw</small></button>
+        <button class="t-big" data-a="grab">✋<small>Grab</small></button>
       </div>`;
     $('ui').appendChild(root);
+    $('btn-play').addEventListener('click', () => { FullScreen.enter().then(ok => { if (!ok && IS_IOS) setTimeout(() => FullScreen.iosTip(false), 1500); }); });
     const opt = { passive: false };
     // ---- joystick
     const stick = $('t-stick'), knob = $('t-knob');
@@ -11513,7 +11547,7 @@ const Touch = {
     $('help').classList.add('hidden');
   },
   active() { return G.started && G.locked && !G.ui; },
-  update() { if (this.root) this.root.classList.toggle('hidden', !this.active()); },
+  update() { if (this.root) { this.root.classList.toggle('hidden', !this.active()); this.syncHold(); } },
   stickMove(t, cx, cy, knob) {
     const R = 52;
     let dx = t.clientX - cx, dy = t.clientY - cy;
@@ -11528,8 +11562,10 @@ const Touch = {
     Player.onPrimaryDown({ altKey: this.split });
     if (this.split) this.setSplit(false);
   },
+  syncHold() { if (this.root) this.root.classList.toggle('holding', !!Player.held); },
   setSplit(v) { this.split = v; this.root.querySelector('[data-a=split]').classList.toggle('on', v); },
   press(a, down, btn) {
+    if (down && ['book', 'hint', 'pet', 'build', 'photo', 'shelf', 'split'].includes(a)) setTimeout(() => $('t-more').classList.add('hidden'), 120);
     const K = Input.keys;
     const key = (code, d) => { if (d) { K.add(code); Input.pressed.add(code); } else K.delete(code); };
     const fake = (code) => UI.onKey({ code, preventDefault() {} });
@@ -11552,8 +11588,45 @@ const Touch = {
       case 'codex': if (down) fake('Tab'); break;
       case 'book': if (down) fake('KeyC'); break;
       case 'hint': if (down) fake('KeyH'); break;
+      case 'more': if (down) $('t-more').classList.toggle('hidden'); break;
+      case 'fs': if (down) FullScreen.toggle(); break;
       case 'pause': if (down) { if (Player.held) Player.drop(); G.locked = false; UI.showMenu(true); } break;
     }
+  },
+};
+
+// ---------------------------------------------------------------- fullscreen (Android/desktop) / Home Screen app (iPhone)
+const IS_IOS = /iPhone|iPod/.test(navigator.userAgent) || (/iPad|Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const STANDALONE = (typeof matchMedia !== 'undefined' && matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches) || navigator.standalone === true;
+const FullScreen = {
+  can() { const d = document.documentElement; return !!(d.requestFullscreen || d.webkitRequestFullscreen) && !(/iPhone|iPod/.test(navigator.userAgent)); },
+  active() { return !!(document.fullscreenElement || document.webkitFullscreenElement) || STANDALONE; },
+  async enter() {
+    if (STANDALONE || this.active()) return true;
+    if (!this.can()) return false;
+    const d = document.documentElement;
+    try { await (d.requestFullscreen ? d.requestFullscreen({ navigationUI: 'hide' }) : d.webkitRequestFullscreen()); } catch (e) { return false; }
+    try { await screen.orientation.lock('landscape'); } catch (e) { /* not supported everywhere */ }
+    return true;
+  },
+  async toggle() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+    if (!(await this.enter())) this.iosTip(true);
+  },
+  iosTip(force) {
+    if (STANDALONE) return;
+    try { if (!force && localStorage.getItem('elab.iosTip')) return; localStorage.setItem('elab.iosTip', '1'); } catch (e) { /* */ }
+    let b = $('ios-tip');
+    if (!b) {
+      b = el('div'); b.id = 'ios-tip';
+      b.innerHTML = `<div class="acct-card"><button class="x" id="ios-x">✕</button><h2>⛶ Play full screen</h2>
+        <p class="acct-note">iPhone doesn't let websites go full screen, but you can install the game as an app. Then it opens full screen with no browser bars:</p>
+        <ol class="ios-steps"><li>Tap the <b>Share</b> button <span class="ios-ico">⬆️</span> at the bottom (or top) of Safari.</li><li>Scroll down and tap <b>Add to Home Screen</b> ➕.</li><li>Open <b>Elemental Lab</b> from your home screen.</li></ol>
+        <button class="primary" id="ios-ok" style="width:100%">Got it</button></div>`;
+      document.body.appendChild(b);
+      $('ios-x').onclick = $('ios-ok').onclick = () => b.classList.add('hidden');
+    }
+    b.classList.remove('hidden');
   },
 };
 
@@ -12975,7 +13048,7 @@ const Tutorial = {
   update() {
     if (this.step < 0 || !this.box) return;
     const show = G.started && (!G.ui || G.ui === 'codex');
-    this.box.classList.toggle('hidden', !show);
+    this.box.classList.toggle('hidden', !show); document.body.classList.toggle('tut-on', show);
     if (!show && G.ui !== 'codex') return;
     const S = this.STEPS[this.step];
     if (S.ok()) {
@@ -12987,7 +13060,7 @@ const Tutorial = {
     $('tut-k').textContent = `Tutorial ${this.step + 1}/${this.STEPS.length}`; $('tut-t').textContent = C.t; $('tut-d').textContent = C.d();
   },
   finish(skipped) {
-    this.step = -1; if (this.box) this.box.remove(); Settings.tutDone = true; saveSettings();
+    this.step = -1; if (this.box) this.box.remove(); document.body.classList.remove('tut-on'); Settings.tutDone = true; saveSettings();
     if (!skipped) { UI.bigText('🎓 You\'re ready!', '#2fbf63'); UI.toast('🎓', 'Tutorial complete! +50 XP', 'Try making Life, walk out the east door to the 🏝️ Island, adopt a pet with G, and pin builds with B.'); Fun.gain(50, null); }
   },
 };
@@ -13159,7 +13232,7 @@ const UI = {
     this.hideMenu();
     $('crosshair').classList.remove('hidden'); $('hud-tl').classList.remove('hidden'); $('hud-tr').classList.remove('hidden'); $('hint-bar').classList.remove('hidden');
     this.requestLock();
-    if (!Progress.stats.welcomed) { Progress.stats.welcomed = 1; setTimeout(() => this.toast('👋', 'Welcome to the lab!', 'Grab an element from a pedestal and smash it into another.'), 900); }
+    if (!Progress.stats.welcomed) { if (Tutorial.step >= 0) { Progress.stats.welcomed = 1; } else { Progress.stats.welcomed = 1; setTimeout(() => this.toast('👋', 'Welcome to the lab!', 'Grab an element from a pedestal and smash it into another.'), 900); } }
   },
   requestLock() {
     if (G.debugNoLock || IS_TOUCH) { G.locked = true; this.hideMenu(); if (G.ui === 'menu') G.ui = null; return; }
