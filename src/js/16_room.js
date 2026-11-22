@@ -108,7 +108,12 @@ const Room = {
     wall(W, R.h, cx, R.h / 2, R.z0, 0);
     wall(W, R.h, cx, R.h / 2, R.z1, Math.PI);
     wall(D, R.h, R.x0, R.h / 2, cz, Math.PI / 2);
-    wall(D, R.h, R.x1, R.h / 2, cz, -Math.PI / 2);
+    // east wall has a big doorway out to the island
+    const DW = 8, DH = 7;
+    wall((D - DW) / 2, R.h, R.x1, R.h / 2, R.z0 + (D - DW) / 4, -Math.PI / 2);
+    wall((D - DW) / 2, R.h, R.x1, R.h / 2, R.z1 - (D - DW) / 4, -Math.PI / 2);
+    wall(DW, R.h - DH, R.x1, DH + (R.h - DH) / 2, cz, -Math.PI / 2);
+    for (const s of [1, -1]) { const sign = labelPlane('🏝️ ISLAND', 8, 1.6, { font: '900 90px', color: '#1aa08a' }); sign.position.set(R.x1 - 0.05 * s, DH + 1.4, cz); sign.rotation.y = -Math.PI / 2 * s; g.add(sign); }
     const ceil = this.ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: 0xf2f4f8, roughness: 1, emissive: 0xc8ccd6, emissiveIntensity: 0.55 }));
     ceil.rotation.x = Math.PI / 2; ceil.position.set(cx, R.h, cz); g.add(ceil);
     for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
@@ -134,7 +139,10 @@ const Room = {
     Phys.addStaticBox([cx, R.h / 2, R.z0 - 0.5], [W + 2, R.h, 1]);
     Phys.addStaticBox([cx, R.h / 2, R.z1 + 0.5], [W + 2, R.h, 1]);
     Phys.addStaticBox([R.x0 - 0.5, R.h / 2, cz], [1, R.h, D + 2]);
-    Phys.addStaticBox([R.x1 + 0.5, R.h / 2, cz], [1, R.h, D + 2]);
+    Phys.addStaticBox([R.x1 + 0.5, R.h / 2, R.z0 + (D - 8) / 4 - 0.5], [1, R.h, (D - 8) / 2 + 1]);
+    Phys.addStaticBox([R.x1 + 0.5, R.h / 2, R.z1 - (D - 8) / 4 + 0.5], [1, R.h, (D - 8) / 2 + 1]);
+    Phys.addStaticBox([R.x1 + 0.5, 7 + (R.h - 7) / 2, cz], [1, R.h - 7, 8]);
+    Island.build(g);
 
     // wall decor: title + "periodic" board
     const title = labelPlane('ELEMENTAL LAB', 40, 6.1, { font: '900 86px', color: '#4a3fd6', glow: 'rgba(122,107,255,0.6)' });

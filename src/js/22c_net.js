@@ -93,7 +93,7 @@ const Net = {
   addConn(c) {
     c.on('open', () => {
       this.conns.set(c.peer, c);
-      c.send({ t: 'hello', name: this.myName() });
+      c.send({ t: 'hello', name: this.myName(), look: Skins.look() });
       if (this.isHost) for (const [id, a] of this.avatars) c.send({ t: 'hello', name: a.name, from: id });
       this.status(this.isHost ? 'Room ready! Tell your friends the code.' : '✅ Connected!');
       this.refresh();
@@ -114,6 +114,8 @@ const Net = {
     switch (m.t) {
       case 'hello': {
         const a = this.avatar(src); a.name = String(m.name || 'Player').slice(0, 24); this.setLabel(a);
+        if (m.look && typeof m.look === 'object') this.setLook(a, src, m.look);
+        if (m.re) break;
         UI.toast('👋', `${a.name} joined`, 'Mix your items with theirs. Each of you keeps your own discoveries.');
         this.refresh(); break;
       }
@@ -182,6 +184,12 @@ const Net = {
     this.avatars.set(id, a); this.setLabel(a);
     return a;
   },
+  setLook(a, id, look) {
+    const L = {}; for (const k of ['skin', 'hair', 'shirt', 'pants']) if (Number.isFinite(look[k])) L[k] = look[k] & 0xffffff;
+    for (const [k, n] of [['hairStyle', 4], ['hat', 7]]) if (Number.isInteger(look[k]) && look[k] >= 0 && look[k] < n) L[k] = look[k];
+    a.g.remove(a.rig.root); a.rig = buildPerson(hashStr(id), L); a.g.add(a.rig.root);
+  },
+  sendLook() { if (this.on) this.send({ t: 'hello', name: this.myName(), look: Skins.look(), re: 1 }); },
   setLabel(a) {
     const tex = canvasTex(512, 128, (c, w, h) => {
       c.fillStyle = 'rgba(15,18,30,.7)'; roundRect(c, 8, 18, w - 16, h - 36, 40); c.fill();
@@ -245,10 +253,11 @@ const HAIR = [0x2a1d14, 0x4a2f1c, 0x8a5a2a, 0xd8b064, 0x1a1a1a, 0xa83a1c, 0x6a6a
 const SHIRT = [0x3a6ea8, 0xb83a3a, 0x2f8a5a, 0xe8e8ea, 0x2a2a30, 0xe89a2a, 0x7a4ab8, 0x3aa8b8];
 const PANTS = [0x2a3a5a, 0x2a2a2e, 0x5a4a3a, 0x3a4a3a, 0x6a7a8a];
 
-function buildPerson(seed) {
+function buildPerson(seed, look) {
   const rnd = makeRng(seed >>> 0 || 1), pick = (arr) => arr[Math.floor(rnd() * arr.length)];
+  const LK = look || {};
   const M = (c, r = 0.75, extra) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: r }, extra));
-  const skin = M(pick(SKIN), 0.6), hair = M(pick(HAIR), 0.85), shirt = M(pick(SHIRT), 0.85), pants = M(pick(PANTS), 0.9);
+  const skin = M(LK.skin ?? pick(SKIN), 0.6), hair = M(LK.hair ?? pick(HAIR), 0.85), shirt = M(LK.shirt ?? pick(SHIRT), 0.85), pants = M(LK.pants ?? pick(PANTS), 0.9);
   const shoe = M(0x1e1e22, 0.5), white = M(0xf8f8f8, 0.3), iris = M(pick([0x3a5a8a, 0x4a3a2a, 0x3a6a4a, 0x5a4a3a]), 0.2), lip = M(0xb06a62, 0.6);
   const mesh = (geo, mat, x = 0, y = 0, z = 0, parent) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; (parent || root).add(m); return m; };
   const cap = (r, len) => new THREE.CapsuleGeometry(r, len, 6, 14);
@@ -276,11 +285,12 @@ function buildPerson(seed) {
   }
   mesh(new THREE.BoxGeometry(0.05, 0.012, 0.012), lip, 0, -0.062, 0.1, head);                              // mouth
   // hair: one of a few styles
-  const style = Math.floor(rnd() * 4);
+  const style = LK.hairStyle ?? Math.floor(rnd() * 4);
   const cap1 = mesh(new THREE.SphereGeometry(0.122, 24, 14, 0, Math.PI * 2, 0, Math.PI * (style === 3 ? 0.36 : 0.45)), hair, 0, 0.022, -0.012, head);
   cap1.scale.set(0.97, 1.12, 1.06);
   if (style === 1) mesh(cap(0.1, 0.18), hair, 0, -0.1, -0.06, head).scale.set(1.1, 1, 0.6);                 // long
   if (style === 2) mesh(new THREE.SphereGeometry(0.05, 12, 10), hair, 0, 0.06, -0.12, head);                // bun
+  if (LK.hat) addHat(head, LK.hat, mesh);
   // arms (shoulder → elbow → hand)
   const arms = [], legs = [];
   for (const s of [-1, 1]) {

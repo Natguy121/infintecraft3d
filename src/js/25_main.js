@@ -34,7 +34,7 @@ async function boot() {
   await Save.load();
   Displays.init();
   Save.restoreWorld();
-  UI.init(); Codex.init(); Input.init(canvas); Touch.init(); Daily.init(); Fun.init(); Horror.init(); Accounts.init(); Net.init(); Pets.init();
+  UI.init(); Codex.init(); Input.init(canvas); Touch.init(); Daily.init(); Fun.init(); Horror.init(); Accounts.init(); Net.init(); Pets.init(); Skins.init(); Hands.init(); Build.init(); Photo.init();
   // a few starter elements on the table so the first smash is one grab away
   if (Progress.order.length <= 4) {
     [['water', -0.55], ['fire', 0.55]].forEach(([id, x]) => spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.3, 0.25), { noPop: true }));
@@ -98,21 +98,22 @@ function tick(rdt, render = true) {
   Labels.update();
   UI.update(rdt);
   Touch.update();
-  Fun.update(rdt); Horror.update(rdt); Net.update(rdt); Powers.update(dt); Voices.update(rdt); Pets.update(dt);
+  Fun.update(rdt); Horror.update(rdt); Net.update(rdt); Powers.update(dt); Voices.update(rdt); Pets.update(dt); Hands.update(rdt); Build.update(); Photo.update(); Island.update(dt); Themes.update(rdt);
   EmojiAtlas.flush();
   if (!render) { Save.update(rdt); Input.endFrame(); return; }
   const r = G.renderer, cam = G.camera;
   pointUniforms.uScale.value = r.domElement.height / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2));
   if (Q().reflection && (Settings.quality === 'high' || G.frame % 2 === 0)) Reflector.update(r, G.scene, cam);
   Post.render(r, G.scene, cam, rdt);
+  Hands.render(r);
   Save.update(rdt);
-  if (G.started && !document.hidden) DynRes.update(rdt);
+  if (G.started && !document.hidden && Themes.cur !== 'blocky') DynRes.update(rdt);
   Input.endFrame();
 }
 
 // ---------------------------------------------------------------- debug / automation API
 window.lab = {
-  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily, Horror, Accounts, Net, Powers, Pets, Voices,
+  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily, Horror, Accounts, Net, Powers, Pets, Voices, Hands, Build, Island, Photo, Share, Skins, Themes,
   spawn(id, x = 0, z = 0.2) { return spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.4, z), { touched: true }); },
   combine(a, b) { const r = Universe.combine(a, b); return r && { ...r, name: Universe.get(r.id).name }; },
   merge(a, b) { Crafting.merge(a, b, 'force'); },

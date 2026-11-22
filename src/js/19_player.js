@@ -220,6 +220,7 @@ const Player = {
   },
 
   grab(ent, dist) {
+    if (ent.placed) Build.unpin(ent);
     if (ent.remote) { const a = Net.avatars.get(ent.remote); UI.toast('🤝', `That's ${a ? a.name : 'another player'}'s item`, 'Hold yours against it to fuse them!'); return; }
     this.held = ent;
     ent.setHeld(true);

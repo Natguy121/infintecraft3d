@@ -20,7 +20,7 @@ const Horror = {
     for (const x of [-0.08, 0.08]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 6), eyeM); e.position.set(x, 2.55, 0.19); g.add(e); }
     for (const s of [-1, 1]) { const a = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 1.9, 5), dark); a.position.set(0.3 * s, 1.35, 0); a.rotation.z = 0.08 * s; g.add(a); }
     g.add(body, head); g.visible = false; G.scene.add(g);
-    this.apply(Settings.theme === 'horror');
+    Themes.apply(Settings.theme || 'normal');
   },
 
   apply(on) {
