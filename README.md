@@ -2,7 +2,7 @@
 
 A first-person physics crafting sandbox that runs in the browser. You stand in a bright white lab with four glowing
 pedestals (💨 Air, 🔥 Fire, 🌍 Earth, 💧 Water). Grab copies of the elements, toss them, smash them together, and fuse
-your way through **more than 300,000 nameable items** (5.5 million, counting every modifier pair and composite).
+your way through **more than 300,000 nameable items** (about 1 million, counting every sensible modifier pair and composite).
 
 **Play:** open [`elemental-lab.html`](elemental-lab.html) in any modern desktop browser. It's one self-contained,
 fully offline file (Three.js, cannon-es and the game are all inlined), so no server or install is needed.
@@ -92,7 +92,13 @@ counts as a **WILD** recipe.
 the obvious combinations always give the obvious result: Life + Tree = Bird, Monster + Ice = Yeti,
 Fire + Snow = Water, Dog + Cat = Pet, Water + Monster = Kraken. They also carry over to near-synonyms
 (Ice/Snow/Frost/Blizzard, Fire/Flame/Blaze, Stone/Rock…). Opposite modifiers no longer stack, so nothing ends up
-"Burning Snow" or "Frozen Lava". Results are deterministic, so every player gets the same answer for the same pair.
+"Burning Snow" or "Frozen Lava".
+
+**No nonsense results.** Modifiers only appear where they fit physically. Smoke, energy and ideas never become
+"Burning", "Fluffy" or "Giant". Moods, titles and "Zombie" only apply to living things, and gold never rusts.
+Two-word combos only use real adjective words (Fire, Ice, Lava, Gold, Crystal…) on concrete things, so you won't
+see "Ink Monster" or "Animal Dog". Tag-rule results must relate to both ingredients. When nothing fits, the game
+picks the item that best shares the meaning of both ingredients, not a random one. Results are deterministic, so every player gets the same answer for the same pair.
 
 **Secrets.** A few recipes trigger room-wide effects: a disco light show, walls that change colour, bullet time,
 zero gravity, fireworks, indoor snowfall and a Big Bang.

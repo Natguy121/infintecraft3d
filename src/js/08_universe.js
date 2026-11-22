@@ -77,6 +77,10 @@ const MATERIALS = {
   food: { density: 1.4, rough: 0.6, metal: 0, sound: 'food', bounce: 0.25, friction: 0.6 },
   candy: { density: 1.2, rough: 0.2, metal: 0, sound: 'glass', bounce: 0.35, friction: 0.4 },
 };
+const RULE_MODS = new Set(['frozen', 'burning', 'molten', 'golden', 'cooked', 'burnt', 'rusty', 'soggy', 'electric', 'crystal', 'petrified', 'zombie', 'robotic', 'holy', 'cursed', 'ancient', 'baby', 'giant', 'tiny', 'winged', 'aquatic', 'toxic', 'spicy', 'haunted', 'wooden', 'candy', 'chocolate', 'liquid']);
+const COMP_GENERIC = new Set(['animal', 'life', 'human', 'monster', 'plant', 'creature', 'person', 'thing', 'object', 'machine', 'food', 'tool', 'building', 'vehicle', 'nature', 'energy', 'matter', 'material', 'liquid', 'gas', 'solid', 'element', 'idea', 'time', 'love', 'death', 'emotion', 'family', 'baby', 'man', 'woman', 'pet']);
+const COMP_ADJ_IDS = new Set(['fire', 'ice', 'water', 'lava', 'gold', 'crystal', 'diamond', 'stone', 'metal', 'steel', 'glass', 'wood', 'candy', 'chocolate', 'sand', 'snow', 'cloud', 'storm', 'rainbow', 'plasma', 'poison', 'steam', 'lightning', 'frost', 'mud', 'honey', 'magma', 'thunder', 'ocean', 'sea', 'sky', 'moon', 'sun', 'star', 'space', 'paper', 'stone', 'cheese', 'bone', 'slime', 'jelly', 'marshmallow', 'lego', 'pixel', 'laser', 'robot', 'ghost', 'zombie', 'dragon', 'shadow', 'darkness', 'light', 'magic', 'ninja', 'pirate', 'baby', 'mega', 'mini', 'acid', 'toxic', 'wind', 'air', 'earth', 'rock', 'iron', 'silver', 'copper', 'golden']);
+const COMP_ADJ_TAGS = ['fire', 'ice', 'cold', 'hot', 'stone', 'metal', 'gold', 'crystal', 'electric', 'light', 'magic', 'cosmic', 'lava', 'wood', 'glass', 'candy', 'sand', 'cloud', 'storm', 'shadow', 'snow', 'water', 'sea', 'poison', 'plasma', 'holy', 'evil', 'rainbow', 'chocolate', 'paper', 'plant'];
 const HEAD_SCORE = {
   creature: 6, humanoid: 6, robot: 6, bird: 6, fish: 6, snake: 6, insect: 6, building: 6, vehicle: 6, plane: 6, boat: 6,
   rocket: 6, landform: 5.5, tower: 6, tool: 5, blade: 5, machine: 5, device: 5, instrument: 5, tree: 4.5, plant: 4,
@@ -356,7 +360,7 @@ const Universe = {
     // applicable single modifiers for each core item (for counting & random picks)
     for (const it of this.items) {
       it.applicableMods = [];
-      for (const m of MODIFIER_DEFS) if (this.modApplicable(it, m)) it.applicableMods.push(m.index);
+      for (const m of MODIFIER_DEFS) if (this.modApplicable(it, m) && this.modSensible(it, m)) it.applicableMods.push(m.index);
     }
   },
 
@@ -365,6 +369,62 @@ const Universe = {
     if (m.reqIdx.length && !m.reqIdx.some(i => maskHas(base.mask, i))) return false;
     if (m.addIdx.length && m.addIdx.every(i => maskHas(base.mask, i))) return false;
     return true;
+  },
+
+  /** Is this modifier a SENSIBLE result for this base? (validity is wider so old saves keep working) */
+  modSensible(base, m) {
+    const st = base.state, t = base.tags, g = m.group, concrete = base.headScore >= 6 || st === 'living';
+    const thin = st === 'gas' || st === 'plasma' || st === 'energy' || st === 'abstract';
+    if (thin) return g === 'align' && (t.includes('magic') || t.includes('mythical') || t.includes('death') || t.includes('evil'));
+    const flammable = ['wood', 'plant', 'paper', 'cloth', 'living', 'edible', 'building', 'vehicle', 'oil'].some(x => t.includes(x)) || st === 'living';
+    const big = ['landform', 'planet', 'moon', 'celestial', 'galaxy', 'blackhole', 'star5'].includes(base.shape);
+    if (m.id === 'burning' && !flammable) return false;
+    const beast = ['animal', 'human'].some(x => t.includes(x)) || ['creature', 'humanoid', 'bird', 'fish', 'snake', 'insect'].includes(base.shape);
+    const machine = ['machine', 'vehicle', 'robot'].some(x => t.includes(x)) || ['vehicle', 'plane', 'boat', 'rocket', 'robot', 'machine', 'device'].includes(base.shape);
+    if (m.id === 'soggy' && !['edible', 'paper', 'cloth'].some(x => t.includes(x))) return false;
+    if (m.id === 'rusty' && (!t.includes('metal') || ['gold', 'silver'].includes(base.material) || ['gold', 'silver', 'platinum'].includes(base.id))) return false;
+    if (m.id === 'petrified' && !beast && !t.includes('plant')) return false;
+    if (['zombie', 'vampire', 'mutant', 'cyber'].includes(m.id) && !beast) return false;
+    if (m.id === 'robotic' && !beast) return false;
+    if (m.id === 'haunted' && !['building', 'tower'].includes(base.shape) && !t.includes('building')) return false;
+    if (g === 'size' && !beast && !machine && !t.includes('plant')) return false;
+    if (m.id === 'winged' && (!beast && !machine || t.includes('flying') || ['snake', 'insect', 'fish', 'bird'].includes(base.shape))) return false;
+    if (m.id === 'aquatic' && !beast && !t.includes('plant')) return false;
+    if (g === 'light' && !beast && !t.includes('magic') && !t.includes('mythical')) return false;
+    if (g === 'align' && !beast && !t.includes('magic') && !t.includes('mythical') && !['blade', 'tool', 'crown', 'shield', 'book', 'potion', 'bell'].includes(base.shape)) return false;
+    if (g === 'title' && !beast) return false;
+    if (big && !['frozen', 'molten', 'golden', 'crystal', 'cosmic', 'ancient'].includes(m.id)) return false;
+    if (m.id === 'ancient' && base.headScore < 5) return false;
+    if (g === 'matter' && base.headScore < 4) return false;
+    if (['light', 'energy', 'realm', 'mind', 'legend'].includes(g) && (base.headScore < 5 || st === 'liquid')) return false;
+    if (g === 'size' && (big || base.headScore < 4)) return false;
+    if (g === 'texture' && !concrete) return false;
+    if ((g === 'realm' || g === 'mind' || g === 'energy' && m.id !== 'electric') && !concrete) return false;
+    if (m.id === 'burning' && (st === 'liquid' || ['wet', 'ice', 'cold', 'stone', 'metal', 'glass', 'fire', 'hot'].some(x => t.includes(x)))) return false;
+    if (m.id === 'frozen' && t.includes('fire')) return false;
+    if (m.id === 'molten' && !['stone', 'metal', 'glass', 'gold', 'ice', 'candy'].some(x => t.includes(x) || base.material === x)) return false;
+    if (m.id === 'rusty' && !(t.includes('metal') || t.includes('machine') || t.includes('vehicle'))) return false;
+    if (m.id === 'soggy' && (st === 'liquid' || t.includes('wet'))) return false;
+    if ((g === 'texture' || g === 'flavor' && m.id !== 'cooked' && m.id !== 'burnt') && st === 'liquid' && m.id !== 'spicy' && m.id !== 'toxic') return false;
+    if (g === 'flavor' && (m.id === 'spicy') && !t.includes('edible')) return false;
+    if (['mood', 'title', 'style', 'being'].includes(g) && !concrete) return false;
+    if (g === 'mood' && st !== 'living') return false;
+    if (g === 'age' && (m.id === 'baby' || m.id === 'elder') && st !== 'living') return false;
+    return true;
+  },
+  sensibleMods(base, modIds) {
+    for (const id of modIds) { const m = MOD_BY_ID.get(id); if (!m || !this.modSensible(base, m)) return false; }
+    return this.modsValid(base, modIds);
+  },
+  /** two-word composites only when the first word works as a real adjective for a concrete thing */
+  compSensible(adj, head) {
+    if (!adj || !head || adj === head) return false;
+    if (head.headScore < 4 || head.state === 'abstract' || head.state === 'energy' || head.state === 'gas') return false;
+    if (adj.headScore >= 6 && !adj.adj) return false;          // "Dog Cat", "Car Monster"
+    if (COMP_GENERIC.has(adj.id) || COMP_GENERIC.has(head.id)) return false;
+    if (head.tags.includes(adj.id) || adj.tags.includes(head.id)) return false;  // "Animal Dog"
+    if (head.shape === 'landform' || head.name.split(' ').length > 2) return false;
+    return !!adj.adj || COMP_ADJ_IDS.has(adj.id);
   },
 
   modsValid(base, modIds) {
@@ -558,7 +618,9 @@ const Universe = {
           if (MODIFIER_DEFS[mods[i]].group !== MODIFIER_DEFS[mods[j]].group) double++;
     }
     const n = this.items.length;
-    this.countBreakdown = { core: n, oneMod: single, twoMods: double, composites: n * (n - 1) / 2 };
+    let comps = 0;
+    for (const adj of this.items) if (adj.adj || COMP_ADJ_IDS.has(adj.id)) for (const h of this.items) if (this.compSensible(adj, h)) comps++;
+    this.countBreakdown = { core: n, oneMod: single, twoMods: double, composites: comps };
     this.totalCount = n + single + double + this.countBreakdown.composites;
   },
 
@@ -781,7 +843,8 @@ const Universe = {
       const t = this.pairTable.get(baseKey);
       if (t) {
         const mods = [...new Set([...A.mods, ...B.mods])];
-        if (this.modsValid(this.byId.get(t), mods)) return { id: this.canon(this.makeModId(t, mods)), how: 'inherit' };
+        if (this.sensibleMods(this.byId.get(t), mods)) return { id: this.canon(this.makeModId(t, mods)), how: 'inherit' };
+        return { id: t, how: 'inherit' };
       }
     }
     // 2b. modifiers burn off when the bases fuse into a named composite
@@ -790,11 +853,11 @@ const Universe = {
       if (br && br.id.startsWith('x:')) return { id: br.id, how: 'comp' };
     }
     // 3. twins → giant (or baby, for living things already huge)
-    if (baseKey && A.base === B.base && !this.pairTable.has(baseKey)) {
+    if (baseKey && A.base === B.base && !this.pairTable.has(baseKey) && A.base.headScore >= 4) {
       const mods = [...new Set([...A.mods, ...B.mods])];
       for (const extra of ['giant', 'baby']) {
         if (extra === 'baby' && !A.base.tags.includes('living')) continue;
-        if (!mods.includes(extra) && this.modsValid(A.base, [...mods, extra])) return { id: this.canon(this.makeModId(A.base.id, [...mods, extra])), how: 'twin' };
+        if (!mods.includes(extra) && this.sensibleMods(A.base, [...mods, extra])) return { id: this.canon(this.makeModId(A.base.id, [...mods, extra])), how: 'twin' };
       }
     }
     // 4. modifier sources
@@ -807,7 +870,7 @@ const Universe = {
       const md = MODIFIER_DEFS.find(d => d.id === m);
       if (md && md.removeSet && target.base.tags.some(t => md.removeSet.has(t))) return;
       const mods = [...target.mods, m];
-      if (this.modsValid(target.base, mods)) opts.push(this.canon(this.makeModId(target.base.id, mods)));
+      if (this.sensibleMods(target.base, mods)) opts.push(this.canon(this.makeModId(target.base.id, mods)));
     };
     tryApply(A, B); tryApply(B, A);
     if (opts.length) return { id: opts.length === 1 ? opts[0] : opts[hashStr(key + '#src') & 1], how: 'mod' };
@@ -838,14 +901,19 @@ const Universe = {
         const bA = this.baseOf(A), bB = this.baseOf(B);
         if ((bA && o.id === bA.id) || (bB && o.id === bB.id)) return [null, 0];
         const it = this.byId.get(o.id);
-        return [o.id, it.tier < maxTier - 3 ? 0.35 : 1];
+        let ca = 0, cb = 0, cu = 0;
+        for (let w = 0; w < MASK_WORDS; w++) { ca += popcount32(it.mask[w] & mA[w]); cb += popcount32(it.mask[w] & mB[w]); cu += popcount32(it.mask[w] | mA[w] | mB[w]); }
+        const rel = (ca ? 1 : 0) + (cb ? 1 : 0), jac = (ca + cb) / Math.max(1, cu);
+        if (rel < 2 || jac < 0.2) return [null, 0];
+        return [o.id, (it.tier < maxTier - 3 ? 0.35 : 1) * (rel === 2 ? 1 : 0.25) * (0.15 + jac) * (0.15 + jac)];
       }
       if (o.type === 'mod') {
+        if (!RULE_MODS.has(o.mod)) return [null, 0];
         const target = o.side === 'a' ? X : Y;
         if (target.kind !== 'core' && target.kind !== 'mod') return [null, 0];
         if (target.mods.includes(o.mod)) return [null, 0];
         const mods = [...target.mods, o.mod];
-        return this.modsValid(target.base, mods) ? [this.canon(this.makeModId(target.base.id, mods)), 1] : [null, 0];
+        return this.sensibleMods(target.base, mods) ? [this.canon(this.makeModId(target.base.id, mods)), 1] : [null, 0];
       }
       // composite
       return [this.makeComposite(X, Y, o.adj ? (o.adj === 'a' ? X : Y) : null), 1];
@@ -869,10 +937,25 @@ const Universe = {
     }
     const comp = this.makeComposite(A, B, null);
     if (comp) return { id: comp, how: 'comp' };
-    // final procedural fallback: hash the pair into a tier-appropriate core item
-    const pool2 = this.items.filter(it => Math.abs(it.tier - maxTier) <= 1 && !it.secret);
-    const pick = pool2[hashStr(key, GLOBAL_SEED ^ 0x1234) % pool2.length];
-    return { id: pick.id, how: 'fallback' };
+    // final fallback: the core item that best shares the MEANING (tags) of both ingredients
+    return { id: this.semanticPick(IA, IB, key), how: 'fallback' };
+  },
+
+  semanticPick(IA, IB, key) {
+    const ex = new Set([IA.id, IB.id, this.baseOf(this.parse(IA.id))?.id, this.baseOf(this.parse(IB.id))?.id]);
+    const maxTier = Math.max(IA.tier, IB.tier);
+    let best = null, bs = -1;
+    for (const it of this.items) {
+      if (it.secret || it.unreachable || ex.has(it.id)) continue;
+      let a = 0, b = 0, u = 0;
+      for (let w = 0; w < MASK_WORDS; w++) { a += popcount32(it.mask[w] & IA.mask[w]); b += popcount32(it.mask[w] & IB.mask[w]); u += popcount32(it.mask[w] | IA.mask[w] | IB.mask[w]); }
+      if (!a || !b) continue;
+      let s = (a + b) / u + Math.min(a, b) * 0.15 - 0.04 * Math.abs(it.tier - (maxTier + 1)) + hash01(key + it.id, 99) * 0.02;
+      if (s > bs) { bs = s; best = it; }
+    }
+    if (best) return best.id;
+    const pool2 = this.items.filter(it => Math.abs(it.tier - maxTier) <= 1 && !it.secret && !ex.has(it.id));
+    return pool2[hashStr(key, GLOBAL_SEED ^ 0x1234) % pool2.length].id;
   },
 
   makeComposite(X, Y, adjSide) {
@@ -889,6 +972,7 @@ const Universe = {
     const name = this.compositeName(adj, head);
     const core = this.byNorm.get(normName(name));
     if (core) return core.id;
+    if (!this.compSensible(adj, head)) return null;
     return `x:${adj.id}:${head.id}`;
   },
 
