@@ -16,6 +16,7 @@ const libs = await esbuild.build({
       export * as THREE from 'three';
       export * as CANNON from 'cannon-es';
       export { default as Anthropic } from '@anthropic-ai/sdk';
+      export { Peer } from 'peerjs';
     `,
     resolveDir: root,
     loader: 'js',
@@ -44,7 +45,7 @@ game = guard(game, 'game code');
 
 const template = fs.readFileSync(path.join(src, 'template.html'), 'utf8');
 const html = template
-  .replace('/*__LIBS__*/', () => libCode + '\nconst { THREE, CANNON, Anthropic } = __LIBS;\n')
+  .replace('/*__LIBS__*/', () => libCode + '\nconst { THREE, CANNON, Anthropic, Peer } = __LIBS;\n')
   .replace('/*__GAME__*/', () => game);
 
 fs.writeFileSync(path.join(root, 'elemental-lab.html'), html);

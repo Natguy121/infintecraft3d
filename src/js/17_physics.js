@@ -84,7 +84,7 @@ const Phys = {
     const g = this.world.gravity.y;
     for (const e of G.entities) {
       const b = e.body;
-      if (!b || e.held || e.merging || b.sleepState === CANNON.Body.SLEEPING && e.info.state !== 'gas') continue;
+      if (!b || e.held || e.merging || e.remote || b.sleepState === CANNON.Body.SLEEPING && e.info.state !== 'gas') continue;
       const st = e.info.state, m = b.mass;
       if (e.inRing) {
         // the Fusion Ring's containment field: gently centres items and holds floaty ones down

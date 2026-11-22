@@ -243,6 +243,11 @@ body:not(.horror) #horror-vig, body:not(.horror) #horror-grain, body:not(.horror
 .acct-p:hover { background: var(--line); } .acct-p.me { outline: 2px solid var(--accent); }
 .acct-p .rk { color: var(--ink3); width: 28px; } .acct-p .nm { flex: 1; font-weight: 700; } .acct-empty { font-size: 13px; color: var(--ink3); }
 body.horror .menu-card { background: rgba(16, 10, 12, .92); }
+#mp-panel { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: rgba(10, 12, 20, .45); backdrop-filter: blur(4px); }
+#mp-panel.hidden, #mp-start.hidden, #mp-room.hidden { display: none; }
+.mp-codebox { text-align: center; padding: 14px; border-radius: 16px; background: var(--line); font-size: 13px; color: var(--ink2); }
+.mp-codebox b { display: block; font-size: 44px; letter-spacing: .25em; color: var(--accent); font-family: ui-monospace, monospace; user-select: all; }
+#mp-status { min-height: 18px; margin-top: 10px; font-size: 13px; }
 #horror-vig { position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.92)); }
 #horror-vig.pulse { animation: hpulse .9s ease-out; }
 @keyframes hpulse { 0% { background-color: rgba(140,0,0,.45); } 100% { background-color: transparent; } }
@@ -267,6 +272,7 @@ body.horror .menu-card { background: rgba(16, 10, 12, .92); }
     <div class="pill count">🧪 <span><b id="disc-count">4</b> <span class="sub">/ 300,000+ discovered</span></span></div>
     <div class="pill sub" id="hud-recipes">📜 0 recipes found</div>
     <div class="pill sub" id="hud-daily">📅 Daily 0/3</div>
+      <div id="hud-mp" class="pill hidden"></div>
     <div class="pill sub" id="hud-possible">✨ new items within reach</div>
     <div class="pill lvl"><b>⭐ <span id="lvl-num">1</span></b><div class="lvl-track"><i id="lvl-bar"></i></div><span class="sub" id="lvl-xp"></span></div>
   </div>
@@ -323,6 +329,25 @@ body.horror .menu-card { background: rgba(16, 10, 12, .92); }
       <div id="acct-players"></div>
     </div>
   </div>
+  <div id="mp-panel" class="hidden">
+    <div class="acct-card">
+      <button id="mp-close" class="x">✕</button>
+      <h2>👥 Multiplayer</h2>
+      <p class="acct-note">Play in the same lab with friends. Everyone keeps their own discoveries, and you can fuse your items with theirs (whoever fuses gets the discovery). Needs an internet connection.</p>
+      <div id="mp-start">
+        <button id="mp-host" class="primary" style="width:100%">Create a room</button>
+        <h3>…or join a friend</h3>
+        <div class="acct-btns"><input id="mp-code" placeholder="Room code" maxlength="8" style="text-transform:uppercase;margin:0"><button id="mp-join">Join</button></div>
+      </div>
+      <div id="mp-room" class="hidden">
+        <div class="mp-codebox">Room code<b id="mp-bigcode">·····</b></div>
+        <h3>Players</h3>
+        <div id="mp-players"></div>
+        <button id="mp-leave" style="width:100%;margin-top:12px">Leave room</button>
+      </div>
+      <div id="mp-status"></div>
+    </div>
+  </div>
   <div id="menu">
     <div class="menu-card">
       <div class="logo">⚗️</div>
@@ -336,6 +361,7 @@ body.horror .menu-card { background: rgba(16, 10, 12, .92); }
         <button id="btn-settings">⚙️ Settings</button>
         <button id="btn-save">💾 Save code</button>
         <button id="btn-help">🎮 Controls</button>
+        <button id="btn-mp">👥 Multiplayer</button>
       </div>
       <div id="help" class="controls">
         <div><kbd>W A S D</kbd> move · <kbd>Shift</kbd> sprint · <kbd>Space</kbd> jump</div>

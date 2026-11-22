@@ -86,7 +86,7 @@ const Crafting = {
     if (!a || !b || a === b || a.merging || b.merging || a.dead || b.dead) return;
     const keepHeld = (Player.held === a || Player.held === b) && reason !== 'impact';
     if (Player.held === a || Player.held === b) Player.drop(false);
-    for (const e of [a, b]) { e.merging = true; e.removeBody(); }
+    for (const e of [a, b]) { e.merging = true; e.removeBody(); Net.consume(e); }
     const mid = a.root.position.clone().add(b.root.position).multiplyScalar(0.5);
     mid.y += 0.05;
     const pa = a.root.position.clone(), pb = b.root.position.clone(), sa = a.root.scale.x, sb = b.root.scale.x;
@@ -133,7 +133,7 @@ const Crafting = {
     const isNew = Progress.discover(id);
     const recNew = Progress.addRecipe(id, multiKey || key);
     if (ent) UI.floatLabel(ent, info, isNew);
-    if (isNew) { UI.banner('NEW DISCOVERY!', info, false); Sound.discovery(info.rarity); }
+    if (isNew) { UI.banner('NEW DISCOVERY!', info, false); Sound.discovery(info.rarity); Net.announce(info); }
     else if (recNew) { UI.banner('NEW RECIPE!', info, true); Sound.newRecipe(); }
     checkAchievements(info);
     Stats.add('merges');
@@ -183,7 +183,7 @@ const Crafting = {
     const inside = [];
     for (const e of G.entities) {
       e.inRing = false;
-      if (e.held || e.merging || e.dead) continue;
+      if (e.held || e.merging || e.dead || e.remote) continue;
       const p = e.root.position;
       if (Math.hypot(p.x - R.x, p.z - R.z) < R.r - 0.02 && p.y > top - 0.05 && p.y < top + 1.5) { e.inRing = true; inside.push(e); }
     }
@@ -268,6 +268,7 @@ const Crafting = {
     }
   },
   toShelf(e, slot = null) {
+    if (e.remote) return;
     if (!e || e.merging || e.dead) return;
     if (slot == null && Trophies.freeSlot() == null) UI.toast('🏺', 'Shelf full', 'The oldest trophy was replaced.');
     if (Player.held === e) Player.drop(false);

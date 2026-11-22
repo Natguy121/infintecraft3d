@@ -169,3 +169,16 @@ progress, and the panel lists every player on the device ranked by discoveries. 
 so far. If you're signed in and the Guest has discoveries you don't, the menu offers **📥 Bring over Guest discoveries**. Accounts are local to this browser: passwords are salted and
 hashed (SHA-256), and nothing is sent anywhere. They keep players' progress separate but do not protect it, because
 anyone with access to the browser can read its storage.
+
+## Multiplayer
+
+Open **👥 Multiplayer** in the menu:
+
+- **Create a room** gives you a 5-letter code. Friends type it under **Join**.
+- Everyone plays in the same lab. You see each other walking around with name tags, and you see each other's items move.
+- **Everyone keeps their own discoveries.** You can't grab someone else's item, but you can hold or throw yours against it to fuse the two. Whoever does the fusing gets the discovery, and the other player's item is used up.
+- When a friend discovers something new, you get a toast telling you whether you've found it yet.
+
+Connections are peer-to-peer (WebRTC via PeerJS). Only the initial handshake goes through PeerJS's free public
+server, so multiplayer needs an internet connection. The rest of the game still works offline. The room creator
+relays messages, so the room closes when they leave.

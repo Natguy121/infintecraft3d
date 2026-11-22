@@ -220,6 +220,7 @@ const Player = {
   },
 
   grab(ent, dist) {
+    if (ent.remote) { const a = Net.avatars.get(ent.remote); UI.toast('🤝', `That's ${a ? a.name : 'another player'}'s item`, 'Hold yours against it to fuse them!'); return; }
     this.held = ent;
     ent.setHeld(true);
     this.holdDist = clamp((dist ?? ent.root.position.distanceTo(G.camera.position)) + ent.vis.radius * 0.5, this.minHold(ent), this.minHold(ent) + 1.8);

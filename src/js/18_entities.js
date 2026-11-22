@@ -65,7 +65,7 @@ class Entity {
 
   sync() {
     const b = this.body;
-    if (!b || this.merging) return;
+    if (!b || this.merging || this.remote) return;
     this.root.position.copy(b.interpolatedPosition);
     this.root.quaternion.copy(b.interpolatedQuaternion);
   }
@@ -177,7 +177,7 @@ function spawnItem(id, pos, opts = {}) {
 function enforceBodyCap() {
   const loose = G.entities.filter(e => !e.merging && !e.dead);
   if (loose.length < MAX_BODIES) return;
-  const victims = loose.filter(e => !e.held).sort((a, b) => a.lastTouch - b.lastTouch);
+  const victims = loose.filter(e => !e.held && !e.remote).sort((a, b) => a.lastTouch - b.lastTouch);
   const n = loose.length - MAX_BODIES + 1;
   for (let i = 0; i < n && i < victims.length; i++) victims[i].vanish();
 }
@@ -185,7 +185,7 @@ function enforceBodyCap() {
 function despawnIdle() {
   if (G.entities.length <= DESPAWN_THRESHOLD) return;
   for (const e of [...G.entities]) {
-    if (e.held || e.merging) continue;
+    if (e.held || e.merging || e.remote) continue;
     if (G.time - e.lastTouch > DESPAWN_IDLE) e.vanish();
     if (G.entities.length <= DESPAWN_THRESHOLD) break;
   }
