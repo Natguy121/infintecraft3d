@@ -47,7 +47,8 @@ async function boot() {
     Post.resize(renderer);
   };
   window.addEventListener('resize', resize);
-  window.addEventListener('pagehide', () => { if (Save.dirty) Save.save(); });
+  window.addEventListener('pagehide', () => { if (Save.dirty) Save.save(); Cloud.flush(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (Save.dirty) Save.save(); Cloud.flush(); } });
   G.onResize = resize;
   resize();
   Player.update(0);
@@ -113,7 +114,7 @@ function tick(rdt, render = true) {
 
 // ---------------------------------------------------------------- debug / automation API
 window.lab = {
-  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily, Horror, Accounts, Net, Powers, Pets, Voices, Hands, Build, Island, Photo, Share, Skins, Themes, Speedrun, Collections, Coop, Tutorial,
+  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily, Horror, Accounts, Cloud, Net, Powers, Pets, Voices, Hands, Build, Island, Photo, Share, Skins, Themes, Speedrun, Collections, Coop, Tutorial,
   spawn(id, x = 0, z = 0.2) { return spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.4, z), { touched: true }); },
   combine(a, b) { const r = Universe.combine(a, b); return r && { ...r, name: Universe.get(r.id).name }; },
   merge(a, b) { Crafting.merge(a, b, 'force'); },

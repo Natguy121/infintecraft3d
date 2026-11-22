@@ -8,7 +8,7 @@ const Accounts = {
   LS: 'elementalLab.accounts.v1', LS_USER: 'elementalLab.user.v1',
   list() { try { return JSON.parse(localStorage.getItem(this.LS) || '{}'); } catch (e) { return {}; } },
   store(a) { try { localStorage.setItem(this.LS, JSON.stringify(a)); } catch (e) { /* ignore */ } },
-  current() { try { const u = localStorage.getItem(this.LS_USER); return u && this.list()[u] ? u : null; } catch (e) { return null; } },
+  current() { try { const u = localStorage.getItem(this.LS_USER); return u && (u.startsWith('c:') || this.list()[u]) ? u : null; } catch (e) { return null; } },
   key(name) { return name ? 'elementalLab.save.v1.u.' + name : 'elementalLab.save.v1'; },
   norm(n) { return String(n || '').trim().toLowerCase(); },
 
@@ -22,30 +22,52 @@ const Accounts = {
     return h;
   },
 
-  async signUp(name, pw) {
-    const n = this.norm(name), a = this.list();
+  validName(name) {
+    const n = this.norm(name);
     if (!/^[a-z0-9_ .-]{3,20}$/.test(n)) throw new Error('Username must be 3–20 letters, numbers, spaces, _ . or -');
-    if (String(pw).length < 4) throw new Error('Password must be at least 4 characters');
-    if (a[n]) throw new Error('That username already exists on this device. Tap "Log in" instead.');
-    const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
-    a[n] = { display: String(name).trim(), salt, hash: await this.hash(pw, salt), created: Date.now(), disc: Progress.order.length };
-    // the new account starts with everything discovered so far
-    try { localStorage.setItem(this.key(n), JSON.stringify(Save.data())); }
-    catch (e) { try { const raw = localStorage.getItem(Save.KEY); if (raw) localStorage.setItem(this.key(n), raw); } catch (e2) { /* storage full */ } }
-    this.store(a);
-    this.carried = true;
-    this.switchTo(n);
+    return n;
+  },
+  /** online account: the new account starts with everything discovered so far */
+  async signUp(name, pw) {
+    this.validName(name);
+    if (String(pw).length < 6) throw new Error('Password must be at least 6 characters');
+    if (!Cloud.ok) throw new Error('Online accounts need the website version with internet.');
+    let u; try { u = await Cloud.signUp(name, pw); } catch (e) { throw new Error(Cloud.msg(e)); }
+    await this.adopt(u, String(name).trim(), JSON.stringify(Save.data()));
+  },
+  async adopt(u, display, raw) {
+    const k = 'c:' + u.uid;
+    try { localStorage.setItem('elementalLab.cloudName', display); if (raw) { localStorage.setItem(this.key(k), raw); localStorage.setItem(this.key(k) + '.t', String(Date.now())); } } catch (e) { /* */ }
+    if (raw) { Cloud.pending = raw; try { await Cloud.push(); } catch (e) { /* retried later */ } }
+    this.carried = true; this.switchTo(k);
   },
 
   async logIn(name, pw) {
-    const n = this.norm(name), u = this.list()[n];
+    const n = this.norm(name);
     if (!n) throw new Error('Type your username first');
-    if (!u) throw new Error(`No account called "${String(name).trim()}" on this device yet. Accounts are saved in this browser only, so tap "Create account" to make it here.`);
-    if ((await this.hash(String(pw), u.salt)) !== u.hash) throw new Error('Wrong password');
-    this.switchTo(n);
+    if (!Cloud.ok) throw new Error('Online accounts need the website version with internet.');
+    try {
+      const u = await Cloud.logIn(name, pw);
+      let display = String(name).trim();
+      try { const s = await FB.getDoc(FB.doc(Cloud.db, 'users', u.uid)); if (s.exists() && s.data().name) display = s.data().name; } catch (e) { /* */ }
+      await this.adopt(u, display, null);
+    } catch (e) {
+      // an old on-this-device account with the same name & password moves online automatically
+      const old = this.list()[n];
+      const c = (e && e.code) || '';
+      if (old && (c.includes('invalid-credential') || c.includes('user-not-found') || c.includes('invalid-login')) && (await this.hash(String(pw), old.salt)) === old.hash) {
+        if (String(pw).length < 6) throw new Error('Your old password is too short for online accounts. Create a new account with a 6+ character password.');
+        let u; try { u = await Cloud.signUp(name, pw); } catch (e2) { throw new Error(Cloud.msg(e2)); }
+        const raw = localStorage.getItem(this.key(n)) || JSON.stringify(Save.data());
+        UI.toast('☁️', 'Account moved online!', 'Your old account and discoveries now work on every device.');
+        await this.adopt(u, old.display || String(name).trim(), raw);
+        return;
+      }
+      throw new Error(e && e.code ? Cloud.msg(e) : e.message);
+    }
   },
 
-  logOut() { this.switchTo(null); },
+  async logOut() { Cloud.flush(); await Cloud.logOut(); this.switchTo(null); },
 
   switchTo(n) {
     try { if (!this.carried && (Save.dirty || G.started)) Save.save(); } catch (e) { /* ignore */ }
@@ -56,7 +78,7 @@ const Accounts = {
 
   /** called on every save: keep the player list's discovery count fresh */
   touch(count) {
-    const n = this.current(); if (!n) return;
+    const n = this.current(); if (!n || n.startsWith('c:')) return;
     const a = this.list(); if (!a[n]) return;
     a[n].disc = count; a[n].last = Date.now(); this.store(a);
   },
@@ -88,7 +110,7 @@ const Accounts = {
     return added;
   },
 
-  displayName() { const n = this.current(); return n ? this.list()[n].display : null; },
+  displayName() { const n = this.current(); if (!n) return null; if (n.startsWith('c:')) return localStorage.getItem('elementalLab.cloudName') || 'Player'; return this.list()[n].display; },
 
   // ---------------------------------------------------------------- UI
   init() {
@@ -124,17 +146,17 @@ const Accounts = {
 
   openPanel() {
     $('acct-panel').classList.remove('hidden'); $('acct-msg').textContent = '';
-    const a = this.list(), cur = this.current();
-    const rows = Object.entries(a).sort((x, y) => (y[1].disc || 0) - (x[1].disc || 0));
-    const box = $('acct-players'); box.innerHTML = '';
-    if (!rows.length) { box.innerHTML = '<div class="acct-empty">No accounts on this device yet. Create one above!</div>'; }
-    rows.forEach(([n, u], i) => {
-      const d = el('div'); d.className = 'acct-p' + (n === cur ? ' me' : '');
-      d.innerHTML = `<span class="rk">#${i + 1}</span><span class="nm"></span><span class="ct">${fmtInt(u.disc || 0)} 🧪</span>`;
-      d.querySelector('.nm').textContent = u.display;
-      d.onclick = () => { $('acct-name').value = u.display; $('acct-pw').focus(); };
-      box.appendChild(d);
-    });
+    const box = $('acct-players'); box.innerHTML = '<div class="acct-empty">Loading…</div>';
+    const cur = this.current(), me = cur && cur.startsWith('c:') ? cur.slice(2) : null;
+    Cloud.top().then(rows => {
+      box.innerHTML = rows.length ? '' : '<div class="acct-empty">No players yet. Be the first!</div>';
+      rows.forEach((u, i) => {
+        const d = el('div'); d.className = 'acct-p' + (u.uid === me ? ' me' : '');
+        d.innerHTML = `<span class="rk">${['🥇', '🥈', '🥉'][i] || '#' + (i + 1)}</span><span class="nm"></span><span class="ct">${fmtInt(u.disc || 0)} 🧪 · Lv ${u.level || 1}</span>`;
+        d.querySelector('.nm').textContent = u.name || 'Player';
+        box.appendChild(d);
+      });
+    }).catch(() => { box.innerHTML = '<div class="acct-empty">Leaderboard needs internet.</div>'; });
     setTimeout(() => $('acct-name').focus(), 50);
   },
 };

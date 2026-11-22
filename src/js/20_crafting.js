@@ -134,7 +134,7 @@ const Crafting = {
     const isNew = Progress.discover(id);
     const recNew = Progress.addRecipe(id, multiKey || key);
     if (ent) UI.floatLabel(ent, info, isNew);
-    if (isNew) { UI.banner('NEW DISCOVERY!', info, false); Sound.discovery(info.rarity); Net.announce(info); }
+    if (isNew) { UI.banner('NEW DISCOVERY!', info, false); Sound.discovery(info.rarity); Net.announce(info); Cloud.claimFirst(info); }
     else if (recNew) { UI.banner('NEW RECIPE!', info, true); Sound.newRecipe(); }
     checkAchievements(info);
     Stats.add('merges');

@@ -38,7 +38,7 @@ const Save = {
     this.write(json);
   },
   write(str) {
-    try { localStorage.setItem(this.KEY, str); Accounts.touch(Progress.order.length); }
+    try { localStorage.setItem(this.KEY, str); Accounts.touch(Progress.order.length); Cloud.schedule(str); }
     catch (e) { if (!this.warned) { this.warned = true; UI.toast('⚠️', 'Could not save', 'Browser storage is full or disabled — use Save code in the menu.'); } }
   },
   async compress(json) {
@@ -81,6 +81,7 @@ const Save = {
 
   async load() {
     this.resetIfNewEpoch();
+    Cloud.init(); await Cloud.pull();
     let d = null;
     try {
       let raw = localStorage.getItem(this.KEY) || 'null';

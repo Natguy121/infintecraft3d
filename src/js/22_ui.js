@@ -404,12 +404,13 @@ const Codex = {
     box.innerHTML = `<div class="det-emo">${itemLabel(I)}</div><div class="det-name ${I.rarity >= 5 ? 'r5' : ''}">${escHtml(I.name)}</div>
       <div class="det-meta"><span class="rar r${I.rarity}">${rarityName(I.rarity)}</span> · Tier ${I.tier} · ${kind}</div>
       <div class="det-meta">${I.material === I.state ? I.material : I.material + ' · ' + I.state} · discovered #${fmtInt((Progress.disc.get(id) ?? -1) + 1)}</div>
-      <div class="det-meta">${Firsts.label(id)}</div>
+      <div class="det-meta">${Firsts.label(id)}</div><div class="det-meta" id="d-world"></div>
       <div class="det-tags">${I.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
       <div class="det-btns"><button id="d-spawn">✨ Spawn</button><button id="d-book">📜 Recipe book</button><button id="d-shelf">🏺 Display on shelf</button><button id="d-hint">🔍 Use as hint</button><button id="d-share">📤 Share</button></div>
       ${this.recipeBlock(id, 5)}`;
     $('d-spawn').onclick = () => Spawner.spawn(id);
     $('d-share').onclick = () => Share.item(id);
+    Cloud.firstOf(id).then(f => { const w = $('d-world'); if (w && f && this.selected === id) w.textContent = `🌍 World first: ${f.name}`; });
     $('d-book').onclick = () => { Codex.close('switch'); Book.open(id); };
     $('d-shelf').onclick = () => { Trophies.place(id, null); Sound.shelf(); UI.toast(I.emoji, 'On display', `${I.name} was added to the Discovery Shelf.`); if (G.trophies.filter(Boolean).length >= 5) unlock('shelf'); };
     $('d-hint').onclick = () => { const r = this.recipeInfo(id); UI.toast('🔍', `${I.name}`, r.unknown ? `${r.unknown} recipe(s) still hidden. Its tags: ${I.tags.slice(0, 4).join(', ')}.` : 'You know every recipe for this item!'); };

@@ -17,6 +17,9 @@ const libs = await esbuild.build({
       export * as CANNON from 'cannon-es';
       export { default as Anthropic } from '@anthropic-ai/sdk';
       export { Peer } from 'peerjs';
+      export { initializeApp } from 'firebase/app';
+      export { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'firebase/auth';
+      export { getFirestore, doc, getDoc, setDoc, runTransaction, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
     `,
     resolveDir: root,
     loader: 'js',
@@ -45,7 +48,7 @@ game = guard(game, 'game code');
 
 const template = fs.readFileSync(path.join(src, 'template.html'), 'utf8');
 const html = template
-  .replace('/*__LIBS__*/', () => libCode + '\nconst { THREE, CANNON, Anthropic, Peer } = __LIBS;\n')
+  .replace('/*__LIBS__*/', () => libCode + '\nconst { THREE, CANNON, Anthropic, Peer } = __LIBS;\nconst FB = __LIBS;\n')
   .replace('/*__GAME__*/', () => game);
 
 fs.writeFileSync(path.join(root, 'elemental-lab.html'), html);
