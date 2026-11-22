@@ -139,6 +139,7 @@ const Crafting = {
     Stats.add('merges');
     Daily.count('merges');
     Daily.onCraft(info, isNew, recNew);
+    Pets.onCraft(); if (Voices.kind(info) && ent) setTimeout(() => Voices.play(Voices.kind(info), ent.root.position), 350);
     Fun.onCraft(info, isNew, recNew, big ? (ent ? ent.root.position : pos) : pos);
     G.selected = id;
     if (info.secret) this.secret(info.secret, pos);
@@ -183,7 +184,7 @@ const Crafting = {
     const inside = [];
     for (const e of G.entities) {
       e.inRing = false;
-      if (e.held || e.merging || e.dead || e.remote) continue;
+      if (e.held || e.merging || e.dead || e.remote || e.pet || e.placed) continue;
       const p = e.root.position;
       if (Math.hypot(p.x - R.x, p.z - R.z) < R.r - 0.02 && p.y > top - 0.05 && p.y < top + 1.5) { e.inRing = true; inside.push(e); }
     }

@@ -3,6 +3,14 @@
 //  portable export/import code (deflate-compressed when the browser supports it)
 // ============================================================================
 
+/** extension data for newer features (pets, base, collections, speedruns…) */
+const Ext = {
+  parts: {}, pending: {},
+  register(key, dump) { this.parts[key] = dump; },
+  dump() { const o = {}; for (const [k, f] of Object.entries(this.parts)) { try { o[k] = f(); } catch (e) { /* ignore */ } } return o; },
+  take(key) { const v = this.pending[key]; delete this.pending[key]; return v; },
+};
+
 const Save = {
   get KEY() { return Accounts.key(Accounts.current()); }, dirty: false, timer: 0, warned: false,
   markDirty() { this.dirty = true; },
@@ -12,7 +20,7 @@ const Save = {
     for (const [k, s] of Progress.recipes) rec[k] = [...s];
     return {
       v: 1, seed: GLOBAL_SEED, order: Progress.order, rec, stats: Progress.stats, ach: [...Progress.ach], wall: Progress.wallHue, daily: Progress.daily,
-      shelf: G.trophies.map(t => t ? t.id : null),
+      shelf: G.trophies.map(t => t ? t.id : null), x: Ext.dump(),
       llm: { pairs: Object.fromEntries(Universe.llmPairs), items: Object.fromEntries(Universe.llmItems) },
       t: Date.now(),
     };
@@ -100,6 +108,7 @@ const Save = {
     Progress.wallHue = d.wall ?? null;
     Progress.daily = d.daily || null;
     this.pendingShelf = d.shelf || [];
+    Ext.pending = d.x || {};
   },
   restoreWorld() {
     if (Progress.wallHue != null) Room.setWallHue(Progress.wallHue);

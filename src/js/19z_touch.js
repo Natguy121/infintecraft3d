@@ -18,7 +18,7 @@ const Touch = {
       <div class="t-look" id="t-look"></div>
       <div class="t-stick" id="t-stick"><div class="t-knob" id="t-knob"></div></div>
       <div class="t-top">
-        <button data-a="pause">⏸</button><button data-a="codex">📖</button><button data-a="book">📜</button><button data-a="hint">💡</button>
+        <button data-a="pause">⏸</button><button data-a="codex">📖</button><button data-a="book">📜</button><button data-a="hint">💡</button><button data-a="pet">🐾</button><button data-a="build">📌</button><button data-a="photo">📷</button>
       </div>
       <div class="t-right">
         <button class="t-big" data-a="grab">✋<small>Grab</small></button>
@@ -105,6 +105,9 @@ const Touch = {
       case 'near': if (down) Input.wheel += 2; break;
       case 'jump': if (down) Input.pressed.add('Space'); break;
       case 'shelf': if (down) Input.pressed.add('KeyF'); break;
+      case 'pet': if (down) Input.pressed.add('KeyG'); break;
+      case 'build': if (down) Input.pressed.add('KeyB'); break;
+      case 'photo': if (down) Input.pressed.add('KeyP'); break;
       case 'split': if (down) this.setSplit(!this.split); break;
       case 'codex': if (down) fake('Tab'); break;
       case 'book': if (down) fake('KeyC'); break;
