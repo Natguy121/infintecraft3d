@@ -55,7 +55,24 @@ const Save = {
   wipe() { try { localStorage.removeItem(this.KEY); } catch (e) { /* ignore */ } },
 
   /** Load progress (call after Universe.build, before Displays/Trophies). */
+  /** Bump RESET_EPOCH to wipe everyone's progress once (accounts & settings are kept). */
+  RESET_EPOCH: 2,
+  resetIfNewEpoch() {
+    try {
+      const k = 'elementalLab.resetEpoch';
+      const cur = +(localStorage.getItem(k) || 1);
+      if (cur >= this.RESET_EPOCH) return false;
+      const had = Object.keys(localStorage).some(key => key.startsWith('elementalLab.save.v1'));
+      for (const key of Object.keys(localStorage)) if (key.startsWith('elementalLab.save.v1')) localStorage.removeItem(key);
+      try { const a = JSON.parse(localStorage.getItem('elementalLab.accounts.v1') || '{}'); for (const u of Object.values(a)) u.disc = 4; localStorage.setItem('elementalLab.accounts.v1', JSON.stringify(a)); } catch (e) { /* ignore */ }
+      localStorage.setItem(k, String(this.RESET_EPOCH));
+      this.wasReset = had;
+      return had;
+    } catch (e) { return false; }
+  },
+
   async load() {
+    this.resetIfNewEpoch();
     let d = null;
     try {
       let raw = localStorage.getItem(this.KEY) || 'null';

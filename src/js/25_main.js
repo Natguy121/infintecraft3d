@@ -54,6 +54,7 @@ async function boot() {
   // warm up shaders so the first frames don't hitch
   renderer.compile(scene, camera);
   $('loading').classList.add('hidden');
+  if (Save.wasReset) setTimeout(() => UI.toast('🔄', 'Fresh start!', 'The recipes got a big update, so everyone starts over from the 4 elements. Your account is still here.'), 800);
   UI.showMenu(false);
   if (Progress.order.length > 4) $('btn-play').textContent = 'Continue';
   let last = performance.now();
