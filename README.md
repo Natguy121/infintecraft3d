@@ -88,6 +88,12 @@ modifier sources and through inheritance (Golden Water + Fire → Golden Steam).
 **"Known recipes: 7 of 23 found"** with undiscovered ones hidden as `???`. A recipe you find outside the listed set
 counts as a **WILD** recipe.
 
+**Common sense first.** About 160 hand-picked recipes in `src/js/05b_data_fixes.js` override every other layer, so
+the obvious combinations always give the obvious result: Life + Tree = Bird, Monster + Ice = Yeti,
+Fire + Snow = Water, Dog + Cat = Pet, Water + Monster = Kraken. They also carry over to near-synonyms
+(Ice/Snow/Frost/Blizzard, Fire/Flame/Blaze, Stone/Rock…). Opposite modifiers no longer stack, so nothing ends up
+"Burning Snow" or "Frozen Lava". Results are deterministic, so every player gets the same answer for the same pair.
+
 **Secrets.** A few recipes trigger room-wide effects: a disco light show, walls that change colour, bullet time,
 zero gravity, fireworks, indoor snowfall and a Big Bang.
 

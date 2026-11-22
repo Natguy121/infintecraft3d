@@ -5932,6 +5932,183 @@ Avatar|🌀|mythical,holy,magic,human,@humanoid,#5affd8,!legendary|Fire Elementa
 Element Crystal|💠|crystal,magic,energy,@crystal,#9affff,%crystal,!epic|Crystal+Avatar;Crystal+Fire Elemental;Crystal+Water Elemental
 `);
 
+// ===================================================================== 05b_data_fixes.js
+// ============================================================================
+//  ELEMENTAL LAB — 05b · Common-sense recipes
+//  These pairs WIN over everything else (authored lists, substitution,
+//  modifiers and tag rules), so the obvious combos always do the obvious
+//  thing: Life + Tree = Bird, Monster + Ice = Yeti, Fire + Snow = Water…
+//  Format:  A + B = Result      (Result may be a modified id like fish~cooked)
+// ============================================================================
+
+CORE_DATA.push(`
+Ice Skater|⛸️|human,sport,cold,@humanoid,#7ac8f0|Human+Ice;Skater+Ice
+Husky|🐕|animal,cold,furry,@creature,#9aa4b4|Dog+Snow;Dog+Ice;Wolf+Snow
+Venus Flytrap|🪴|plant,sharp,@plant,#5aa83a|Plant+Monster;Plant+Fly;Plant+Insect
+Sandworm|🪱|animal,mythical,huge,dry,@snake,#c8a060,!rare|Worm+Desert;Monster+Sand;Worm+Huge+Sand
+Monster Truck|🛻|vehicle,machine,metal,huge,@vehicle,#3aa84a|Car+Monster;Truck+Monster;Car+Giant
+Scarecrow|🧍|plant,dark,@humanoid,#c8a050|Hay+Human;Hay+Life;Straw+Human
+Flying Fish|🐟|animal,sea,flying,@fish,#5ab8e8|Fish+Air;Fish+Wing;Fish+Bird
+Wyvern|🐉|animal,mythical,flying,@creature,#5a7a3a,!rare|Dragon+Air;Dragon+Wind;Lizard+Wing
+`);
+
+const FIX_RECIPES = `
+// ---- Life brings things to life
+Life + Tree = Bird
+Life + Fire = Phoenix
+Life + Ice = Penguin
+Life + Snow = Snowman
+Life + Plant = Tree
+Life + Stone = Golem
+Life + Sky = Bird
+Life + Sun = Flower
+Life + Moon = Owl
+Life + Rain = Frog
+Life + Human = Baby
+Life + Animal = Baby
+Life + Monster = Zombie
+Life + Dog = Puppy
+Life + Cat = Kitten
+Life + Bird = Nest
+Life + Fish = Frog
+Life + Sand = Worm
+Life + Mountain = Goat
+Life + Electricity = Frankenstein's Monster
+Life + Love = Baby
+Life + House = Family
+Life + Dragon = Dragon Egg
+Life + Cloud = Angel
+Life + Life = Family
+Life + Egg = Chicken
+Life + Death = Ghost
+Life + Hay = Scarecrow
+// ---- Water
+Water + Monster = Kraken
+Water + Dragon = Sea Serpent
+Water + Cat = cat~soggy
+Water + Dog = dog~soggy
+Water + Snow = Ice
+Water + Ice = Iceberg
+Water + Tree = Sap
+Water + Forest = Swamp
+Water + Sun = Rainbow
+Water + Earth = Mud
+// ---- Fire
+Fire + Snow = Water
+Fire + Ice = Water
+Fire + Human = Firefighter
+Fire + Monster = Demon
+Fire + Dog = Hot Dog
+Fire + Fish = fish~cooked
+Fire + Egg = Omelette
+Fire + Plant = Ash
+Fire + Love = Heart
+Fire + Life = Phoenix
+// ---- Earth
+Earth + Ice = Tundra
+Earth + Snow = Tundra
+Earth + Human = Farmer
+Earth + Animal = Mole
+Earth + Monster = Golem
+Earth + Bird = Ostrich
+Earth + Fish = Fossil
+Earth + House = Village
+Earth + Dragon = Dinosaur
+Earth + Dog = Bone
+Earth + Moon = Eclipse
+Earth + Earth = Mountain
+// ---- Air
+Air + Tree = Leaf
+Air + Plant = Seed
+Air + Ice = Snow
+Air + Snow = Blizzard
+Air + Human = Pilot
+Air + Monster = Ghost
+Air + Fish = Flying Fish
+Air + Car = Airplane
+Air + House = Windmill
+Air + Dragon = Wyvern
+Air + Dog = Kite
+Air + Forest = Leaf
+// ---- Ice & Snow
+Ice + Monster = Yeti
+Ice + Human = Ice Skater
+Ice + Animal = Polar Bear
+Ice + Dog = Husky
+Ice + Cat = Snow Leopard
+Ice + Tree = Pine Tree
+Ice + Sky = Hail
+Ice + Sun = Water
+Ice + Snow = Glacier
+Ice + Life = Penguin
+Ice + Air = Snow
+Ice + Earth = Tundra
+Snow + Human = Snowman
+Snow + Snow = Snowman
+Snow + Animal = Polar Bear
+Snow + Dog = Husky
+Snow + Cat = Snow Leopard
+Snow + Sun = Water
+Snow + Sky = Blizzard
+Snow + Fire = Water
+// ---- Monsters
+Monster + Stone = Gargoyle
+Monster + Moon = Werewolf
+Monster + Dog = Cerberus
+Monster + Bird = Griffin
+Monster + Fish = Shark
+Monster + Ocean = Kraken
+Monster + Sand = Sandworm
+Monster + Metal = Robot
+Monster + Mountain = Troll
+Monster + House = Haunted House
+Monster + Car = Monster Truck
+Monster + Plant = Venus Flytrap
+Monster + Sky = Dragon
+Monster + Egg = Dragon
+Monster + Animal = Werewolf
+Monster + Tree = Treant
+Monster + Snow = Yeti
+// ---- People & animals
+Human + Fire = Firefighter
+Human + Life = Baby
+Human + Cloud = Angel
+Human + Rain = Umbrella
+Human + Dog = Pet
+Human + Cat = Pet
+Human + Sky = Pilot
+Human + Air = Pilot
+Human + Dragon = Knight
+Human + Sand = Sandcastle
+Human + Earth = Farmer
+Human + Ice = Ice Skater
+Human + Snow = Snowman
+Dog + Cat = Pet
+Animal + Earth = Mole
+Animal + Sun = Lizard
+Animal + Rain = Frog
+Animal + Egg = Chicken
+Animal + Sand = Camel
+Animal + Cat = Lion
+Animal + Plant = Cow
+Animal + Life = Baby
+Animal + Monster = Werewolf
+Tree + Magic = Treant
+Animal + Dog = Wolf
+Animal + Bird = Eagle
+Animal + Dragon = Dinosaur
+Animal + Fish = Shark
+Monster + Cat = Tiger
+Monster + Dragon = Hydra
+Monster + Rain = Storm
+Monster + Cloud = Storm
+Air + Bird = Feather
+Air + Moon = Space
+Earth + Cat = Lion
+Life + Car = Robot
+Life + Wood = Tree
+`;
+
 // ===================================================================== 06_modifiers.js
 // ============================================================================
 //  ELEMENTAL LAB — 06 · Layer C: the modifier system
@@ -6108,8 +6285,8 @@ underground | building | Mine:2, Tunnel:2, comp:3
 underground | human | Miner:3, Dwarf:2, comp:1
 
 // ---- life
-living | living | Family:1, Love:1, Egg:2, comp:4
-animal | animal | comp:7, Egg:2
+living | living | Family:1, Love:1, comp:4
+animal | animal | comp:7, Baby:1
 animal | human | Pet:2, Hunter:2, Farmer:1, comp:4
 animal | plant | comp:3, Poop:1, mod:wild@a:2
 animal | edible | Poop:2, Pet:1, comp:2, mod:giant@a:1
@@ -6561,8 +6738,37 @@ const Universe = {
         if (ok) item.recipes.push(ids);
       }
     }
+    this.parseFixes();
     this.coreCount = this.items.length;
     this.elements = ['air', 'fire', 'earth', 'water'].map(id => this.byId.get(id));
+  },
+
+  /** common-sense overrides (05b): they win the pair table and replace any authored recipe for that pair */
+  parseFixes() {
+    this.fixes = [];
+    if (typeof FIX_RECIPES === 'undefined') return;
+    const look = (n) => {
+      n = n.trim();
+      if (n.includes('~')) { const [b, ...m] = n.split('~'); return this.byId.has(b) ? n : null; }
+      const it = this.byNorm.get(normName(n)); return it ? it.id : null;
+    };
+    for (let raw of FIX_RECIPES.split('\n')) {
+      raw = raw.trim(); if (!raw || raw.startsWith('//')) continue;
+      const m = raw.match(/^(.+?)\s*\+\s*(.+?)\s*=\s*(.+)$/);
+      if (!m) { this.warn('bad fix: ' + raw); continue; }
+      const a = look(m[1]), b = look(m[2]), r = look(m[3]);
+      if (!a || !b || !r) { this.warn('fix with unknown item: ' + raw); continue; }
+      if (a === r || b === r) { this.warn('fix makes an ingredient: ' + raw); continue; }
+      this.fixes.push([a, b, r]);
+    }
+    const fixKeys = new Map(this.fixes.map(([a, b, r]) => [pairKey(a, b), r]));
+    for (const it of this.items) {
+      it.recipes = it.recipes.filter(rc => rc.length !== 2 || !fixKeys.has(pairKey(rc[0], rc[1])) || fixKeys.get(pairKey(rc[0], rc[1])) === it.id);
+    }
+    for (const [a, b, r] of this.fixes) {
+      const it = this.byId.get(r.split('~')[0]);
+      if (!r.includes('~') && !it.recipes.some(rc => rc.length === 2 && pairKey(rc[0], rc[1]) === pairKey(a, b))) it.recipes.unshift([a, b]);
+    }
   },
 
   computeDepths() {
@@ -6800,6 +7006,14 @@ const Universe = {
       this.reverse.get(res).push(k);
       return true;
     };
+    // 0. common-sense fixes beat everything
+    this.fixTable = new Map();
+    for (const [a, b, r] of this.fixes) {
+      if (r.includes('~')) { this.fixTable.set(pairKey(a, b), r); continue; }
+      const k = pairKey(a, b);
+      if (table.has(k)) { if (table.get(k) !== r) this.warn(`fix conflict ${a}+${b}`); continue; }
+      put(a, b, r);
+    }
     // 1. canonical recipes — secrets first so their triggers are guaranteed
     const order = [...this.items].sort((x, y) => (y.secret ? 1 : 0) - (x.secret ? 1 : 0));
     for (const it of order) {
@@ -6810,6 +7024,16 @@ const Universe = {
         if (prev && prev !== it.id) this.warn(`recipe conflict: ${r.join('+')} → ${prev} vs ${it.id}`);
         else if (!prev) put(r[0], r[1], it.id);
       }
+    }
+    // 1b. near-synonyms make the same thing (Monster + Frost = Monster + Ice = Yeti)
+    const SYN = [['ice', 'snow', 'frost', 'blizzard'], ['fire', 'flame', 'blaze', 'inferno'], ['earth', 'soil', 'dirt', 'land'], ['air', 'wind', 'breeze'], ['stone', 'rock', 'boulder', 'pebble'], ['life', 'soul'], ['monster', 'beast']];
+    const synOf = new Map();
+    for (const g of SYN) { const ids = g.filter(id => this.byId.has(id)); for (const id of ids) synOf.set(id, ids.filter(x => x !== id)); }
+    const synSrc = [...this.fixes.filter(f => !f[2].includes('~'))];
+    for (const it of this.items) for (const r of it.recipes) if (r.length === 2) synSrc.push([r[0], r[1], it.id]);
+    for (const [a, b, r] of synSrc) {
+      for (const a2 of synOf.get(a) || []) if (a2 !== b) put(a2, b, r);
+      for (const b2 of synOf.get(b) || []) if (b2 !== a) put(a, b2, r);
     }
     // 2. substitution expansion: similar ingredients make the same result
     const n = this.items.length;
@@ -7098,6 +7322,8 @@ const Universe = {
     const coreLike = (P) => P.kind === 'core' || P.kind === 'mod';
     // 1. table
     if (A.kind === 'core' && B.kind === 'core') {
+      const fx = this.fixTable && this.fixTable.get(key);
+      if (fx) return { id: this.canon(fx), how: 'table' };
       const t = this.pairTable.get(key);
       if (t) return { id: t, how: 'table' };
     }
@@ -7130,6 +7356,9 @@ const Universe = {
       if (src.kind !== 'core' || !coreLike(target)) return;
       const m = this.sourceMod.get(src.base.id);
       if (!m || target.mods.includes(m)) return;
+      // opposites don't stack: fire can't make "Burning Snow", ice can't make "Frozen Lava"
+      const md = MODIFIER_DEFS.find(d => d.id === m);
+      if (md && md.removeSet && target.base.tags.some(t => md.removeSet.has(t))) return;
       const mods = [...target.mods, m];
       if (this.modsValid(target.base, mods)) opts.push(this.canon(this.makeModId(target.base.id, mods)));
     };

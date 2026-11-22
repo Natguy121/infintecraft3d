@@ -185,8 +185,37 @@ const Universe = {
         if (ok) item.recipes.push(ids);
       }
     }
+    this.parseFixes();
     this.coreCount = this.items.length;
     this.elements = ['air', 'fire', 'earth', 'water'].map(id => this.byId.get(id));
+  },
+
+  /** common-sense overrides (05b): they win the pair table and replace any authored recipe for that pair */
+  parseFixes() {
+    this.fixes = [];
+    if (typeof FIX_RECIPES === 'undefined') return;
+    const look = (n) => {
+      n = n.trim();
+      if (n.includes('~')) { const [b, ...m] = n.split('~'); return this.byId.has(b) ? n : null; }
+      const it = this.byNorm.get(normName(n)); return it ? it.id : null;
+    };
+    for (let raw of FIX_RECIPES.split('\n')) {
+      raw = raw.trim(); if (!raw || raw.startsWith('//')) continue;
+      const m = raw.match(/^(.+?)\s*\+\s*(.+?)\s*=\s*(.+)$/);
+      if (!m) { this.warn('bad fix: ' + raw); continue; }
+      const a = look(m[1]), b = look(m[2]), r = look(m[3]);
+      if (!a || !b || !r) { this.warn('fix with unknown item: ' + raw); continue; }
+      if (a === r || b === r) { this.warn('fix makes an ingredient: ' + raw); continue; }
+      this.fixes.push([a, b, r]);
+    }
+    const fixKeys = new Map(this.fixes.map(([a, b, r]) => [pairKey(a, b), r]));
+    for (const it of this.items) {
+      it.recipes = it.recipes.filter(rc => rc.length !== 2 || !fixKeys.has(pairKey(rc[0], rc[1])) || fixKeys.get(pairKey(rc[0], rc[1])) === it.id);
+    }
+    for (const [a, b, r] of this.fixes) {
+      const it = this.byId.get(r.split('~')[0]);
+      if (!r.includes('~') && !it.recipes.some(rc => rc.length === 2 && pairKey(rc[0], rc[1]) === pairKey(a, b))) it.recipes.unshift([a, b]);
+    }
   },
 
   computeDepths() {
@@ -424,6 +453,14 @@ const Universe = {
       this.reverse.get(res).push(k);
       return true;
     };
+    // 0. common-sense fixes beat everything
+    this.fixTable = new Map();
+    for (const [a, b, r] of this.fixes) {
+      if (r.includes('~')) { this.fixTable.set(pairKey(a, b), r); continue; }
+      const k = pairKey(a, b);
+      if (table.has(k)) { if (table.get(k) !== r) this.warn(`fix conflict ${a}+${b}`); continue; }
+      put(a, b, r);
+    }
     // 1. canonical recipes — secrets first so their triggers are guaranteed
     const order = [...this.items].sort((x, y) => (y.secret ? 1 : 0) - (x.secret ? 1 : 0));
     for (const it of order) {
@@ -434,6 +471,16 @@ const Universe = {
         if (prev && prev !== it.id) this.warn(`recipe conflict: ${r.join('+')} → ${prev} vs ${it.id}`);
         else if (!prev) put(r[0], r[1], it.id);
       }
+    }
+    // 1b. near-synonyms make the same thing (Monster + Frost = Monster + Ice = Yeti)
+    const SYN = [['ice', 'snow', 'frost', 'blizzard'], ['fire', 'flame', 'blaze', 'inferno'], ['earth', 'soil', 'dirt', 'land'], ['air', 'wind', 'breeze'], ['stone', 'rock', 'boulder', 'pebble'], ['life', 'soul'], ['monster', 'beast']];
+    const synOf = new Map();
+    for (const g of SYN) { const ids = g.filter(id => this.byId.has(id)); for (const id of ids) synOf.set(id, ids.filter(x => x !== id)); }
+    const synSrc = [...this.fixes.filter(f => !f[2].includes('~'))];
+    for (const it of this.items) for (const r of it.recipes) if (r.length === 2) synSrc.push([r[0], r[1], it.id]);
+    for (const [a, b, r] of synSrc) {
+      for (const a2 of synOf.get(a) || []) if (a2 !== b) put(a2, b, r);
+      for (const b2 of synOf.get(b) || []) if (b2 !== a) put(a, b2, r);
     }
     // 2. substitution expansion: similar ingredients make the same result
     const n = this.items.length;
@@ -722,6 +769,8 @@ const Universe = {
     const coreLike = (P) => P.kind === 'core' || P.kind === 'mod';
     // 1. table
     if (A.kind === 'core' && B.kind === 'core') {
+      const fx = this.fixTable && this.fixTable.get(key);
+      if (fx) return { id: this.canon(fx), how: 'table' };
       const t = this.pairTable.get(key);
       if (t) return { id: t, how: 'table' };
     }
@@ -754,6 +803,9 @@ const Universe = {
       if (src.kind !== 'core' || !coreLike(target)) return;
       const m = this.sourceMod.get(src.base.id);
       if (!m || target.mods.includes(m)) return;
+      // opposites don't stack: fire can't make "Burning Snow", ice can't make "Frozen Lava"
+      const md = MODIFIER_DEFS.find(d => d.id === m);
+      if (md && md.removeSet && target.base.tags.some(t => md.removeSet.has(t))) return;
       const mods = [...target.mods, m];
       if (this.modsValid(target.base, mods)) opts.push(this.canon(this.makeModId(target.base.id, mods)));
     };

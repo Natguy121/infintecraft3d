@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dir = path.join(root, 'src/js');
-const files = fs.readdirSync(dir).filter(f => /^0\d_.*\.js$/.test(f)).sort();
+const files = fs.readdirSync(dir).filter(f => /^0\d[a-z]?_.*\.js$/.test(f)).sort();
 const code = files.map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n;\n') +
   '\n;globalThis.__U = { Universe, MODIFIER_DEFS, makeRng, pairKey, hashStr };';
 const ctx = { console, performance, Math, Date, Map, Set, Uint32Array, JSON };

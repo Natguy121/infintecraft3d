@@ -61,8 +61,8 @@ underground | building | Mine:2, Tunnel:2, comp:3
 underground | human | Miner:3, Dwarf:2, comp:1
 
 // ---- life
-living | living | Family:1, Love:1, Egg:2, comp:4
-animal | animal | comp:7, Egg:2
+living | living | Family:1, Love:1, comp:4
+animal | animal | comp:7, Baby:1
 animal | human | Pet:2, Hunter:2, Farmer:1, comp:4
 animal | plant | comp:3, Poop:1, mod:wild@a:2
 animal | edible | Poop:2, Pet:1, comp:2, mod:giant@a:1
