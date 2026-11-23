@@ -118,6 +118,7 @@ window.lab = {
   spawn(id, x = 0, z = 0.2) { return spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.4, z), { touched: true }); },
   combine(a, b) { const r = Universe.combine(a, b); return r && { ...r, name: Universe.get(r.id).name }; },
   merge(a, b) { Crafting.merge(a, b, 'force'); },
+  pick() { return pickTarget(REACH, Player.held); },
   look(yaw, pitch) { Player.yaw = yaw; Player.pitch = pitch; },
   teleport(x, z) { Player.body.position.set(x, 0.05, z); Player.body.velocity.set(0, 0, 0); },
   /** advance the simulation by n fixed 60 Hz frames without rendering (for automated tests) */

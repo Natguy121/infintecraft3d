@@ -11028,7 +11028,7 @@ class Entity {
   animate(dt) {
     const I = this.info, t = G.time + this.phase;
     if (this.pop < 1) { this.pop = Math.min(1, this.pop + dt / this.popDur); this.popScale = Math.max(0.01, ease.outElastic(this.pop)); }
-    let s = this.vis.scale * this.popScale, sy = 1, y = 0;
+    let s = this.vis.scale * this.popScale * (this.gripK ?? 1), sy = 1, y = 0;
     if (I.state === 'energy' || I.fx.includes('pulse')) s *= 1 + Math.sin(t * 6) * 0.04;
     if (I.material === 'fire' || I.fx.includes('flames')) sy = 1 + Math.sin(t * 19) * 0.03 + Math.sin(t * 31) * 0.02;
     if (HOPPERS.has(I.shape) && I.state === 'living' && !this.held) {
@@ -11248,7 +11248,17 @@ function pickTarget(maxDist = REACH, exclude = null) {
     const t = tca - Math.sqrt(rr - d2);
     if (t < bd) { bd = t; best = { obj, kind, dist: Math.max(0, t) }; }
   };
-  for (const e of G.entities) if (e !== exclude && !e.merging && !e.dead) test(e.root.position, Math.max(0.12, e.vis.radius * 0.95), e, 'entity');
+  for (const e of G.entities) if (e !== exclude && !e.merging && !e.dead) test(e.root.position, Math.max(0.25, (e.heldR || e.vis.radius) * 0.95 + 0.1), e, 'entity');
+  // aim assist: if nothing is under the crosshair, take the item closest to it (within ~7°)
+  if (!best) {
+    let ba = 0.12;
+    for (const e of G.entities) {
+      if (e === exclude || e.merging || e.dead) continue;
+      _v1.copy(e.root.position).sub(_ray.origin); const d = _v1.length(); if (d > maxDist + e.vis.radius || d < 0.05) continue;
+      const a = Math.acos(clamp(_v1.dot(_ray.direction) / d, -1, 1));
+      if (a < ba) { ba = a; best = { obj: e, kind: 'entity', dist: Math.max(0, d - e.vis.radius) }; }
+    }
+  }
   for (const d of G.displays) if (d.visible) test(d.pos, Math.max(0.14, d.vis.radius), d, 'display');
   for (const t of G.trophies) if (t) test(t.root.position, Math.max(0.12, t.vis.radius * 1.1), t, 'trophy');
   return best;
@@ -11436,14 +11446,14 @@ const Player = {
     const T = this.holdTarget.copy(cam.position).addScaledVector(dir, this.holdDist).addScaledVector(up, -0.11 * this.holdDist);
     const dx = T.x - b.position.x, dy = T.y - b.position.y, dz = T.z - b.position.z;
     const dist = Math.hypot(dx, dy, dz);
-    if (dist > 3.2 + e.vis.radius) { this.drop(); return; }
-    const stiff = 13 / (1 + m * 0.05);
+    if (dist > 6 + (e.heldR || e.vis.radius)) { this.drop(); return; }
+    const stiff = 16;
     let vx = dx * stiff, vy = dy * stiff, vz = dz * stiff;
     const vl = Math.hypot(vx, vy, vz); if (vl > 15) { vx *= 15 / vl; vy *= 15 / vl; vz *= 15 / vl; }
     const gain = 15;
     let Fx = (vx - b.velocity.x) * gain * m, Fy = (vy - b.velocity.y) * gain * m - Phys.world.gravity.y * m, Fz = (vz - b.velocity.z) * gain * m;
     if (e.info.state === 'gas') Fy += Phys.world.gravity.y * m * 0; // gas buoyancy is skipped while held
-    const Fl = Math.hypot(Fx, Fy, Fz), Fmax = 320 + m * 95;
+    const Fl = Math.hypot(Fx, Fy, Fz), Fmax = 600 + m * 160;
     if (Fl > Fmax) { Fx *= Fmax / Fl; Fy *= Fmax / Fl; Fz *= Fmax / Fl; }
     b.force.x += Fx; b.force.y += Fy; b.force.z += Fz;
     // orientation spring
@@ -11506,19 +11516,21 @@ const Player = {
     if (ent.placed) Build.unpin(ent);
     if (ent.remote) { const a = Net.avatars.get(ent.remote); UI.toast('🤝', `That's ${a ? a.name : 'another player'}'s item`, 'Hold yours against it to fuse them!'); return; }
     this.held = ent;
+    Grip.shrink(ent);
     ent.setHeld(true);
-    this.holdDist = clamp((dist ?? ent.root.position.distanceTo(G.camera.position)) + ent.vis.radius * 0.5, this.minHold(ent), this.minHold(ent) + 1.8);
+    this.holdDist = ent.heldR ? this.minHold(ent) + 0.35 : clamp((dist ?? ent.root.position.distanceTo(G.camera.position)) + ent.vis.radius * 0.5, this.minHold(ent), this.minHold(ent) + 1.8);
     const q = _q2.set(ent.body.quaternion.x, ent.body.quaternion.y, ent.body.quaternion.z, ent.body.quaternion.w);
     this.holdRot.copy(this.yawQuat(_q1).invert().multiply(q));
     Sound.grab(ent.info.material);
     G.selected = ent.id;
   },
-  minHold(e = this.held) { return e ? Math.max(0.75, e.vis.radius + 0.6) : 0.75; },
+  minHold(e = this.held) { return e ? Math.max(0.75, (e.heldR || e.vis.radius) + 0.6) : 0.75; },
   drop(sound = true) {
     const e = this.held;
     this.held = null;
     this.resetCharge(); ProgressRing.hide(); this.touchPartner = null; this.touchT = 0;
     if (!e || e.dead) return;
+    Grip.restore(e);
     e.setHeld(false);
     if (e.body) { const v = e.body.velocity, l = v.length(); if (l > 9) v.scale(9 / l, v); }
     if (sound) Sound.drop();
@@ -11550,7 +11562,7 @@ const Player = {
     for (const e of G.entities) {
       if (e === h || e.merging || e.dead) continue;
       const d = e.root.position.distanceTo(h.root.position);
-      const lim = (e.vis.radius + h.vis.radius) * 0.82 + 0.03;
+      const lim = (e.vis.radius + (h.heldR || h.vis.radius)) * 0.82 + 0.03;
       if (d < lim && d < bd) { bd = d; best = e; }
     }
     if (best) {
@@ -11565,6 +11577,36 @@ const Player = {
       this.touchGrace -= dt;
       if (this.touchGrace <= 0) { this.touchPartner = null; this.touchT = 0; ProgressRing.hide(); if (this.eCharge <= 0) Sound.chargeStop(); }
     }
+  },
+};
+
+// ---------------------------------------------------------------- easy holding: big things shrink to hand size while held
+const Grip = {
+  HAND: 0.42,
+  shrink(e) {
+    const r = e.vis.radius, b = e.body;
+    if (!b || r <= 0.55 || e.heldR) return;
+    const k = this.HAND / r;
+    e.heldR = this.HAND; e._shapes = b.shapes.map((s, i) => [s, b.shapeOffsets[i].clone(), b.shapeOrientations[i].clone()]);
+    e._mass = b.mass;
+    for (const [s] of e._shapes) b.removeShape(s);
+    b.addShape(new CANNON.Sphere(this.HAND));
+    b.mass = Math.min(b.mass, 25); b.updateMassProperties();
+    Tweens.add(0.18, (t) => { e.gripK = 1 + (k - 1) * ease.outCubic(t); });
+  },
+  restore(e) {
+    if (!e.heldR || !e.body) { e.heldR = 0; return; }
+    const b = e.body;
+    for (const s of [...b.shapes]) b.removeShape(s);
+    for (const [s, o, q] of e._shapes) b.addShape(s, o, q);
+    b.mass = e._mass; b.updateMassProperties();
+    e.heldR = 0; e._shapes = null;
+    // grow back without sinking into the floor
+    const he = e.vis.collider && e.vis.collider.he ? e.vis.collider.he.y : e.vis.radius;
+    if (b.position.y < he + 0.02) b.position.y = he + 0.02;
+    const k0 = e.gripK ?? 1;
+    Tweens.add(0.3, (t) => { e.gripK = k0 + (1 - k0) * ease.outCubic(t); });
+    b.wakeUp();
   },
 };
 
@@ -15237,6 +15279,7 @@ window.lab = {
   spawn(id, x = 0, z = 0.2) { return spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.4, z), { touched: true }); },
   combine(a, b) { const r = Universe.combine(a, b); return r && { ...r, name: Universe.get(r.id).name }; },
   merge(a, b) { Crafting.merge(a, b, 'force'); },
+  pick() { return pickTarget(REACH, Player.held); },
   look(yaw, pitch) { Player.yaw = yaw; Player.pitch = pitch; },
   teleport(x, z) { Player.body.position.set(x, 0.05, z); Player.body.velocity.set(0, 0, 0); },
   /** advance the simulation by n fixed 60 Hz frames without rendering (for automated tests) */

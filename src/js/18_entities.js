@@ -73,7 +73,7 @@ class Entity {
   animate(dt) {
     const I = this.info, t = G.time + this.phase;
     if (this.pop < 1) { this.pop = Math.min(1, this.pop + dt / this.popDur); this.popScale = Math.max(0.01, ease.outElastic(this.pop)); }
-    let s = this.vis.scale * this.popScale, sy = 1, y = 0;
+    let s = this.vis.scale * this.popScale * (this.gripK ?? 1), sy = 1, y = 0;
     if (I.state === 'energy' || I.fx.includes('pulse')) s *= 1 + Math.sin(t * 6) * 0.04;
     if (I.material === 'fire' || I.fx.includes('flames')) sy = 1 + Math.sin(t * 19) * 0.03 + Math.sin(t * 31) * 0.02;
     if (HOPPERS.has(I.shape) && I.state === 'living' && !this.held) {
@@ -293,7 +293,17 @@ function pickTarget(maxDist = REACH, exclude = null) {
     const t = tca - Math.sqrt(rr - d2);
     if (t < bd) { bd = t; best = { obj, kind, dist: Math.max(0, t) }; }
   };
-  for (const e of G.entities) if (e !== exclude && !e.merging && !e.dead) test(e.root.position, Math.max(0.12, e.vis.radius * 0.95), e, 'entity');
+  for (const e of G.entities) if (e !== exclude && !e.merging && !e.dead) test(e.root.position, Math.max(0.25, (e.heldR || e.vis.radius) * 0.95 + 0.1), e, 'entity');
+  // aim assist: if nothing is under the crosshair, take the item closest to it (within ~7°)
+  if (!best) {
+    let ba = 0.12;
+    for (const e of G.entities) {
+      if (e === exclude || e.merging || e.dead) continue;
+      _v1.copy(e.root.position).sub(_ray.origin); const d = _v1.length(); if (d > maxDist + e.vis.radius || d < 0.05) continue;
+      const a = Math.acos(clamp(_v1.dot(_ray.direction) / d, -1, 1));
+      if (a < ba) { ba = a; best = { obj: e, kind: 'entity', dist: Math.max(0, d - e.vis.radius) }; }
+    }
+  }
   for (const d of G.displays) if (d.visible) test(d.pos, Math.max(0.14, d.vis.radius), d, 'display');
   for (const t of G.trophies) if (t) test(t.root.position, Math.max(0.12, t.vis.radius * 1.1), t, 'trophy');
   return best;

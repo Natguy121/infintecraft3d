@@ -19,7 +19,7 @@ fully offline file (Three.js, cannon-es and the game are all inlined), so no ser
 | --- | --- |
 | `W A S D` · `Shift` · `Space` | move · sprint · jump |
 | Mouse | look |
-| **Hold left click** | grab an item; it floats on a soft spring, so it sways, lags and swings as you move |
+| **Hold left click** | grab an item. Aim assist helps with small things, and big things (houses, whales, cars) shrink to hand size while you hold them and grow back when you let go |
 | Release left click | drop |
 | **Right click** (while holding) | throw. Flick the mouse as you click for more power and to aim the throw |
 | Mouse wheel | push the held item away or pull it closer |
