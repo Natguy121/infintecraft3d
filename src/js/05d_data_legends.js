@@ -83,5 +83,6 @@ Boba Fett|🪖|human,@humanoid,#3a6a5a,!legendary|Bounty Hunter+Space;Jetpack+So
 Death Star|🌑|machine,cosmic,huge,evil,@planet,#8a8a92,!legendary|Moon+Laser;Planet+Weapon;Space Station+Laser;Moon+Darth Vader
 X-Wing|✈️|vehicle,flying,machine,@plane,#e8e8f0,%metal,!epic|Spaceship+Pilot;Spaceship+Rebel;Jet+Space
 Millennium Falcon|🛸|vehicle,flying,machine,@plane,#c8c8d0,%metal,!legendary|Spaceship+Han Solo;Spaceship+Falcon;Han Solo+Chewbacca
+Terminator|🤖|machine,metal,evil,@robot,#6a6a72,%metal,!legendary|Fire+Cyborg;Fire+Robot;Cyborg+Gun;Robot+Future
 TIE Fighter|🛸|vehicle,flying,machine,evil,@plane,#4a4a52,%metal,!epic|Spaceship+Stormtrooper;Spaceship+Darth Vader;Jet+Sith
 `);
