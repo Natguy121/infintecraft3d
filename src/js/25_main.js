@@ -34,7 +34,7 @@ async function boot() {
   await Save.load();
   Displays.init();
   Save.restoreWorld();
-  UI.init(); Codex.init(); Input.init(canvas); Touch.init(); Daily.init(); Fun.init(); Horror.init(); Accounts.init(); Net.init(); Pets.init(); Skins.init(); Hands.init(); Build.init(); Photo.init(); Speedrun.init(); Collections.init(); Firsts.init(); Tutorial.init(); Social.init(); Shop.init(); Emotes.init(); Install.init(); Eggs.init(); Bhop.init(); Prestige.button();
+  UI.init(); Codex.init(); Input.init(canvas); Touch.init(); Daily.init(); Fun.init(); Horror.init(); Accounts.init(); Net.init(); Pets.init(); Skins.init(); Hands.init(); Build.init(); Photo.init(); Speedrun.init(); Collections.init(); Firsts.init(); Tutorial.init(); Social.init(); Shop.init(); Emotes.init(); Install.init(); Eggs.init(); Bhop.init(); AICode.init(); Prestige.button();
   // a few starter elements on the table so the first smash is one grab away
   if (Progress.order.length <= 4) {
     [['water', -0.55], ['fire', 0.55]].forEach(([id, x]) => spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.3, 0.25), { noPop: true }));
@@ -114,7 +114,7 @@ function tick(rdt, render = true) {
 
 // ---------------------------------------------------------------- debug / automation API
 window.lab = {
-  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily, Horror, Accounts, Cloud, Net, Powers, Pets, Voices, Hands, Build, Island, Photo, Share, Skins, Themes, Speedrun, Collections, Coop, Tutorial, Social, Creatures, Driving, Shop, Prestige, Emotes, Eggs, Bhop,
+  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily, Horror, Accounts, Cloud, Net, Powers, Pets, Voices, Hands, Build, Island, Photo, Share, Skins, Themes, Speedrun, Collections, Coop, Tutorial, Social, Creatures, Driving, Shop, Prestige, Emotes, Eggs, Bhop, AICode,
   spawn(id, x = 0, z = 0.2) { return spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.4, z), { touched: true }); },
   combine(a, b) { const r = Universe.combine(a, b); return r && { ...r, name: Universe.get(r.id).name }; },
   merge(a, b) { Crafting.merge(a, b, 'force'); },

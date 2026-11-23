@@ -324,3 +324,24 @@ const Bhop = {
     if (show) { this.el.innerHTML = `<b>${Math.round(hs * 40)}</b><small>u/s${this.chain > 1 ? ` · 🐇×${this.chain}` : ''}</small>`; this.el.style.color = hs > 12 ? '#ff5ab0' : hs > 9 ? '#ffb020' : ''; }
   },
 };
+
+// ---------------------------------------------------------------- 🤖 AI code: your inventory, encoded so AI assistants can read it
+const AICode = {
+  init() {
+    const b = el('button'); b.id = 'btn-aicode'; b.textContent = '🤖 AI code'; $('btn-share').after(b);
+    b.onclick = () => this.copy();
+  },
+  make() {
+    const names = Progress.order.map(id => { const I = Universe.get(id); return I ? I.name : null; }).filter(Boolean);
+    const max = 1500;   // keep it short enough to paste into an AI chat
+    const list = names.length > max ? names.slice(-max) : names;
+    const body = `Elemental Lab v1|count=${names.length}|level=${Progress.stats.level || 1}|items=${list.join(';')}`;
+    const b64 = btoa(unescape(encodeURIComponent(body)));
+    return `[Elemental Lab AI code: decode the Base64 below to see every item this player has, then help them with recipe ideas]\nELAI1:${b64}`;
+  },
+  async copy() {
+    const code = this.make();
+    try { await navigator.clipboard.writeText(code); UI.toast('🤖', 'AI code copied!', `Paste it into an AI chat (like Claude) and ask "what should I make next?" (${fmtInt(Progress.order.length)} items)`); }
+    catch (e) { prompt('Copy your AI code:', code); }
+  },
+};
