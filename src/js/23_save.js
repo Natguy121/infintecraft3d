@@ -11,6 +11,48 @@ const Ext = {
   take(key) { const v = this.pending[key]; delete this.pending[key]; return v; },
 };
 
+/** One-time cleanup after recipe fixes: drop recipes that now give something else, and the items
+ *  that were only ever obtained through them (repeating the mix now gives the correct result). */
+const PURGE_V = 2;
+const Purge = {
+  valid(res, key) {
+    try {
+      const parts = key.includes('+') ? key.split('+') : key.split('|');
+      if (parts.some(p => !Universe.isValidId(p))) return false;
+      const r = parts.length === 2 ? Universe.combine(parts[0], parts[1]) : Universe.fuseMany(parts);
+      return !!r && (Universe.canon(r.id) === res || r.id === res || r.how === 'llm');
+    } catch (e) { return false; }
+  },
+  run() {
+    const base = new Set(['air', 'fire', 'earth', 'water']);
+    let badRecipes = 0;
+    for (const [res, keys] of Progress.recipes) {
+      for (const k of [...keys]) if (!this.valid(res, k)) { keys.delete(k); badRecipes++; }
+      if (!keys.size) Progress.recipes.delete(res);
+    }
+    // keep only items that are still reachable through the player's own valid recipes
+    const keep = new Set(base);
+    const ingredients = (k) => k.includes('+') ? k.split('+') : k.split('|');
+    let grew = true;
+    while (grew) {
+      grew = false;
+      for (const [res, keys] of Progress.recipes) {
+        if (keep.has(res)) continue;
+        for (const k of keys) if (ingredients(k).every(i => keep.has(i))) { keep.add(res); grew = true; break; }
+      }
+    }
+    const hadRecipe = new Set(); for (const [res] of Progress.recipes) hadRecipe.add(res);
+    const before = Progress.order.length;
+    const order = Progress.order.filter(id => keep.has(id) || base.has(id));
+    Progress.disc.clear(); Progress.order.length = 0;
+    for (const id of order) { Progress.disc.set(id, Progress.order.length); Progress.order.push(id); }
+    for (const [res, keys] of Progress.recipes) for (const k of [...keys]) if (!ingredients(k).every(i => Progress.disc.has(i)) || !Progress.disc.has(res)) keys.delete(k);
+    let n = 0; for (const s of Progress.recipes.values()) n += s.size; Progress.stats.recipes = n;
+    const removed = before - Progress.order.length;
+    return { removed, badRecipes };
+  },
+};
+
 const Save = {
   get KEY() { return Accounts.key(Accounts.current()); }, dirty: false, timer: 0, warned: false,
   markDirty() { this.dirty = true; },
@@ -90,7 +132,9 @@ const Save = {
     } catch (e) { d = null; }
     if (d) this.apply(d);
     for (const id of ['air', 'fire', 'earth', 'water']) if (!Progress.disc.has(id)) { Progress.disc.set(id, Progress.order.length); Progress.order.push(id); }
-    this.dirty = false;
+    if (d && (Ext.pending.purge || 0) < PURGE_V) { this.purged = Purge.run(); this.dirty = true; }
+    Ext.register('purge', () => PURGE_V);
+    if (!this.purged) this.dirty = false;
     return !!d;
   },
   apply(d) {

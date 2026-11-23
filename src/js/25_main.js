@@ -55,6 +55,7 @@ async function boot() {
   // warm up shaders so the first frames don't hitch
   renderer.compile(scene, camera);
   $('loading').classList.add('hidden');
+  if (Save.purged && Save.purged.removed) setTimeout(() => UI.toast('🧹', `Cleaned up ${Save.purged.removed} wrong item${Save.purged.removed === 1 ? '' : 's'}`, 'They came from old recipes that gave the wrong result. Make them again and you\'ll get the right thing!'), 1200);
   if (Save.wasReset) setTimeout(() => UI.toast('🔄', 'Fresh start!', 'The recipes got a big update, so everyone starts over from the 4 elements. Your account is still here.'), 800);
   UI.showMenu(false);
   if (Progress.order.length > 4) $('btn-play').textContent = 'Continue';
