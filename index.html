@@ -12616,21 +12616,35 @@ BUILD.creature = (P, I, kw) => {
   const bodyScale = K('elephant', 'mammoth', 'hippo', 'rhino', 'bear', 'bison') ? [0.75, 0.62, 0.95] : K('cat', 'kitten', 'fox', 'cheetah', 'leopard', 'jaguar', 'panther', 'lynx', 'weasel') ? [0.45, 0.42, 0.95] : lowLeg ? [0.55, 0.32, 0.95] : [0.55, 0.48, 0.9];
   const fluffy = K('sheep', 'lamb', 'llama', 'poodle');
   if (fluffy) { for (let i = 0; i < 9; i++) { const a = i * 0.7, u = (i % 3 - 1) * 0.35; P.s(0.34, [Math.cos(a) * 0.32, bodyY + Math.sin(a * 1.3) * 0.15, u * 1.3], 0xf8f6f0); } }
-  else P.s(1, [0, bodyY, 0], c, bodyScale);
+  else {
+    const [bx, by, bz] = bodyScale;
+    P.s(1, [0, bodyY + by * 0.06, bz * 0.34], c, [bx * 1.02, by * 1.0, bz * 0.6]);     // chest
+    P.s(1, [0, bodyY - by * 0.04, 0], c, [bx * 0.86, by * 0.86, bz * 0.6]);            // waist
+    P.s(1, [0, bodyY + by * 0.02, -bz * 0.34], c, [bx * 0.96, by * 0.94, bz * 0.58]);  // hips
+    P.s(1, [0, bodyY + by * 0.42, bz * 0.42], c, [bx * 0.55, by * 0.35, bz * 0.3]);    // shoulders
+  }
   if (!fluffy && !K('turtle', 'tortoise')) P.s(1, [0, bodyY - bodyScale[1] * 0.25, 0.05], belly, [bodyScale[0] * 0.82, bodyScale[1] * 0.7, bodyScale[2] * 0.85]);
   // legs
   const lx = bodyScale[0] * 0.62, lz = bodyScale[2] * 0.58;
   for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
     const top = [sx * lx, bodyY - bodyScale[1] * 0.4, sz * lz];
     const bot = [sx * lx * (lowLeg ? 1.4 : 1), bodyY - bodyScale[1] * 0.4 - legH, sz * lz];
-    P.seg(top, bot, K('elephant', 'mammoth', 'hippo', 'rhino', 'bear') ? 0.15 : longLeg ? 0.075 : 0.1, dk(c, 0.05));
+    const lr = K('elephant', 'mammoth', 'hippo', 'rhino', 'bear') ? 0.15 : longLeg ? 0.075 : 0.1, lc = dk(c, 0.05);
+    const hind = sz < 0, knee = [(top[0] + bot[0]) / 2, (top[1] + bot[1]) / 2 + legH * 0.05, top[2] + (hind ? -0.07 : 0.05) * (1 + legH)];
+    P.s(lr * 1.45, [top[0], top[1] + lr * 0.4, top[2]], c, [1, 1.3, 1.15]);          // thigh / shoulder muscle
+    P.seg(top, knee, lr * 1.1, lc);
+    P.s(lr * 0.95, knee, lc);
+    P.seg(knee, bot, lr * 0.8, lc);
     if (longLeg) P.c(0.085, 0.08, [bot[0], bot[1] - 0.02, bot[2]], COL.dark);
+    else if (!reptile) P.s(lr * 1.15, [bot[0], bot[1] - lr * 0.3, bot[2] + lr * 0.45], lc, [1, 0.55, 1.4]);      // paw
+    else for (const d of [-1, 0, 1]) P.seg([bot[0], bot[1], bot[2]], [bot[0] + d * lr * 1.4, bot[1] - lr * 0.4, bot[2] + lr * 1.4], lr * 0.25, lc); // claws
   }
   // neck + head
   let hp = [0, bodyY + bodyScale[1] * 0.55, bodyScale[2] * 0.95];
   if (K('giraffe')) { P.seg([0, bodyY + 0.2, 0.55], [0, bodyY + 1.25, 0.85], 0.12, c); hp = [0, bodyY + 1.3, 0.92]; }
   else if (longLeg || K('dinosaur')) { const up = K('dinosaur') ? 0.9 : 0.42; P.seg([0, bodyY + 0.15, bodyScale[2] * 0.6], [0, bodyY + up, bodyScale[2] * 1.05], K('dinosaur') ? 0.14 : 0.16, c); hp = [0, bodyY + up + 0.05, bodyScale[2] * 1.12]; }
   else if (lowLeg) hp = [0, bodyY + 0.08, bodyScale[2] * 1.02];
+  else P.seg([0, bodyY + bodyScale[1] * 0.3, bodyScale[2] * 0.62], [hp[0], hp[1] - 0.05, hp[2] - 0.1], 0.17, c);
   const hr = K('elephant', 'mammoth', 'hippo') ? 0.4 : K('mouse', 'hamster', 'rabbit') ? 0.3 : 0.32;
   const multi = K('cerberus') ? [-0.38, 0, 0.38] : [0];
   for (const dx of multi) {
@@ -12664,7 +12678,15 @@ BUILD.creature = (P, I, kw) => {
   else if (K('beaver', 'platypus')) P.b(0.35, 0.06, 0.55, [0, bodyY - 0.15, tailBase[2] - 0.2], dk(c, 0.15), null, { round: true });
   else if (K('pig')) P.t(0.08, 0.025, [0, bodyY + 0.1, tailBase[2] - 0.04], 0xff9aa8);
   else if (!K('rabbit', 'bear', 'koala', 'hamster', 'turtle', 'tortoise', 'frog', 'toad', 'snail', 'panda', 'armadillo', 'hedgehog'))
-    P.seg(tailBase, [0, bodyY + (K('cat', 'kitten', 'dog', 'puppy', 'cheetah', 'leopard') ? 0.55 : -0.25), tailBase[2] - 0.45], 0.045, dk(c, 0.04), { cone: !K('cat', 'mouse', 'rat') });
+  {
+    const up = K('cat', 'kitten', 'dog', 'puppy', 'cheetah', 'leopard', 'wolf', 'husky') ? 1 : -1;
+    let p = tailBase, r = K('horse', 'zebra', 'donkey', 'pony', 'unicorn', 'pegasus') ? 0.07 : 0.055;
+    for (let i = 0; i < 5; i++) {
+      const t = (i + 1) / 5, n = [0, tailBase[1] + up * Math.sin(t * 1.4) * 0.5, tailBase[2] - t * 0.55 + (up > 0 ? t * t * 0.18 : 0)];
+      P.seg(p, n, r, dk(c, 0.04)); P.s(r, n, dk(c, 0.04));
+      p = n; r *= 0.8;
+    }
+  }
   // shells, spikes, humps, stripes, spots
   if (K('turtle', 'tortoise', 'armadillo')) { P.add(PG.hemi(), K('armadillo') ? lt(c, 0.06) : 0x5a7a3a, [0, bodyY - 0.05, 0], [bodyScale[0] * 1.25, bodyScale[1] * 1.8, bodyScale[2] * 1.05]); for (let i = 0; i < 5; i++) P.s(0.13, [(i - 2) * 0.17, bodyY + bodyScale[1] * 1.2 - Math.abs(i - 2) * 0.1, 0], 0x7a9a4a, [1, 0.3, 1.4]); }
   if (K('snail')) { P.t(0.38, 0.2, [0, bodyY + 0.35, -0.1], 0xc8904a, [0, Math.PI / 2, 0]); P.t(0.2, 0.12, [0, bodyY + 0.35, -0.1], 0xd8a060, [0, Math.PI / 2, 0]); }
@@ -12822,14 +12844,25 @@ BUILD.humanoid = (P, I, kw) => {
   // torso
   if (K('skeleton', 'reaper') && !K('reaper')) { for (let i = 0; i < 4; i++) P.t(0.2, 0.03, [0, 0.15 - i * 0.12, 0], skin, [Math.PI / 2, 0, 0]); P.c(0.04, 0.6, [0, -0.05, 0], skin); }
   else if (K('reaper', 'priest', 'monk', 'wizard', 'witch', 'warlock', 'sorcerer', 'necromancer', 'angel', 'archangel', 'goddess', 'dress', 'princess', 'queen', 'santa', 'muse', 'odin')) P.f(0.22, 0.48, 1.0, [0, -0.35, 0], cloth);
-  else P.add(PG.capsule(), cloth, [0, -0.08, 0], [0.55, 0.55, 0.42]);
+  else {
+    P.s(0.3, [0, 0.0, 0], cloth, [1.1, 0.95, 0.72]);                // chest
+    P.c(0.25, 0.42, [0, -0.2, 0], cloth, null, { seg: 20 });         // waist (smooth column joins chest and hips)
+    P.s(0.27, [0, -0.38, 0], dk(cloth, 0.06), [1.0, 0.55, 0.72]);   // hips / belt line
+    P.seg([-0.27, 0.16, 0], [0.27, 0.16, 0], 0.095, cloth);           // shoulders
+  }
   if (K('mummy')) for (let i = 0; i < 5; i++) P.t(0.27, 0.03, [0, 0.15 - i * 0.12, 0], 0xd8c8a0, [Math.PI / 2 + (i % 2 ? 0.2 : -0.2), 0, 0]);
   if (K('doctor', 'scientist', 'nurse', 'chef', 'professor', 'alchemist')) P.b(0.42, 0.55, 0.05, [0, -0.08, 0.2], 0xffffff);
   if (K('surfer')) { P.s(1, [0, -1.12, 0.05], 0xffcf3a, [0.32, 0.04, 1.05]); P.b(0.05, 0.03, 2.0, [0, -1.09, 0.05], 0xffffff); }
   if (K('superhero', 'hero')) P.add(PG.star(5, 0.45, 0.1), COL.yellow, [0, 0.05, 0.24], 0.12);
   // head
   const hy = baby ? 0.6 : 0.52;
-  P.s(headR, [0, hy, 0], skin);
+  P.c(0.075, 0.16, [0, hy - headR * 0.95, 0], skin);                // neck
+  P.s(headR, [0, hy, 0], skin, [0.94, 1.06, 1]);
+  if (!K('alien', 'skeleton', 'reaper', 'cyclops', 'astronaut')) {
+    P.s(headR * 0.78, [0, hy - headR * 0.32, headR * 0.12], skin, [1, 0.82, 1]);                    // jaw
+    P.s(headR * 0.14, [0, hy - headR * 0.06, headR * 0.98], skin, [0.75, 1, 1.1]);                  // nose
+    for (const s of [-1, 1]) P.s(headR * 0.2, [s * headR * 0.95, hy - headR * 0.02, -headR * 0.02], skin, [0.45, 1, 0.8]); // ears
+  }
   if (K('cyclops')) { P.s(headR * 0.4, [0, hy + 0.05, headR * 0.8], 0xffffff); P.s(headR * 0.22, [0, hy + 0.05, headR * 1.12], COL.dark); }
   else if (K('alien')) { P.s(headR * 0.3, [-headR * 0.38, hy + 0.02, headR * 0.78], COL.dark, [1, 1.5, 0.5]); P.s(headR * 0.3, [headR * 0.38, hy + 0.02, headR * 0.78], COL.dark, [1, 1.5, 0.5]); P.seg([0, hy + headR, 0], [0, hy + headR + 0.25, 0], 0.015, skin); P.s(0.05, [0, hy + headR + 0.27, 0], 0xb8ff5a, null, { glow: true }); }
   else if (K('reaper')) { P.s(headR * 1.25, [0, hy + 0.05, -0.05], 0x1a1a22, [1, 1.1, 1]); P.s(headR * 0.75, [0, hy, headR * 0.45], 0xf2eee2); P.eyes(0.08, hy + 0.03, headR * 1.1, 0.045, COL.dark, 0xff3a3a, { glowPupil: true }); }
@@ -12863,13 +12896,19 @@ BUILD.humanoid = (P, I, kw) => {
   // arms & legs
   if (K('skeleton', 'reaper') && !K('reaper')) { for (const s of [-1, 1]) { P.seg([s * 0.25, 0.2, 0], [s * 0.42, -0.35, 0.05], 0.035, skin); P.seg([s * 0.12, -0.35, 0], [s * 0.15, -1.0, 0.02], 0.04, skin); } return; }
   for (const s of [-1, 1]) {
-    P.seg([s * 0.27, 0.15, 0], [s * 0.42, -0.32, 0.08], 0.075, cloth === skin ? skin : lt(cloth, 0.04));
-    P.s(0.08, [s * 0.44, -0.36, 0.1], skin);
+    const ac = cloth === skin ? skin : lt(cloth, 0.04), sh = [s * 0.3, 0.15, 0], el = [s * 0.38, -0.11, 0.02], wr = [s * 0.42, -0.35, 0.1];
+    P.s(0.085, sh, ac); P.seg(sh, el, 0.072, ac); P.s(0.066, el, ac); P.seg(el, wr, 0.056, ac);
+    P.s(0.062, [s * 0.43, -0.41, 0.11], skin, [0.75, 1.15, 0.5]);                 // hand
+    P.s(0.022, [s * 0.4, -0.38, 0.15], skin, [1, 1.6, 1]);                         // thumb
   }
   if (merTail) { P.seg([0, -0.4, 0], [0, -0.85, 0.05], 0.22, 0x3ac8b8, { cone: true, r2: 0.22 }); P.s(0.22, [0, -1.0, 0.1], 0x3ac8b8, [1.5, 0.3, 0.9]); }
   else if (genie) { P.s(0.25, [0, -0.6, 0], skin, [0.9, 1.4, 0.9]); P.s(0.15, [0.1, -0.95, 0.05], skin, [0.8, 1.2, 0.8]); }
   else if (!K('reaper', 'priest', 'monk', 'wizard', 'witch', 'warlock', 'sorcerer', 'necromancer', 'angel', 'archangel', 'goddess', 'princess', 'queen', 'santa', 'muse', 'odin')) {
-    for (const s of [-1, 1]) { P.seg([s * 0.13, -0.42, 0], [s * 0.15, -0.95, 0.02], 0.09, dk(cloth, 0.12)); P.s(0.1, [s * 0.15, -1.0, 0.07], COL.dark, [1, 0.6, 1.4]); }
+    for (const s of [-1, 1]) {
+      const lc = dk(cloth, 0.12), hip = [s * 0.13, -0.42, 0], kn = [s * 0.14, -0.69, 0.03], an = [s * 0.15, -0.95, 0.01];
+      P.s(0.1, hip, lc); P.seg(hip, kn, 0.095, lc); P.s(0.085, kn, lc); P.seg(kn, an, 0.075, lc);
+      P.b(0.13, 0.08, 0.26, [s * 0.15, -1.0, 0.06], COL.dark, null, { round: true });   // shoe
+    }
   }
   // props
   if (K('reaper')) { P.c(0.025, 1.8, [0.45, -0.1, 0.1], COL.darkwood); P.add(PG.torus(0.08, Math.PI * 0.7), 0xc8ccd4, [0.6, 0.75, 0.1], 0.35, [0, 0, 1.2]); }
