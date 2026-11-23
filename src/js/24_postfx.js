@@ -71,7 +71,7 @@ const Post = {
   render(renderer, scene, camera, dt) {
     if (!this.enabled) { renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
     const held = Player.held;
-    const want = held && Settings.dof && !held.dead ? 1 : 0;
+    const want = 0;  // depth-of-field blur removed
     this.amount = lerp(this.amount, want, 1 - Math.exp(-dt * 6));
     if (held && !held.dead) this.focus = lerp(this.focus, Math.max(0.4, held.root.position.distanceTo(camera.position)), 1 - Math.exp(-dt * 12));
     const U = this.mat.uniforms;

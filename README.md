@@ -117,7 +117,7 @@ zero gravity, fireworks, indoor snowfall and a Big Bang.
   sparkles, smoke, frost, bubbles, hearts and musical notes.
 - Juicy merges: the inputs pull together, then a flash, shockwave rings, a burst of particles coloured by the result,
   an elastic pop, a floating name label, a rarity sound, and a NEW DISCOVERY or NEW RECIPE banner.
-- Planar floor reflection, soft shadows, depth of field that focuses on the held item, head bob, a sprint FOV kick and
+- Planar floor reflection, soft shadows, head bob, a sprint FOV kick and
   screen shake on heavy impacts only.
 - All audio is synthesized with WebAudio: material-specific impacts, rarity-scaled stingers and generative ambient
   music.

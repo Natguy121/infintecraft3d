@@ -463,7 +463,7 @@ body.th-underwater { --accent: #1aa0d8; } body.th-candy { --accent: #ff5ab0; } b
           <label>Music volume<input id="set-music" type="range" min="0" max="1" step="0.01"></label>
           <label class="chk"><input id="set-invert" type="checkbox"> Invert mouse Y</label>
           <label class="chk"><input id="set-bob" type="checkbox"> Head bob</label>
-          <label class="chk"><input id="set-dof" type="checkbox"> Depth of field on held items</label>
+         
           <label class="chk"><input id="set-fps" type="checkbox"> Show FPS</label>
           <div class="full sec-h">Creative AI fallback (optional)</div>
           <label class="chk full"><input id="set-ai" type="checkbox"> Ask Claude for brand-new results when no rule fits (results are cached, so pairs stay deterministic)</label>
@@ -13556,7 +13556,7 @@ const UI = {
     bind('set-theme', 'theme', () => Themes.apply(Settings.theme));
     bind('set-quality', 'quality', () => this.status('Quality saved — reload the page to fully apply reflections and shadows.'));
     bind('set-sens', 'sens'); bind('set-vol', 'vol', () => Sound.applyVolumes()); bind('set-music', 'music', () => Sound.applyVolumes());
-    bind('set-invert', 'invert', null, 'checked'); bind('set-bob', 'bob', null, 'checked'); bind('set-dof', 'dof', null, 'checked');
+    bind('set-invert', 'invert', null, 'checked'); bind('set-bob', 'bob', null, 'checked');
     bind('set-fps', 'fps', () => $('fps-pill').classList.toggle('hidden', !Settings.fps), 'checked');
     bind('set-ai', 'ai', () => this.status(Settings.ai ? (Settings.key ? 'Creative AI on.' : 'Add your API key to enable the creative AI.') : 'Creative AI off — using the procedural generator.'), 'checked');
     bind('set-key', 'key'); bind('set-model', 'model');
@@ -14980,7 +14980,7 @@ const Post = {
   render(renderer, scene, camera, dt) {
     if (!this.enabled) { renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
     const held = Player.held;
-    const want = held && Settings.dof && !held.dead ? 1 : 0;
+    const want = 0;  // depth-of-field blur removed
     this.amount = lerp(this.amount, want, 1 - Math.exp(-dt * 6));
     if (held && !held.dead) this.focus = lerp(this.focus, Math.max(0.4, held.root.position.distanceTo(camera.position)), 1 - Math.exp(-dt * 12));
     const U = this.mat.uniforms;
