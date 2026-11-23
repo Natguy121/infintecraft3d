@@ -400,15 +400,22 @@ BUILD.tree = (P, I, kw) => {
     for (let i = 0; i < 6; i++) { const a = i * 1.05; P.s(0.5, [0.4 + Math.cos(a) * 0.4, 0.82, Math.sin(a) * 0.4], 0x3aa14a, [1, 0.12, 0.3], { rot: [0, -a, -0.35] }); }
     P.s(0.12, [0.4, 0.68, 0.1], COL.brown); P.s(0.12, [0.32, 0.66, -0.08], COL.brown); return;
   }
-  P.c(0.15, 1.0, [0, -0.5, 0], trunk, null, { seg: 10 });
+  P.f(0.09, 0.16, 1.05, [0, -0.47, 0], trunk, null, { seg: 12 });
+  P.f(0.16, 0.27, 0.16, [0, -0.92, 0], dk(trunk, 0.04), null, { seg: 12 });
+  for (let i = 0; i < 4; i++) { const a = i * 1.57 + 0.4; P.seg([0, -0.88, 0], [Math.cos(a) * 0.36, -0.99, Math.sin(a) * 0.36], 0.05, dk(trunk, 0.06)); }
   if (!leaf) { for (let i = 0; i < 4; i++) { const a = i * 1.6 + P.rng(); P.seg([0, -0.1 + i * 0.08, 0], [Math.cos(a) * 0.55, 0.45 + P.rng() * 0.3, Math.sin(a) * 0.55], 0.05, trunk); } return; }
   if (hasKw(kw, 'pine', 'christmas')) {
     for (let i = 0; i < 3; i++) P.k(0.75 - i * 0.18, 0.75, [0, -0.15 + i * 0.42, 0], shiftColor(leaf, 0, 0, i * 0.03), null, { seg: 10 });
     if (hasKw(kw, 'christmas')) { P.add(PG.star(5, 0.45, 0.25), COL.yellow, [0, 1.12, 0], 0.22, null, { glow: true }); for (let i = 0; i < 8; i++) { const a = i * 2.4, h = P.rng(); P.s(0.07, [Math.cos(a) * (0.6 - h * 0.45), -0.15 + h * 0.9, Math.sin(a) * (0.6 - h * 0.45)], [COL.red, COL.yellow, COL.blue, 0xff5ad8][i % 4], null, { glow: true }); } }
     return;
   }
-  const n = 4;
-  for (let i = 0; i < n; i++) { const a = i * 1.7 + P.rng(), r = i ? 0.35 : 0; P.s(i ? 0.45 : 0.6, [Math.cos(a) * r, 0.35 + (i ? P.rng() * 0.25 : 0.25), Math.sin(a) * r], shiftColor(leaf, 0, 0, (P.rng() - 0.5) * 0.1)); }
+  const lc = () => shiftColor(leaf, 0, 0, (P.rng() - 0.5) * 0.12);
+  P.s(0.46, [0, 0.62, 0], lc(), [1, 0.85, 1]);
+  for (let i = 0; i < 5; i++) {
+    const a = i * 1.26 + P.rng() * 0.5, y0 = -0.15 + i * 0.07, tip = [Math.cos(a) * 0.48, 0.3 + P.rng() * 0.22, Math.sin(a) * 0.48];
+    P.seg([0, y0, 0], tip, 0.045, trunk);
+    for (let j = 0; j < 3; j++) P.s(0.2 + P.rng() * 0.1, [tip[0] + (P.rng() - 0.5) * 0.25, tip[1] + 0.05 + P.rng() * 0.15, tip[2] + (P.rng() - 0.5) * 0.25], lc(), [1, 0.8, 1]);
+  }
   if (hasKw(kw, 'life', 'world')) for (let i = 0; i < 6; i++) P.s(0.08, [(P.rng() - 0.5) * 1.2, 0.3 + P.rng() * 0.5, (P.rng() - 0.5) * 1.2], 0xfff27a, null, { glow: true });
   if (hasKw(kw, 'treant')) { P.eyes(0.08, -0.35, 0.15, 0.06, 0xfff2a0, 0x15151c, {}); }
   if (hasKw(kw, 'apple', 'fruit')) for (let i = 0; i < 4; i++) P.s(0.09, [(P.rng() - 0.5) * 0.9, 0.2 + P.rng() * 0.3, 0.45], COL.red);
@@ -588,18 +595,29 @@ BUILD.bird = (P, I, kw) => {
   if (K('owl')) { P.s(0.62, [0, -0.05, 0], c, [1, 1.2, 0.95]); P.s(0.45, [0, -0.1, 0.25], lt(c, 0.15), [1, 1.1, 0.6]); P.eyes(0.22, 0.4, 0.42, 0.17, 0xfff0a0); P.k(0.06, 0.18, [0, 0.28, 0.6], COL.orange, [Math.PI / 2 + 0.4, 0, 0]); P.k(0.08, 0.25, [-0.3, 0.75, 0], c, [0, 0, 0.3]); P.k(0.08, 0.25, [0.3, 0.75, 0], c, [0, 0, -0.3]); }
   else {
     const longNeck = K('flamingo', 'swan', 'ostrich', 'stork', 'goose');
-    P.s(0.5, [0, 0, 0], c, [0.85, 0.8, 1.1]);
+    P.s(0.5, [0, 0, 0], c, [0.82, 0.78, 1.08]);
+    P.s(0.36, [0, -0.1, 0.22], K('robin') ? COL.orange : lt(c, 0.1), [1, 1, 0.9]);
+    P.s(0.3, [0, 0.12, -0.25], dk(c, 0.05), [1, 0.6, 1.3]);
     let hp = [0, 0.42, 0.42];
+    if (!longNeck) P.s(0.22, [0, 0.27, 0.33], c);
     if (longNeck) { P.seg([0, 0.2, 0.35], [0, 0.9, 0.5], 0.09, c); hp = [0, 0.95, 0.55]; }
     P.s(K('hummingbird') ? 0.24 : 0.3, hp, K('eagle') ? 0xffffff : c);
     P.eyes(0.13, hp[1] + 0.06, hp[2] + 0.2, 0.075);
     const beak = K('duck', 'goose', 'platypus', 'swan') ? [0.12, 0.08, 0.35] : K('hummingbird', 'kiwi', 'stork') ? [0.03, 0.03, 0.6] : K('toucan') ? [0.14, 0.18, 0.5] : [0.07, 0.07, 0.3];
-    P.k(beak[0], beak[2], [0, hp[1] - 0.04, hp[2] + 0.28 + beak[2] / 2 - 0.12], K('crow', 'raven') ? COL.dark : COL.orange, [Math.PI / 2, 0, 0], { seg: 8 });
+    const bc = K('crow', 'raven') ? COL.dark : COL.orange, bz = hp[2] + 0.28 + beak[2] / 2 - 0.12;
+    P.k(beak[0], beak[2], [0, hp[1] - 0.02, bz], bc, [Math.PI / 2, 0, 0], { seg: 10 });
+    P.k(beak[0] * 0.75, beak[2] * 0.75, [0, hp[1] - 0.07, bz - beak[2] * 0.12], dk(bc, 0.08), [Math.PI / 2 - 0.12, 0, 0], { seg: 10 });
     if (K('chicken', 'rooster', 'turkey', 'chick')) { P.s(0.08, [0, hp[1] + 0.3, hp[2] + 0.05], COL.red, [0.6, 1.2, 1.4]); P.s(0.06, [0, hp[1] - 0.18, hp[2] + 0.22], COL.red, [0.6, 1.2, 0.6]); }
     if (K('peacock', 'turkey')) for (let i = 0; i < 9; i++) { const a = (i - 4) * 0.28; P.s(0.32, [Math.sin(a) * 0.65, 0.45 + Math.cos(a) * 0.4, -0.62], i % 2 ? c : lt(c, 0.15), [0.35, 1.2, 0.1], { rot: [-0.3, 0, -a] }); if (K('peacock')) P.s(0.07, [Math.sin(a) * 0.9, 0.5 + Math.cos(a) * 0.72, -0.66], 0x2a4ad8); }
-    else P.s(0.25, [0, 0.12, -0.6], dk(c, 0.08), [0.7, 0.18, 1.2], { rot: [0.4, 0, 0] });
+    else for (let i = -2; i <= 2; i++) P.s(0.24, [Math.sin(i * 0.22) * 0.22, 0.1 - Math.abs(i) * 0.02, -0.62], i % 2 ? dk(c, 0.12) : dk(c, 0.06), [0.32, 0.06, 1.25], { rot: [0.35, i * 0.22, 0] });
     const legL = longNeck && !K('swan', 'goose') ? 0.9 : 0.3;
-    if (!K('bat')) for (const s of [-1, 1]) P.seg([s * 0.15, -0.3, 0.05], [s * 0.15, -0.3 - legL, 0.1], 0.025, COL.orange);
+    if (!K('bat')) for (const s of [-1, 1]) {
+      const fy = -0.3 - legL, fx = s * 0.15;
+      P.s(0.12, [fx, -0.3, 0.04], c, [1, 1.25, 1]);
+      P.seg([fx, -0.38, 0.06], [fx, fy, 0.1], 0.026, COL.orange);
+      for (const a of [-0.5, 0, 0.5]) P.seg([fx, fy, 0.1], [fx + Math.sin(a) * 0.15, fy - 0.02, 0.1 + Math.cos(a) * 0.15], 0.018, COL.orange);
+      P.seg([fx, fy, 0.1], [fx, fy - 0.02, -0.02], 0.016, COL.orange);
+    }
   }
   if (!K('kiwi', 'ostrich', 'penguin', 'chicken', 'turkey', 'chick')) {
     const wc = K('bat', 'pterodactyl') ? dk(c, 0.15) : K('parrot') ? 0x3a6ad8 : dk(c, 0.06);
@@ -608,7 +626,11 @@ BUILD.bird = (P, I, kw) => {
       const pv = new THREE.Vector3(s * 0.38, 0.12, 0);
       const sub = new Parts(I, P.rng);
       if (membrane) sub.add(PG.cone(3), wc, [s * 0.55, 0, 0], [0.18, 1.1, 0.5], [0, 0, s * Math.PI / 2]);
-      else { sub.s(0.5, [s * 0.45, 0, -0.05], wc, [1, 0.12, 0.55]); sub.s(0.35, [s * 0.85, -0.02, -0.15], lt(wc, 0.05), [1, 0.1, 0.4]); }
+      else {
+        sub.s(0.42, [s * 0.45, 0.02, 0], wc, [1, 0.14, 0.6]);
+        sub.s(0.3, [s * 0.5, 0.05, 0.08], lt(wc, 0.06), [1, 0.1, 0.45]);
+        for (let j = 0; j < 5; j++) sub.s(0.3, [s * (0.58 + j * 0.08), -0.01 - j * 0.005, -0.12 - j * 0.05], j % 2 ? dk(wc, 0.05) : wc, [0.8, 0.06, 0.26], { rot: [0, s * (0.2 + j * 0.13), 0] });
+      }
       for (const p of sub.list) { p.anim = s < 0 ? 'wingL' : 'wingR'; p.pivot = pv; P.list.push(p); }
     }
   }
@@ -626,7 +648,10 @@ BUILD.fish = (P, I, kw) => {
   P.eyes(big ? 0.45 : 0.3, 0.12, big ? 0.65 : 0.6, big ? 0.09 : 0.11);
   if (big) { P.s(0.36, [0, 0.0, -1.05], dk(c, 0.06), [1.5, 0.12, 0.5]); P.s(0.2, [0.62, -0.25, 0.2], dk(c, 0.05), [0.8, 0.12, 0.45], { rot: [0, 0, -0.5] }); P.s(0.2, [-0.62, -0.25, 0.2], dk(c, 0.05), [0.8, 0.12, 0.45], { rot: [0, 0, 0.5] }); if (K('orca')) P.k(0.15, 0.5, [0, 0.65, -0.1], c, [-0.25, 0, 0]); }
   else {
-    P.add(PG.cone(4), dk(c, 0.04), [0, 0, -1.05], [0.08, 0.55, 0.55], [Math.PI / 2, Math.PI / 2, 0]);
+    P.s(1, [0, 0.02, -0.62], c, [0.17, 0.26, 0.45]);
+    for (const s of [-1, 1]) P.s(0.36, [0, s * 0.2, -1.12], dk(c, 0.05), [0.07, 0.42, 1], { rot: [s * 0.62, 0, 0] });
+    for (const s of [-1, 1]) { P.s(0.2, [s * 0.29, 0.02, 0.42], dk(c, 0.12), [0.12, 1.2, 0.22], { rot: [0, s * 0.45, 0] }); P.s(0.05, [s * 0.1, -0.12, 0.92], dk(c, 0.2), [0.8, 0.4, 0.4]); }
+    P.s(0.16, [0, -0.5, -0.45], dk(c, 0.04), [0.08, 0.55, 1], { rot: [-0.5, 0, 0] });
     P.add(PG.cone(4), dk(c, 0.04), [0, K('shark') ? 0.75 : 0.55, -0.05], [0.05, K('shark') ? 0.6 : 0.32, 0.3], [-0.3, 0, 0]);
     P.s(0.14, [0.35, -0.15, 0.25], dk(c, 0.04), [0.2, 0.5, 1.2]); P.s(0.14, [-0.35, -0.15, 0.25], dk(c, 0.04), [0.2, 0.5, 1.2]);
     if (K('shark')) P.b(0.35, 0.05, 0.12, [0, -0.2, 0.85], 0xffffff);
@@ -1019,7 +1044,17 @@ BUILD.vehicle = (P, I, kw) => {
   if (K('ambulance', 'police', 'fire truck')) { P.b(0.5, 0.08, 0.15, [0, 0.43, 0.05], COL.red, null, { glow: true }); P.b(0.25, 0.08, 0.15, [0.12, 0.43, 0.05], COL.blue, null, { glow: true }); }
   if (K('race')) P.b(0.95, 0.05, 0.25, [0, 0.25, -L / 2 + 0.05], COL.dark);
   for (const x of [-0.3, 0.3]) P.s(0.07, [x, -0.05, L / 2 + 0.01], 0xfff6c0, [1, 0.8, 0.3], { glow: true });
-  const wr = K('tractor') ? 0.3 : 0.22;
+  const wr = K('tractor') ? 0.3 : 0.22, cz = K('truck', 'fire truck', 'tractor') ? L * 0.25 : -0.05, cl = K('race') ? 0.5 : L * 0.45;
+  for (const z of [L * 0.32, -L * 0.32]) for (const x of [-0.477, 0.477]) P.c(wr + 0.05, 0.012, [x, -0.33, z], 0x111116, [0, 0, Math.PI / 2], { seg: 18 });
+  for (const z of [1, -1]) P.b(1.0, 0.11, 0.1, [0, -0.29, z * (L / 2 + 0.02)], 0x2a2a30, null, { round: true });
+  P.b(0.42, 0.1, 0.03, [0, -0.13, L / 2 + 0.015], 0x1a1a20);
+  for (const x of [-0.33, 0.33]) P.b(0.16, 0.07, 0.03, [x, -0.06, -L / 2 - 0.015], COL.red, null, { glow: true });
+  if (!K('bus')) {
+    P.b(0.89, 0.18, cl * 0.82, [0, 0.23, cz], glass);
+    for (const s of [-1, 1]) P.s(0.055, [s * 0.5, 0.12, cz + cl * 0.5], c, [0.7, 0.8, 1]);
+    P.b(0.965, 0.28, 0.012, [0, -0.1, cz], dk(c, 0.18));
+    for (const s of [-1, 1]) P.b(0.08, 0.025, 0.012, [s * 0.485, -0.02, cz + 0.12], 0xc8c8d0);
+  }
   BUILD.wheels(P, [[0.5, -0.35, L * 0.32], [-0.5, -0.35, L * 0.32], [0.5, -0.35 + (K('tractor') ? 0.1 : 0), -L * 0.32], [-0.5, -0.35 + (K('tractor') ? 0.1 : 0), -L * 0.32]], wr, 0.16);
 };
 
