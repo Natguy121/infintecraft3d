@@ -50,6 +50,7 @@ function realSize(info) {
     for (let i = 0; i < words.length - 1 && s == null; i++) s = SIZE_BY_NAME.get(words.slice(i).join(' '));
     for (let i = words.length - 1; i >= 0 && s == null; i--) s = SIZE_BY_NAME.get(words[i]);
   }
+  if (s == null && base.like) { const like = Universe.byNorm.get(normName(base.like)); if (like && like !== base) return realSize(like); }
   if (s == null) {
     s = SHAPE_SIZE[base.shape] ?? 0.4;
     if (base.tags.includes('tiny')) s *= 0.4;

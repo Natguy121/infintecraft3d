@@ -168,7 +168,7 @@ const COL = { wood: 0x9b6b3d, darkwood: 0x6b4423, metal: 0xc3c9d0, steel: 0x8a92
   glass: 0xcfefff, black: 0x15151c, grey: 0x8d8d94, brown: 0x7a4f2a, cream: 0xf6e7c8, sand: 0xe6c98a, soil: 0x6b4a2b };
 const dk = (c, a = 0.18) => shiftColor(c, 0, 0, -a);
 const lt = (c, a = 0.15) => shiftColor(c, 0, 0.0, a);
-function kwOf(info) { return ' ' + ((info.base && info.base.name) || (info.headItem && info.headItem.name) || info.name).toLowerCase() + ' '; }
+function kwOf(info) { const b = (info.base) || (info.headItem) || info; return ' ' + (b.name + (b.like ? ' ' + b.like : '')).toLowerCase() + ' '; }
 function hasKw(kw, ...words) { for (const w of words) if (kw.includes(w)) return true; return false; }
 
 // ---------------------------------------------------------------- shape templates

@@ -244,7 +244,7 @@ const Hints = {
 };
 
 // ============================================================================
-//  Codex: virtualised grid that stays smooth at 300,000+ entries
+//  Codex: virtualised grid that stays smooth at 3,000,000+ entries
 // ============================================================================
 const Codex = {
   meta: new Map(), list: [], selected: null, tab: 'items', pool: [], tileW: 118, tileH: 86, gap: 8, dirty: true, recipeCache: new Map(),
@@ -327,7 +327,7 @@ const Codex = {
     else if (sort === 'tier') L.sort((a, b) => b.tier - a.tier || b.rarity - a.rarity || (a.lname < b.lname ? -1 : 1));
     else L.reverse();
     this.list = L;
-    $('cx-count').textContent = `${fmtInt(Progress.order.length)} / 300,000+ discovered${L.length !== Progress.order.length ? ` · ${fmtInt(L.length)} shown` : ''}`;
+    $('cx-count').textContent = `${fmtInt(Progress.order.length)} / 3,000,000+ discovered${L.length !== Progress.order.length ? ` · ${fmtInt(L.length)} shown` : ''}`;
     $('cx-empty').classList.toggle('hidden', L.length > 0);
     if (resetScroll) $('cx-wrap').scrollTop = 0;
     this.render(true);

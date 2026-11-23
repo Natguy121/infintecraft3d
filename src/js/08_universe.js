@@ -1,6 +1,6 @@
 // ============================================================================
 //  ELEMENTAL LAB — 08 · The Universe: parses the core items, builds the
-//  recipe tables and resolves ANY pair of the 300,000+ items deterministically.
+//  recipe tables and resolves ANY pair of the 3,000,000+ items deterministically.
 //
 //  Item id formats
 //    core       "dragon"
@@ -152,6 +152,7 @@ const Universe = {
           else if (c === '!') item.rarityOverride = tok.slice(1);
           else if (c === '^') item.secret = tok.slice(1);
           else if (c === '=') item.adj = tok.slice(1);
+          else if (c === '~') { item.like = tok.slice(1); item.real = true; }
           else {
             let t = tok;
             if (!TAG_INDEX.has(t)) {
@@ -529,7 +530,7 @@ const Universe = {
         if (r.length !== 2) continue;
         const k = pairKey(r[0], r[1]);
         const prev = table.get(k);
-        if (prev && prev !== it.id) this.warn(`recipe conflict: ${r.join('+')} → ${prev} vs ${it.id}`);
+        if (prev && prev !== it.id) { if (!it.real) this.warn(`recipe conflict: ${r.join('+')} → ${prev} vs ${it.id}`); }
         else if (!prev) put(r[0], r[1], it.id);
       }
     }
@@ -557,7 +558,7 @@ const Universe = {
         for (let j = 0; j < n; j++) {
           if (j === si) continue;
           const it = this.items[j];
-          if (it.secret || it.unreachable) continue;
+          if (it.secret || it.unreachable || it.real) continue;
           let inter = 0;
           for (let w = 0; w < MASK_WORDS; w++) inter += popcount32(M[si * MASK_WORDS + w] & M[j * MASK_WORDS + w]);
           if (!inter) continue;
@@ -581,7 +582,7 @@ const Universe = {
     const runPass = (kOf, maxRank) => {
       const cands = [];
       for (const it of this.items) {
-        const k = kOf(it);
+        const k = it.real ? 0 : kOf(it);
         if (!k) continue;
         for (const r of it.recipes) {
           if (r.length !== 2) continue;
@@ -948,7 +949,7 @@ const Universe = {
     const maxTier = Math.max(IA.tier, IB.tier);
     let best = null, bs = -1;
     for (const it of this.items) {
-      if (it.secret || it.unreachable || ex.has(it.id)) continue;
+      if (it.secret || it.unreachable || it.real || ex.has(it.id)) continue;
       let a = 0, b = 0, u = 0;
       for (let w = 0; w < MASK_WORDS; w++) { a += popcount32(it.mask[w] & IA.mask[w]); b += popcount32(it.mask[w] & IB.mask[w]); u += popcount32(it.mask[w] | IA.mask[w] | IB.mask[w]); }
       if (!a || !b) continue;

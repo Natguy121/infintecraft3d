@@ -5,7 +5,7 @@
 async function boot() {
   const msg = $('load-msg');
   const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
-  msg.textContent = 'Generating 300,000+ items…';
+  msg.textContent = 'Generating 3,000,000+ items…';
   await frame();
   Universe.build();
   msg.textContent = `Universe ready: ${fmtInt(Universe.totalCount)} items. Building the lab…`;

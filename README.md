@@ -102,6 +102,13 @@ Two-word combos only use real adjective words (Fire, Ice, Lava, Gold, Crystal…
 see "Ink Monster" or "Animal Dog". Tag-rule results must relate to both ingredients. When nothing fits, the game
 picks the item that best shares the meaning of both ingredients, not a random one. Results are deterministic, so every player gets the same answer for the same pair.
 
+**Real things from WordNet.** `tools/gen-real-items.mjs` pulls about 3,250 real animals, plants, foods, tools, vehicles,
+buildings, materials and places from Princeton's WordNet 3.1 dictionary. Each one inherits its look and real-world size
+from its nearest hand-made ancestor (a Basset Hound is built like a Dog), and gets recipes from its own name or its
+dictionary definition: Hunting Dog = Dog + Game, Viaduct = Bridge + Road, Chowder = Soup + Stew,
+Cowboy Boot = Cowboy + Boot. The generator checks every item against the engine and drops anything that can't be
+crafted. WordNet 3.1 is © Princeton University and used under its license.
+
 **Secrets.** A few recipes trigger room-wide effects: a disco light show, walls that change colour, bullet time,
 zero gravity, fireworks, indoor snowfall and a Big Bang.
 
