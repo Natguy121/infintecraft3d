@@ -420,6 +420,7 @@ const Universe = {
   },
   /** two-word composites only when the first word works as a real adjective for a concrete thing */
   compSensible(adj, head) {
+    return false;   // no more made-up two-word combos ("Water Bread", "Fire Robot"): they were dead ends
     if (!adj || !head || adj === head) return false;
     if (head.headScore < 4 || head.state === 'abstract' || head.state === 'energy' || head.state === 'gas') return false;
     if (adj.headScore >= 6 && !adj.adj) return false;          // "Dog Cat", "Car Monster"
