@@ -96,12 +96,38 @@ const Player = {
     }
     const sprint = K.has('ShiftLeft') || K.has('ShiftRight') || Touch.sprint;
     const speed = sprint ? 6.2 : 3.6;
+    const wasGrounded = this.grounded;
     this.grounded = this.checkGround();
-    const acc = this.grounded ? 14 : 3.5;
-    const k = Math.min(1, acc * dt);
-    b.velocity.x += (mx * speed - b.velocity.x) * k;
-    b.velocity.z += (mz * speed - b.velocity.z) * k;
-    if (canMove && Input.pressed.has('Space') && this.grounded) { b.velocity.y = 4.9; Sound.tone(300, 0.08, { vol: 0.05, glide: 420 }); }
+    if (this.grounded && !wasGrounded) this.landT = G.rtime;
+    // jump: Space, or the scroll wheel when you're not holding anything (CS-style "jump on mousewheel")
+    const wantJump = canMove && (Input.pressed.has('Space') || (!this.held && Input.wheel !== 0) || (this.autoHop && K.has('Space')));
+    const hs0 = Math.hypot(b.velocity.x, b.velocity.z);
+    if (this.grounded) {
+      // bhop: jumping within a few frames of landing skips ground friction entirely, so speed carries over
+      const justLanded = G.rtime - (this.landT || 0) < 0.1;
+      if (!justLanded || hs0 <= speed) {
+        const k = Math.min(1, 14 * dt);
+        b.velocity.x += (mx * speed - b.velocity.x) * k;
+        b.velocity.z += (mz * speed - b.velocity.z) * k;
+      }
+    } else {
+      // air strafing (Quake/Source style): you only gain speed by turning into the strafe direction,
+      // because the cap applies to speed ALONG the wish direction, not total speed
+      const l = Math.hypot(mx, mz);
+      if (l > 0) {
+        const wx = mx / l, wz = mz / l;
+        const cur = b.velocity.x * wx + b.velocity.z * wz;
+        const add = 0.9 - cur;                       // tiny air speed cap → gains come from turning
+        if (add > 0) { const a = Math.min(add, 40 * speed * dt); b.velocity.x += a * wx; b.velocity.z += a * wz; }
+      }
+      const hs = Math.hypot(b.velocity.x, b.velocity.z);
+      if (hs > 24) { b.velocity.x *= 24 / hs; b.velocity.z *= 24 / hs; }   // sanity cap
+    }
+    if (wantJump && this.grounded && b.velocity.y < 2) {
+      b.velocity.y = 4.9; this.grounded = false; this.landT = -1;
+      Sound.tone(300, 0.08, { vol: 0.05, glide: 420 });
+      if (hs0 > speed + 0.5) Bhop.hop(hs0);
+    }
     if (b.position.y < -2) this.reset();
     // ---- camera
     const eye = _v1.set(b.position.x, b.position.y + 1.62, b.position.z);
@@ -123,7 +149,7 @@ const Player = {
     if (this.held) {
       if (this.held.dead || this.held.merging) { this.held = null; }
       else {
-        if (Input.wheel) this.holdDist = clamp(this.holdDist - Input.wheel * 0.22 * Math.max(1, this.held.vis.radius), this.minHold(), this.minHold() + 3.4);
+        if (Input.wheel && this.held) this.holdDist = clamp(this.holdDist - Input.wheel * 0.22 * Math.max(1, this.held.vis.radius), this.minHold(), this.minHold() + 3.4);
         this.updateForceCombine(dt);
         if (this.held) this.updateTouchMerge(dt);
         if (this.held && canMove && Input.pressed.has('KeyF')) Crafting.toShelf(this.held);

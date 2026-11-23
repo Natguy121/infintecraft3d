@@ -326,6 +326,8 @@ body.th-underwater { --accent: #1aa0d8; } body.th-candy { --accent: #ff5ab0; } b
 .shop-it.own { outline: 2px solid #2fbf63; } .swatch.locked { opacity: .55; }
 #emote-bar { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); z-index: 40; display: flex; gap: 6px; padding: 8px; border-radius: 18px; background: var(--glass2); box-shadow: var(--shadow); }
 #emote-bar button { width: 58px; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; border-radius: 14px; padding: 0; } #emote-bar small { font-size: 9px; }
+#speedo { position: fixed; left: 50%; top: 58%; transform: translateX(-50%); z-index: 20; pointer-events: none; text-align: center; color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,.55); font-variant-numeric: tabular-nums; }
+#speedo.hidden { display: none; } #speedo b { display: block; font-size: 30px; font-weight: 900; line-height: 1; } #speedo small { font-size: 12px; font-weight: 800; }
 #horror-vig { position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.92)); }
 #horror-vig.pulse { animation: hpulse .9s ease-out; }
 @keyframes hpulse { 0% { background-color: rgba(140,0,0,.45); } 100% { background-color: transparent; } }
@@ -11304,12 +11306,38 @@ const Player = {
     }
     const sprint = K.has('ShiftLeft') || K.has('ShiftRight') || Touch.sprint;
     const speed = sprint ? 6.2 : 3.6;
+    const wasGrounded = this.grounded;
     this.grounded = this.checkGround();
-    const acc = this.grounded ? 14 : 3.5;
-    const k = Math.min(1, acc * dt);
-    b.velocity.x += (mx * speed - b.velocity.x) * k;
-    b.velocity.z += (mz * speed - b.velocity.z) * k;
-    if (canMove && Input.pressed.has('Space') && this.grounded) { b.velocity.y = 4.9; Sound.tone(300, 0.08, { vol: 0.05, glide: 420 }); }
+    if (this.grounded && !wasGrounded) this.landT = G.rtime;
+    // jump: Space, or the scroll wheel when you're not holding anything (CS-style "jump on mousewheel")
+    const wantJump = canMove && (Input.pressed.has('Space') || (!this.held && Input.wheel !== 0) || (this.autoHop && K.has('Space')));
+    const hs0 = Math.hypot(b.velocity.x, b.velocity.z);
+    if (this.grounded) {
+      // bhop: jumping within a few frames of landing skips ground friction entirely, so speed carries over
+      const justLanded = G.rtime - (this.landT || 0) < 0.1;
+      if (!justLanded || hs0 <= speed) {
+        const k = Math.min(1, 14 * dt);
+        b.velocity.x += (mx * speed - b.velocity.x) * k;
+        b.velocity.z += (mz * speed - b.velocity.z) * k;
+      }
+    } else {
+      // air strafing (Quake/Source style): you only gain speed by turning into the strafe direction,
+      // because the cap applies to speed ALONG the wish direction, not total speed
+      const l = Math.hypot(mx, mz);
+      if (l > 0) {
+        const wx = mx / l, wz = mz / l;
+        const cur = b.velocity.x * wx + b.velocity.z * wz;
+        const add = 0.9 - cur;                       // tiny air speed cap → gains come from turning
+        if (add > 0) { const a = Math.min(add, 40 * speed * dt); b.velocity.x += a * wx; b.velocity.z += a * wz; }
+      }
+      const hs = Math.hypot(b.velocity.x, b.velocity.z);
+      if (hs > 24) { b.velocity.x *= 24 / hs; b.velocity.z *= 24 / hs; }   // sanity cap
+    }
+    if (wantJump && this.grounded && b.velocity.y < 2) {
+      b.velocity.y = 4.9; this.grounded = false; this.landT = -1;
+      Sound.tone(300, 0.08, { vol: 0.05, glide: 420 });
+      if (hs0 > speed + 0.5) Bhop.hop(hs0);
+    }
     if (b.position.y < -2) this.reset();
     // ---- camera
     const eye = _v1.set(b.position.x, b.position.y + 1.62, b.position.z);
@@ -11331,7 +11359,7 @@ const Player = {
     if (this.held) {
       if (this.held.dead || this.held.merging) { this.held = null; }
       else {
-        if (Input.wheel) this.holdDist = clamp(this.holdDist - Input.wheel * 0.22 * Math.max(1, this.held.vis.radius), this.minHold(), this.minHold() + 3.4);
+        if (Input.wheel && this.held) this.holdDist = clamp(this.holdDist - Input.wheel * 0.22 * Math.max(1, this.held.vis.radius), this.minHold(), this.minHold() + 3.4);
         this.updateForceCombine(dt);
         if (this.held) this.updateTouchMerge(dt);
         if (this.held && canMove && Input.pressed.has('KeyF')) Crafting.toShelf(this.held);
@@ -13369,6 +13397,7 @@ const EGGS = {
   tidy: ['🧹', 'Clean freak', '10 things in the trash in 20 seconds.'],
   jumper: ['🦘', 'Table dancer', '15 jumps on the crafting table.'],
   midnight: ['🌙', 'Night owl', 'Crafting at midnight. Go to sleep!'],
+  bhop: ['🐇', 'Bhop god', 'You bunny hopped past 480 u/s.'],
 };
 const Eggs = {
   found: [], seq: [], flyT: 0, upT: 0, trashT: [], jumps: 0,
@@ -13404,6 +13433,30 @@ const Eggs = {
     if (Player.pitch > 1.35 && G.camera.position.x < LAYOUT.room.x1) { this.upT += dt; if (this.upT > 5) { this.find('sky'); this.upT = -999; const u = spawnItem('ufo', new THREE.Vector3(G.camera.position.x, 12, G.camera.position.z - 3)); if (u) setTimeout(() => u.vanish(), 5000); } } else if (this.upT > 0) this.upT = 0;
     if (this.duck && G.camera.position.distanceTo(this.duck.position) < 2.5) this.find('duck');
     if (Input.pressed.has('Space') && Player.grounded && Player.body.position.y > LAYOUT.table.top - 0.2 && Math.abs(Player.body.position.x) < LAYOUT.table.w / 2) { if (++this.jumps >= 15) this.find('jumper'); }
+  },
+};
+
+// ---------------------------------------------------------------- bunny hopping: speed meter + records
+const Bhop = {
+  chain: 0, best: 0, t: 0,
+  init() {
+    const m = el('div'); m.id = 'speedo'; m.className = 'hidden'; document.body.appendChild(m); this.el = m;
+    this.best = Progress.stats.bhopBest || 0;
+  },
+  hop(speed) {
+    this.chain++; this.t = 1.2;
+    if (speed > this.best + 0.05) { this.best = speed; Progress.stats.bhopBest = +speed.toFixed(2); Save.markDirty(); }
+    if (speed > 12) Eggs.find('bhop');
+    if (this.chain === 10) UI.toast('🐇', 'Bunny hopper!', '10 hops in a row without losing speed.');
+  },
+  update(dt) {
+    if (!Player.body || !G.started) return;
+    const v = Player.body.velocity, hs = Math.hypot(v.x, v.z);
+    this.t -= dt;
+    if (Player.grounded && G.rtime - (Player.landT || 0) > 0.25) this.chain = 0;
+    const show = hs > 6.6 || this.t > 0;
+    this.el.classList.toggle('hidden', !show);
+    if (show) { this.el.innerHTML = `<b>${Math.round(hs * 40)}</b><small>u/s${this.chain > 1 ? ` · 🐇×${this.chain}` : ''}</small>`; this.el.style.color = hs > 12 ? '#ff5ab0' : hs > 9 ? '#ffb020' : ''; }
   },
 };
 
@@ -15029,7 +15082,7 @@ async function boot() {
   await Save.load();
   Displays.init();
   Save.restoreWorld();
-  UI.init(); Codex.init(); Input.init(canvas); Touch.init(); Daily.init(); Fun.init(); Horror.init(); Accounts.init(); Net.init(); Pets.init(); Skins.init(); Hands.init(); Build.init(); Photo.init(); Speedrun.init(); Collections.init(); Firsts.init(); Tutorial.init(); Social.init(); Shop.init(); Emotes.init(); Install.init(); Eggs.init(); Prestige.button();
+  UI.init(); Codex.init(); Input.init(canvas); Touch.init(); Daily.init(); Fun.init(); Horror.init(); Accounts.init(); Net.init(); Pets.init(); Skins.init(); Hands.init(); Build.init(); Photo.init(); Speedrun.init(); Collections.init(); Firsts.init(); Tutorial.init(); Social.init(); Shop.init(); Emotes.init(); Install.init(); Eggs.init(); Bhop.init(); Prestige.button();
   // a few starter elements on the table so the first smash is one grab away
   if (Progress.order.length <= 4) {
     [['water', -0.55], ['fire', 0.55]].forEach(([id, x]) => spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.3, 0.25), { noPop: true }));
@@ -15094,7 +15147,7 @@ function tick(rdt, render = true) {
   Labels.update();
   UI.update(rdt);
   Touch.update();
-  Fun.update(rdt); Horror.update(rdt); Net.update(rdt); Powers.update(dt); Voices.update(rdt); Pets.update(dt); Hands.update(rdt); Build.update(); Photo.update(); Island.update(dt); Themes.update(rdt); Speedrun.update(); Tutorial.update(); Social.update(); Creatures.update(dt); Driving.update(dt); Shop.update(dt); Emotes.update(); Eggs.update(rdt);
+  Fun.update(rdt); Horror.update(rdt); Net.update(rdt); Powers.update(dt); Voices.update(rdt); Pets.update(dt); Hands.update(rdt); Build.update(); Photo.update(); Island.update(dt); Themes.update(rdt); Speedrun.update(); Tutorial.update(); Social.update(); Creatures.update(dt); Driving.update(dt); Shop.update(dt); Emotes.update(); Eggs.update(rdt); Bhop.update(rdt);
   EmojiAtlas.flush();
   if (!render) { Save.update(rdt); Input.endFrame(); return; }
   const r = G.renderer, cam = G.camera;
@@ -15109,7 +15162,7 @@ function tick(rdt, render = true) {
 
 // ---------------------------------------------------------------- debug / automation API
 window.lab = {
-  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily, Horror, Accounts, Cloud, Net, Powers, Pets, Voices, Hands, Build, Island, Photo, Share, Skins, Themes, Speedrun, Collections, Coop, Tutorial, Social, Creatures, Driving, Shop, Prestige, Emotes, Eggs,
+  THREE, G, Universe, Progress, Settings, Codex, UI, Crafting, Player, Book, Hints, Save, Daily, Horror, Accounts, Cloud, Net, Powers, Pets, Voices, Hands, Build, Island, Photo, Share, Skins, Themes, Speedrun, Collections, Coop, Tutorial, Social, Creatures, Driving, Shop, Prestige, Emotes, Eggs, Bhop,
   spawn(id, x = 0, z = 0.2) { return spawnItem(id, new THREE.Vector3(x, LAYOUT.table.top + 0.4, z), { touched: true }); },
   combine(a, b) { const r = Universe.combine(a, b); return r && { ...r, name: Universe.get(r.id).name }; },
   merge(a, b) { Crafting.merge(a, b, 'force'); },

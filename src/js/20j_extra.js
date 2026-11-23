@@ -262,6 +262,7 @@ const EGGS = {
   tidy: ['🧹', 'Clean freak', '10 things in the trash in 20 seconds.'],
   jumper: ['🦘', 'Table dancer', '15 jumps on the crafting table.'],
   midnight: ['🌙', 'Night owl', 'Crafting at midnight. Go to sleep!'],
+  bhop: ['🐇', 'Bhop god', 'You bunny hopped past 480 u/s.'],
 };
 const Eggs = {
   found: [], seq: [], flyT: 0, upT: 0, trashT: [], jumps: 0,
@@ -297,5 +298,29 @@ const Eggs = {
     if (Player.pitch > 1.35 && G.camera.position.x < LAYOUT.room.x1) { this.upT += dt; if (this.upT > 5) { this.find('sky'); this.upT = -999; const u = spawnItem('ufo', new THREE.Vector3(G.camera.position.x, 12, G.camera.position.z - 3)); if (u) setTimeout(() => u.vanish(), 5000); } } else if (this.upT > 0) this.upT = 0;
     if (this.duck && G.camera.position.distanceTo(this.duck.position) < 2.5) this.find('duck');
     if (Input.pressed.has('Space') && Player.grounded && Player.body.position.y > LAYOUT.table.top - 0.2 && Math.abs(Player.body.position.x) < LAYOUT.table.w / 2) { if (++this.jumps >= 15) this.find('jumper'); }
+  },
+};
+
+// ---------------------------------------------------------------- bunny hopping: speed meter + records
+const Bhop = {
+  chain: 0, best: 0, t: 0,
+  init() {
+    const m = el('div'); m.id = 'speedo'; m.className = 'hidden'; document.body.appendChild(m); this.el = m;
+    this.best = Progress.stats.bhopBest || 0;
+  },
+  hop(speed) {
+    this.chain++; this.t = 1.2;
+    if (speed > this.best + 0.05) { this.best = speed; Progress.stats.bhopBest = +speed.toFixed(2); Save.markDirty(); }
+    if (speed > 12) Eggs.find('bhop');
+    if (this.chain === 10) UI.toast('🐇', 'Bunny hopper!', '10 hops in a row without losing speed.');
+  },
+  update(dt) {
+    if (!Player.body || !G.started) return;
+    const v = Player.body.velocity, hs = Math.hypot(v.x, v.z);
+    this.t -= dt;
+    if (Player.grounded && G.rtime - (Player.landT || 0) > 0.25) this.chain = 0;
+    const show = hs > 6.6 || this.t > 0;
+    this.el.classList.toggle('hidden', !show);
+    if (show) { this.el.innerHTML = `<b>${Math.round(hs * 40)}</b><small>u/s${this.chain > 1 ? ` · 🐇×${this.chain}` : ''}</small>`; this.el.style.color = hs > 12 ? '#ff5ab0' : hs > 9 ? '#ffb020' : ''; }
   },
 };

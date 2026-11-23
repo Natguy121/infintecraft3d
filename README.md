@@ -227,3 +227,11 @@ relays messages, so the room closes when they leave.
 - **🥚 10 Easter eggs.** No spoilers, but the Konami code is one of them.
 
 Firestore security rules are in `firestore.rules`. Paste them into Firebase → Firestore → Rules.
+
+## Bunny hopping 🐇
+
+The movement works like Counter-Strike and Source:
+
+- **Air strafing:** while you're in the air, hold `A` and turn the mouse left, then `D` and turn right. Don't hold `W`. Every smooth turn adds speed.
+- **Bhop:** jump within about 0.1 s of landing and you skip ground friction, so your speed carries over. The **scroll wheel jumps** whenever you're not holding an item, just like `bind mwheeldown +jump`.
+- A **speedometer** (in u/s) appears when you go faster than sprinting and counts your hop chain. Your best speed is saved, and there's an Easter egg for going really fast.
