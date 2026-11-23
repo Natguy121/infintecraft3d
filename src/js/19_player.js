@@ -179,7 +179,7 @@ const Player = {
     const T = this.holdTarget.copy(cam.position).addScaledVector(dir, this.holdDist).addScaledVector(up, -0.11 * this.holdDist);
     const dx = T.x - b.position.x, dy = T.y - b.position.y, dz = T.z - b.position.z;
     const dist = Math.hypot(dx, dy, dz);
-    if (dist > 6 + (e.heldR || e.vis.radius)) { this.drop(); return; }
+    if (dist > 6 + (e.heldR || e.vis.radius) && G.time - (this.grabT || 0) > 1.5) { this.drop(); return; }
     const stiff = 16;
     let vx = dx * stiff, vy = dy * stiff, vz = dz * stiff;
     const vl = Math.hypot(vx, vy, vz); if (vl > 15) { vx *= 15 / vl; vy *= 15 / vl; vz *= 15 / vl; }
@@ -252,6 +252,13 @@ const Player = {
     Grip.shrink(ent);
     ent.setHeld(true);
     this.holdDist = ent.heldR ? this.minHold(ent) + 0.35 : clamp((dist ?? ent.root.position.distanceTo(G.camera.position)) + ent.vis.radius * 0.5, this.minHold(ent), this.minHold(ent) + 1.8);
+    this.grabT = G.time;
+    if (ent.heldR) { // shrunk: bring it straight into the hand so the far-away centre of a huge thing doesn't count as "out of reach"
+      const cam = G.camera, d = _v1.set(0, 0, -1).applyQuaternion(cam.quaternion), u = _v2.set(0, 1, 0).applyQuaternion(cam.quaternion);
+      const T = _v3.copy(cam.position).addScaledVector(d, this.holdDist).addScaledVector(u, -0.11 * this.holdDist);
+      ent.body.position.set(T.x, T.y, T.z); ent.body.velocity.set(0, 0, 0); ent.body.angularVelocity.set(0, 0, 0);
+      if (ent.body.interpolatedPosition) ent.body.interpolatedPosition.set(T.x, T.y, T.z); ent.root.position.copy(T);
+    }
     const q = _q2.set(ent.body.quaternion.x, ent.body.quaternion.y, ent.body.quaternion.z, ent.body.quaternion.w);
     this.holdRot.copy(this.yawQuat(_q1).invert().multiply(q));
     Sound.grab(ent.info.material);
