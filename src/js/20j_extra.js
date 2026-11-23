@@ -113,12 +113,12 @@ const Driving = {
 
 // ---------------------------------------------------------------- coins & shop
 const SHOP = [
-  { id: 'hat-halo', name: 'Halo', icon: '😇', price: 120, kind: 'hat', hat: 7 },
-  { id: 'hat-pirate', name: 'Pirate hat', icon: '🏴‍☠️', price: 150, kind: 'hat', hat: 8 },
-  { id: 'hat-viking', name: 'Viking helmet', icon: '⚔️', price: 200, kind: 'hat', hat: 9 },
-  { id: 'hat-party', name: 'Party hat', icon: '🥳', price: 80, kind: 'hat', hat: 10 },
-  { id: 'skin-gold', name: 'Golden skin', icon: '🟡', price: 300, kind: 'skin', color: 0xffc83a },
-  { id: 'trail', name: 'Rainbow trail', icon: '🌈', price: 250, kind: 'perk' },
+  { id: 'hat-halo', name: 'Halo', icon: '😇', price: 1500, kind: 'hat', hat: 7 },
+  { id: 'hat-pirate', name: 'Pirate hat', icon: '🏴‍☠️', price: 500, kind: 'hat', hat: 8 },
+  { id: 'hat-viking', name: 'Viking helmet', icon: '⚔️', price: 700, kind: 'hat', hat: 9 },
+  { id: 'hat-party', name: 'Party hat', icon: '🥳', price: 800, kind: 'hat', hat: 10 },
+  { id: 'skin-gold', name: 'Golden skin', icon: '🟡', price: 1200, kind: 'skin', color: 0xffc83a },
+  { id: 'trail', name: 'Rainbow trail', icon: '🌈', price: 3000, kind: 'perk' },
   { id: 'boost', name: 'XP booster ×2 (20 min)', icon: '🚀', price: 90, kind: 'use' },
   { id: 'party', name: 'Party time (disco!)', icon: '🪩', price: 40, kind: 'use' },
   { id: 'hint5', name: 'Hint refill', icon: '💡', price: 25, kind: 'use' },
@@ -130,7 +130,7 @@ const Shop = {
     Ext.register('shop', () => ({ coins: this.coins, owned: this.owned, boost: this.boostUntil }));
     const pill = el('div'); pill.className = 'pill'; pill.id = 'hud-coins'; $('hud-tl').appendChild(pill);
     const p = el('div'); p.id = 'shop-panel'; p.className = 'hidden';
-    p.innerHTML = `<div class="acct-card soc-card"><button class="x" id="shop-x">✕</button><h2>🛒 Shop</h2><p class="acct-note">Earn 🪙 coins by crafting (+1), discovering (+5), new recipes (+3), levelling up (+25), daily goals and Easter eggs.</p><div id="shop-coins" class="mp-codebox"></div><div id="shop-list" class="shop-grid"></div></div>`;
+    p.innerHTML = `<div class="acct-card soc-card"><button class="x" id="shop-x">✕</button><h2>🛒 Shop</h2><p class="acct-note">Earn 🪙 coins from new discoveries (+2), new recipes (+1), levelling up (+10), finishing all daily challenges (+30) and Easter eggs (+15).</p><div id="shop-coins" class="mp-codebox"></div><div id="shop-list" class="shop-grid"></div></div>`;
     document.body.appendChild(p);
     $('shop-x').onclick = () => p.classList.add('hidden');
     const btn = el('button'); btn.id = 'btn-shop'; btn.textContent = '🛒 Shop'; $('btn-mp').before(btn);
@@ -141,7 +141,7 @@ const Shop = {
   hud() { const p = $('hud-coins'); if (p) p.textContent = `🪙 ${fmtInt(this.coins)}${this.boostUntil > Date.now() ? ' · 🚀×2' : ''}`; },
   has(id) { return this.owned.includes(id); },
   xpMult() { return (this.boostUntil > Date.now() ? 2 : 1) * (1 + 0.1 * (Progress.stats.prestige || 0)); },
-  onCraft(isNew, recNew) { this.add(1 + (isNew ? 5 : 0) + (recNew && !isNew ? 3 : 0), true); },
+  onCraft(isNew, recNew) { const n = isNew ? 2 : recNew ? 1 : 0; if (n) this.add(n, true); },
   render() {
     $('shop-coins').innerHTML = `You have<b>🪙 ${fmtInt(this.coins)}</b>`;
     const list = $('shop-list'); list.innerHTML = '';
@@ -180,9 +180,9 @@ const Prestige = {
   can() { return (Progress.stats.level || 1) >= MAX_LEVEL; },
   go() {
     if (!this.can()) return;
-    if (!confirm(`Prestige? Your level goes back to 1, but you keep every discovery, get a ⭐ badge, +10% XP forever and 500 coins.`)) return;
+    if (!confirm(`Prestige? Your level goes back to 1, but you keep every discovery, get a ⭐ badge, +10% XP forever and 200 coins.`)) return;
     const S = Progress.stats; S.prestige = (S.prestige || 0) + 1; S.level = 1; S.xp = 0;
-    Shop.add(500); Fun.updateHud();
+    Shop.add(200); Fun.updateHud();
     UI.bigText(`⭐ PRESTIGE ${S.prestige}!`, '#ffb020'); Sound.achievement();
     Save.markDirty(); Cloud.setProfile({});
     this.button();
@@ -282,8 +282,8 @@ const Eggs = {
   find(k) {
     if (this.found.includes(k)) return;
     this.found.push(k); const E = EGGS[k];
-    UI.bigText(`🥚 EASTER EGG!`, '#ff9ad8'); UI.toast(E[0], `Easter egg: ${E[1]}`, `${E[2]} (${this.found.length}/${Object.keys(EGGS).length} found) +25 🪙`);
-    Shop.add(25); Sound.achievement(); Save.markDirty();
+    UI.bigText(`🥚 EASTER EGG!`, '#ff9ad8'); UI.toast(E[0], `Easter egg: ${E[1]}`, `${E[2]} (${this.found.length}/${Object.keys(EGGS).length} found) +15 🪙`);
+    Shop.add(15); Sound.achievement(); Save.markDirty();
   },
   rainbow() { let t = 0; const iv = setInterval(() => { Room.wallMat.color.setHSL((t++ * 0.02) % 1, 0.7, 0.6); if (t > 300) { clearInterval(iv); Room.setWallHue(Progress.wallHue); } }, 100); },
   onCraft(info) {

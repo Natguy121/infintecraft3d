@@ -220,7 +220,7 @@ relays messages, so the room closes when they leave.
   - **Public rooms:** join any open game without a code, or host one.
 - **Creature AI:** animals wander, hop, fly and swim. Predators hunt nearby prey, and the prey runs away.
 - **Driving:** look at a car, boat, bike, plane or rocket and press `V` (🚗 in ⋯ on mobile). Steer with `W A S D`. Flying vehicles also use `Space` and `Shift`.
-- **🪙 Coins and 🛒 Shop:** earn coins by crafting, discovering, levelling up and finding Easter eggs. Spend them on hats (halo, pirate, viking, party), golden skin, a rainbow trail, an XP booster, disco parties and hint refills.
+- **🪙 Coins and 🛒 Shop:** coins are earned slowly: new discoveries (+2), new recipes (+1), level-ups (+10), finishing all daily challenges (+30) and Easter eggs (+15). Repeat crafts give nothing. Spend them on hats (halo, pirate, viking, party), golden skin, a rainbow trail, an XP booster, disco parties and hint refills.
 - **⭐ Prestige:** at level 50, reset to level 1. You keep your discoveries, get a ⭐ badge, +10% XP for good and 500 coins.
 - **Emotes:** press `T` (💬 on mobile) for wave, dance, clap, "Nice!", "Help!" and more. Other players see a speech bubble and an animation.
 - **📲 Install app:** on Android and desktop Chrome a real install button appears. On iPhone it shows the Add to Home Screen steps. Works offline once installed.

@@ -82,7 +82,7 @@ const Daily = {
       const yest = `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, '0')}-${String(y.getDate()).padStart(2, '0')}`;
       s.streak = s.lastFull === yest ? s.streak + 1 : 1;
       s.lastFull = s.date;
-      setTimeout(() => { UI.toast('🔥', `All dailies done! Streak: ${s.streak} day${s.streak > 1 ? 's' : ''}`, 'New challenges tomorrow.', 'ach'); UI.flash(0.35); }, 900);
+      Shop.add(30); setTimeout(() => { UI.toast('🔥', `All dailies done! Streak: ${s.streak} day${s.streak > 1 ? 's' : ''}`, 'New challenges tomorrow. +30 🪙', 'ach'); UI.flash(0.35); }, 900);
       if (G.camera) Particles.emit({ pos: _v1.copy(G.camera.position).addScaledVector(Player.dir, 1.5), color: [0xffe85a, 0xff5ad8, 0x5ab8ff], count: 120, speed: 3, size: 0.06, life: 1.2, gravity: -2 });
     }
     Save.markDirty();

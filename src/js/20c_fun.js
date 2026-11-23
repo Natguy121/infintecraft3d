@@ -37,7 +37,7 @@ const Fun = {
 
   levelUp() {
     const L = this.level;
-    Shop.add(25); Prestige.button();
+    Shop.add(10); Prestige.button();
     UI.bigText(`LEVEL ${L}!`, '#ffb703');
     Sound.achievement(); Sound.swell(4);
     UI.hintCooldown = 0;
