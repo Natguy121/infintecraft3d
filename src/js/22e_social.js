@@ -8,7 +8,7 @@ const Social = {
   init() {
     const p = el('div'); p.id = 'soc-panel'; p.className = 'hidden';
     p.innerHTML = `<div class="acct-card soc-card"><button class="x" id="soc-x">✕</button><h2>🌍 Online</h2>
-      <div class="tabs soc-tabs"><button data-t="top" class="on">🏆 Leaderboard</button><button data-t="firsts">🌍 World firsts</button><button data-t="friends">👫 Friends</button><button data-t="rooms">🚪 Public rooms</button></div>
+      <div class="tabs soc-tabs"><button data-t="top" class="on">🏆 Leaderboard</button><button data-t="firsts">🌍 World firsts</button><button data-t="friends">👫 Friends</button><button data-t="rooms">🚪 Public rooms</button><button data-t="owner" id="soc-owner-tab" class="hidden">👑 Owner</button></div>
       <div id="soc-body"></div></div>`;
     document.body.appendChild(p);
     $('soc-x').onclick = () => p.classList.add('hidden');
@@ -19,6 +19,7 @@ const Social = {
   },
   me() { return Cloud.user ? Cloud.user.uid : null; },
   open(tab) {
+    $('soc-owner-tab').classList.toggle('hidden', !Cloud.isOwner());
     if (tab) { this.tab = tab; document.querySelectorAll('.soc-tabs button').forEach(x => x.classList.toggle('on', x.dataset.t === tab)); }
     $('soc-panel').classList.remove('hidden'); this.render();
   },
@@ -30,6 +31,7 @@ const Social = {
       if (this.tab === 'top') await this.renderTop(box);
       else if (this.tab === 'firsts') await this.renderFirsts(box);
       else if (this.tab === 'friends') await this.renderFriends(box);
+      else if (this.tab === 'owner' && Cloud.isOwner()) await this.renderOwner(box);
       else await this.renderRooms(box);
     } catch (e) { box.innerHTML = `<p class="acct-note">❌ ${escHtml(Cloud.msg(e))}</p>`; }
   },
@@ -133,5 +135,37 @@ const Social = {
     try { if (code) await FB.deleteDoc(FB.doc(Cloud.db, 'rooms', code)); } catch (e) { /* not ours */ }
     try { await FB.setDoc(FB.doc(Cloud.db, 'users', Cloud.user.uid), { room: null }, { merge: true }); } catch (e) { /* */ }
   },
-  update() { if (Net.peer) this.beat(false); },
+  update() {
+    if (Net.peer) this.beat(false);
+    // presence: refresh the "last seen" time every 2 minutes while playing, so the owner can see who is online
+    const now = Date.now();
+    if (Cloud.user && G.started && !document.hidden && now - (this.seenT || 0) > 120000) { this.seenT = now; Cloud.setProfile({}); }
+  },
+  async renderOwner(box) {
+    const s = await FB.getDocs(FB.query(FB.collection(Cloud.db, 'users'), FB.limit(2000)));
+    const users = s.docs.map(d => ({ uid: d.id, ...d.data() }));
+    const now = Date.now(), online = users.filter(u => now - (u.t || 0) < 5 * 60000), today = users.filter(u => now - (u.t || 0) < 864e5);
+    const totalDisc = users.reduce((a, u) => a + (u.disc || 0), 0);
+    const fs = await FB.getDocs(FB.query(FB.collection(Cloud.db, 'firsts'), FB.orderBy('t', 'desc'), FB.limit(15)));
+    const counts = new Map();
+    for (const u of users) for (const n of new Set(u.recent || [])) counts.set(n, (counts.get(n) || 0) + 1);
+    const hot = [...counts].sort((a, b) => b[1] - a[1]).slice(0, 12);
+    const ago = (t) => { const m = Math.round((now - t) / 60000); return m < 1 ? 'now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : Math.round(m / 1440) + 'd ago'; };
+    box.innerHTML = `<p class="acct-note">👑 Only you can see this.</p>
+      <div class="own-stats"><div><b>${fmtInt(users.length)}</b>players</div><div><b>${online.length}</b>online now</div><div><b>${today.length}</b>played today</div><div><b>${fmtInt(totalDisc)}</b>total discoveries</div></div>
+      <h3 class="own-h">🟢 Online now</h3><div id="own-on"></div>
+      <h3 class="own-h">🔥 Most-found items <small>(from each player's latest 20 finds)</small></h3><div id="own-hot"></div>
+      <h3 class="own-h">🌍 Newest world firsts</h3><div id="own-firsts"></div>
+      <button id="own-refresh" style="width:100%;margin-top:10px">🔄 Refresh</button>`;
+    const on = $('own-on');
+    if (!online.length) on.innerHTML = '<div class="acct-empty">Nobody right now.</div>';
+    online.sort((a, b) => (b.t || 0) - (a.t || 0)).forEach((u, i) => on.appendChild(this.row(i, u.name || 'Player', `Lv ${u.level || 1} · ${fmtInt(u.disc || 0)} 🧪`, u.uid === this.me())));
+    const hb = $('own-hot');
+    if (!hot.length) hb.innerHTML = '<div class="acct-empty">No data yet. It fills in as players save.</div>';
+    hot.forEach(([n, c], i) => hb.appendChild(this.row(i, n, `${c} player${c === 1 ? '' : 's'}`, false)));
+    const fb = $('own-firsts');
+    if (fs.empty) fb.innerHTML = '<div class="acct-empty">None yet.</div>';
+    fs.docs.forEach((d, i) => { const f = d.data(); fb.appendChild(this.row(i, `${f.emoji || ''} ${f.item || '?'}`, `${escHtml(f.name || 'Player')} · ${ago(f.t || 0)}`, f.uid === this.me())); });
+    $('own-refresh').onclick = () => this.render();
+  },
 };

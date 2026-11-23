@@ -82,9 +82,11 @@ const Cloud = {
       await FB.setDoc(FB.doc(this.db, 'users', this.user.uid), { ...this.profile(), disc: this.discOf(raw), t }, { merge: true });
     } catch (e) { console.warn('push failed', e); this.pending = this.pending || raw; }
   },
+  OWNER: 'natguy121',
+  isOwner() { return !!(this.user && this.user.email === this.email(this.OWNER)); },
   profile() {
     const name = localStorage.getItem('elementalLab.cloudName') || Accounts.displayName() || 'Player';
-    return { name, nameLower: name.toLowerCase(), level: Progress.stats.level || 1, prestige: Progress.stats.prestige || 0, runs: Object.keys(Speedrun.best || {}).length, firsts: Progress.stats.worldFirsts || 0 };
+    return { name, nameLower: name.toLowerCase(), level: Progress.stats.level || 1, prestige: Progress.stats.prestige || 0, runs: Object.keys(Speedrun.best || {}).length, firsts: Progress.stats.worldFirsts || 0, recent: Progress.order.slice(-20).map(id => { try { const i = Universe.get(id); return (i.emoji || '') + ' ' + i.name; } catch (e) { return null; } }).filter(Boolean) };
   },
   async setProfile(extra) { if (!this.user) return; try { await FB.setDoc(FB.doc(this.db, 'users', this.user.uid), { ...this.profile(), ...extra, t: Date.now() }, { merge: true }); } catch (e) { console.warn('profile', e); } },
   discOf(raw) { try { if (!raw.startsWith('ELAB')) return (JSON.parse(raw).order || []).length; } catch (e) { /* */ } return Progress.order.length; },

@@ -308,6 +308,11 @@ body.horror .menu-card { background: rgba(16, 10, 12, .92); }
 .skin-row .sw { display: flex; flex-wrap: wrap; gap: 6px; }
 .swatch { min-width: 30px; height: 30px; padding: 0 8px; border-radius: 10px; border: 2px solid transparent; font-size: 12px; }
 .swatch.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.own-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0 4px; }
+.own-stats div { padding: 10px 6px; border-radius: 12px; background: rgba(109, 92, 255, .1); text-align: center; font-size: 12px; color: var(--ink2); }
+.own-stats b { display: block; font-size: 22px; color: var(--ink); }
+.own-h { margin: 14px 0 6px; font-size: 14px; } .own-h small { font-weight: 500; color: var(--ink3); }
+@media (max-width: 520px) { .own-stats { grid-template-columns: repeat(2, 1fr); } }
 body.th-dark { --ink: #e8ebf3; --ink2: #aab2c4; --ink3: #7a8296; --line: rgba(255, 255, 255, .1); --glass: rgba(24, 27, 36, .82); --glass2: rgba(30, 34, 44, .94); --accent: #8a7cff; --shadow: 0 10px 40px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .3); color-scheme: dark; }
 html:has(body.th-dark), body.th-dark { background: #111318; }
 body.th-dark button:not(.primary):not(.on):not(.primary-s) { background: rgba(255, 255, 255, .07); }
@@ -17979,9 +17984,11 @@ const Cloud = {
       await FB.setDoc(FB.doc(this.db, 'users', this.user.uid), { ...this.profile(), disc: this.discOf(raw), t }, { merge: true });
     } catch (e) { console.warn('push failed', e); this.pending = this.pending || raw; }
   },
+  OWNER: 'natguy121',
+  isOwner() { return !!(this.user && this.user.email === this.email(this.OWNER)); },
   profile() {
     const name = localStorage.getItem('elementalLab.cloudName') || Accounts.displayName() || 'Player';
-    return { name, nameLower: name.toLowerCase(), level: Progress.stats.level || 1, prestige: Progress.stats.prestige || 0, runs: Object.keys(Speedrun.best || {}).length, firsts: Progress.stats.worldFirsts || 0 };
+    return { name, nameLower: name.toLowerCase(), level: Progress.stats.level || 1, prestige: Progress.stats.prestige || 0, runs: Object.keys(Speedrun.best || {}).length, firsts: Progress.stats.worldFirsts || 0, recent: Progress.order.slice(-20).map(id => { try { const i = Universe.get(id); return (i.emoji || '') + ' ' + i.name; } catch (e) { return null; } }).filter(Boolean) };
   },
   async setProfile(extra) { if (!this.user) return; try { await FB.setDoc(FB.doc(this.db, 'users', this.user.uid), { ...this.profile(), ...extra, t: Date.now() }, { merge: true }); } catch (e) { console.warn('profile', e); } },
   discOf(raw) { try { if (!raw.startsWith('ELAB')) return (JSON.parse(raw).order || []).length; } catch (e) { /* */ } return Progress.order.length; },
@@ -18530,7 +18537,7 @@ const Social = {
   init() {
     const p = el('div'); p.id = 'soc-panel'; p.className = 'hidden';
     p.innerHTML = `<div class="acct-card soc-card"><button class="x" id="soc-x">✕</button><h2>🌍 Online</h2>
-      <div class="tabs soc-tabs"><button data-t="top" class="on">🏆 Leaderboard</button><button data-t="firsts">🌍 World firsts</button><button data-t="friends">👫 Friends</button><button data-t="rooms">🚪 Public rooms</button></div>
+      <div class="tabs soc-tabs"><button data-t="top" class="on">🏆 Leaderboard</button><button data-t="firsts">🌍 World firsts</button><button data-t="friends">👫 Friends</button><button data-t="rooms">🚪 Public rooms</button><button data-t="owner" id="soc-owner-tab" class="hidden">👑 Owner</button></div>
       <div id="soc-body"></div></div>`;
     document.body.appendChild(p);
     $('soc-x').onclick = () => p.classList.add('hidden');
@@ -18541,6 +18548,7 @@ const Social = {
   },
   me() { return Cloud.user ? Cloud.user.uid : null; },
   open(tab) {
+    $('soc-owner-tab').classList.toggle('hidden', !Cloud.isOwner());
     if (tab) { this.tab = tab; document.querySelectorAll('.soc-tabs button').forEach(x => x.classList.toggle('on', x.dataset.t === tab)); }
     $('soc-panel').classList.remove('hidden'); this.render();
   },
@@ -18552,6 +18560,7 @@ const Social = {
       if (this.tab === 'top') await this.renderTop(box);
       else if (this.tab === 'firsts') await this.renderFirsts(box);
       else if (this.tab === 'friends') await this.renderFriends(box);
+      else if (this.tab === 'owner' && Cloud.isOwner()) await this.renderOwner(box);
       else await this.renderRooms(box);
     } catch (e) { box.innerHTML = `<p class="acct-note">❌ ${escHtml(Cloud.msg(e))}</p>`; }
   },
@@ -18655,7 +18664,39 @@ const Social = {
     try { if (code) await FB.deleteDoc(FB.doc(Cloud.db, 'rooms', code)); } catch (e) { /* not ours */ }
     try { await FB.setDoc(FB.doc(Cloud.db, 'users', Cloud.user.uid), { room: null }, { merge: true }); } catch (e) { /* */ }
   },
-  update() { if (Net.peer) this.beat(false); },
+  update() {
+    if (Net.peer) this.beat(false);
+    // presence: refresh the "last seen" time every 2 minutes while playing, so the owner can see who is online
+    const now = Date.now();
+    if (Cloud.user && G.started && !document.hidden && now - (this.seenT || 0) > 120000) { this.seenT = now; Cloud.setProfile({}); }
+  },
+  async renderOwner(box) {
+    const s = await FB.getDocs(FB.query(FB.collection(Cloud.db, 'users'), FB.limit(2000)));
+    const users = s.docs.map(d => ({ uid: d.id, ...d.data() }));
+    const now = Date.now(), online = users.filter(u => now - (u.t || 0) < 5 * 60000), today = users.filter(u => now - (u.t || 0) < 864e5);
+    const totalDisc = users.reduce((a, u) => a + (u.disc || 0), 0);
+    const fs = await FB.getDocs(FB.query(FB.collection(Cloud.db, 'firsts'), FB.orderBy('t', 'desc'), FB.limit(15)));
+    const counts = new Map();
+    for (const u of users) for (const n of new Set(u.recent || [])) counts.set(n, (counts.get(n) || 0) + 1);
+    const hot = [...counts].sort((a, b) => b[1] - a[1]).slice(0, 12);
+    const ago = (t) => { const m = Math.round((now - t) / 60000); return m < 1 ? 'now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : Math.round(m / 1440) + 'd ago'; };
+    box.innerHTML = `<p class="acct-note">👑 Only you can see this.</p>
+      <div class="own-stats"><div><b>${fmtInt(users.length)}</b>players</div><div><b>${online.length}</b>online now</div><div><b>${today.length}</b>played today</div><div><b>${fmtInt(totalDisc)}</b>total discoveries</div></div>
+      <h3 class="own-h">🟢 Online now</h3><div id="own-on"></div>
+      <h3 class="own-h">🔥 Most-found items <small>(from each player's latest 20 finds)</small></h3><div id="own-hot"></div>
+      <h3 class="own-h">🌍 Newest world firsts</h3><div id="own-firsts"></div>
+      <button id="own-refresh" style="width:100%;margin-top:10px">🔄 Refresh</button>`;
+    const on = $('own-on');
+    if (!online.length) on.innerHTML = '<div class="acct-empty">Nobody right now.</div>';
+    online.sort((a, b) => (b.t || 0) - (a.t || 0)).forEach((u, i) => on.appendChild(this.row(i, u.name || 'Player', `Lv ${u.level || 1} · ${fmtInt(u.disc || 0)} 🧪`, u.uid === this.me())));
+    const hb = $('own-hot');
+    if (!hot.length) hb.innerHTML = '<div class="acct-empty">No data yet. It fills in as players save.</div>';
+    hot.forEach(([n, c], i) => hb.appendChild(this.row(i, n, `${c} player${c === 1 ? '' : 's'}`, false)));
+    const fb = $('own-firsts');
+    if (fs.empty) fb.innerHTML = '<div class="acct-empty">None yet.</div>';
+    fs.docs.forEach((d, i) => { const f = d.data(); fb.appendChild(this.row(i, `${f.emoji || ''} ${f.item || '?'}`, `${escHtml(f.name || 'Player')} · ${ago(f.t || 0)}`, f.uid === this.me())); });
+    $('own-refresh').onclick = () => this.render();
+  },
 };
 
 // ===================================================================== 23_save.js
