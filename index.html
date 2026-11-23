@@ -308,6 +308,17 @@ body.horror .menu-card { background: rgba(16, 10, 12, .92); }
 .skin-row .sw { display: flex; flex-wrap: wrap; gap: 6px; }
 .swatch { min-width: 30px; height: 30px; padding: 0 8px; border-radius: 10px; border: 2px solid transparent; font-size: 12px; }
 .swatch.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+body.th-dark { --ink: #e8ebf3; --ink2: #aab2c4; --ink3: #7a8296; --line: rgba(255, 255, 255, .1); --glass: rgba(24, 27, 36, .82); --glass2: rgba(30, 34, 44, .94); --accent: #8a7cff; --shadow: 0 10px 40px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .3); color-scheme: dark; }
+html:has(body.th-dark), body.th-dark { background: #111318; }
+body.th-dark button:not(.primary):not(.on):not(.primary-s) { background: rgba(255, 255, 255, .07); }
+body.th-dark button:not(.primary):not(.on):not(.primary-s):hover { background: rgba(255, 255, 255, .13); }
+body.th-dark input, body.th-dark select, body.th-dark textarea { background: rgba(255, 255, 255, .06); }
+body.th-dark kbd, body.th-dark .tile, body.th-dark .recipe, body.th-dark .ach, body.th-dark .stat, body.th-dark .tabs button.on { background: #232733; }
+body.th-dark .recipe.unk, body.th-dark #cx-detail { background: rgba(255, 255, 255, .03); }
+body.th-dark .modal { background: rgba(22, 25, 33, .95); }
+body.th-dark .menu-card, body.th-dark .flabel { background: rgba(24, 27, 36, .94); color: var(--ink); }
+body.th-dark #menu { background: radial-gradient(ellipse at 50% 30%, rgba(40, 44, 60, .6), rgba(8, 9, 14, .85)); }
+body.th-dark #err { background: #3a1a1e; color: #ffb0b8; }
 body.th-underwater { --accent: #1aa0d8; } body.th-candy { --accent: #ff5ab0; } body.th-space { --accent: #8a7aff; } body.th-blocky { --accent: #4aa83a; }
 #tut { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 30; width: min(440px, 92vw); padding: 12px 16px 10px; border-radius: 16px; background: var(--glass2); box-shadow: var(--shadow); text-align: center; pointer-events: auto; }
 #tut.hidden { display: none; } #tut .tut-k { font-size: 11px; letter-spacing: .15em; font-weight: 900; color: var(--accent); text-transform: uppercase; }
@@ -458,7 +469,7 @@ body.th-underwater { --accent: #1aa0d8; } body.th-candy { --accent: #ff5ab0; } b
       </div>
       <div id="settings" class="hidden">
         <div class="setgrid">
-          <label>Theme<select id="set-theme"><option value="normal">Normal (bright lab)</option><option value="horror">Horror (After Dark)</option><option value="underwater">Underwater (floaty)</option><option value="space">Space station (low gravity)</option><option value="candy">Candy land</option><option value="blocky">Blocky (pixel style)</option></select></label>
+          <label>Theme<select id="set-theme"><option value="normal">Normal (bright lab)</option><option value="dark">Dark mode</option><option value="horror">Horror (After Dark)</option><option value="underwater">Underwater (floaty)</option><option value="space">Space station (low gravity)</option><option value="candy">Candy land</option><option value="blocky">Blocky (pixel style)</option></select></label>
           <label>Graphics quality<select id="set-quality"><option value="high">High (reflections, depth of field)</option><option value="medium">Medium</option><option value="low">Low (fastest)</option></select></label>
           <label>Mouse sensitivity<input id="set-sens" type="range" min="0.2" max="3" step="0.05"></label>
           <label>Master volume<input id="set-vol" type="range" min="0" max="1" step="0.01"></label>
@@ -14390,10 +14401,10 @@ const Room = {
 
   buildTable(g) {
     const T = LAYOUT.table;
-    const mat = new THREE.MeshPhysicalMaterial({ color: 0xfbfcfd, roughness: 0.25, clearcoat: 0.5, clearcoatRoughness: 0.2 });
+    const mat = this.tableMat = new THREE.MeshPhysicalMaterial({ color: 0xfbfcfd, roughness: 0.25, clearcoat: 0.5, clearcoatRoughness: 0.2 });
     const top = new THREE.Mesh(roundedBoxGeo(0.12, 3), mat);
     top.scale.set(T.w, 0.08, T.d); top.position.set(0, T.top - 0.04, T.z); top.castShadow = top.receiveShadow = true; g.add(top);
-    const legMat = new THREE.MeshStandardMaterial({ color: 0xd9dee7, roughness: 0.5 });
+    const legMat = this.legMat = new THREE.MeshStandardMaterial({ color: 0xd9dee7, roughness: 0.5 });
     for (const x of [-T.w / 2 + 0.25, T.w / 2 - 0.25]) {
       const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, T.top - 0.08, T.d - 0.2), legMat);
       leg.position.set(x, (T.top - 0.08) / 2, T.z); leg.castShadow = leg.receiveShadow = true; g.add(leg);
@@ -14405,7 +14416,7 @@ const Room = {
   },
 
   buildPedestals(g, scene) {
-    const baseMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.2, clearcoat: 1 });
+    const baseMat = this.pedMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.2, clearcoat: 1 });
     for (const P of LAYOUT.pedestals) {
       const x = P.x, z = LAYOUT.pedZ, y0 = LAYOUT.table.top;
       const base = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.18, 0.1, 32), baseMat);
@@ -14493,7 +14504,7 @@ const Room = {
   buildShelf(g) {
     const S = LAYOUT.shelf, R = LAYOUT.room;
     const mat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.3, clearcoat: 0.4, emissive: 0xb8bfcc, emissiveIntensity: 0.35 });
-    const plinthMat = new THREE.MeshStandardMaterial({ color: 0xeef1f6, roughness: 0.4 });
+    const plinthMat = this.plinthMat = new THREE.MeshStandardMaterial({ color: 0xeef1f6, roughness: 0.4 });
     const width = S.cols * S.dx + 0.3;
     for (const y of S.rows) {
       const board = new THREE.Mesh(new THREE.BoxGeometry(width, 0.05, 0.34), mat);
@@ -16678,6 +16689,7 @@ function addHat(head, hatIdx, mesh) {
 
 // ---------------------------------------------------------------- themes beyond normal / horror
 const THEMES = {
+  dark: { bg: 0x111318, fog: [0x111318, 0.01], wall: 0x2a2e38, floor: 0x1e2128, hemi: [0xaab4d0, 0x1a1c24, 0.6], sun: [0xe0e6ff, 1.7], grav: -9.82, cls: 'dark', furn: 0x2c303a },
   underwater: { bg: 0x0a3a5a, fog: [0x0e4a6a, 0.028], wall: 0x2a6a8a, floor: 0xd8c890, hemi: [0x7ad0ff, 0x1a4a5a, 0.7], sun: [0x9ae0ff, 1.4], grav: -5.5, cls: 'underwater' },
   space: { bg: 0x02030a, fog: null, wall: 0x2a2e3a, floor: 0x3a3e4a, hemi: [0x8a9aff, 0x1a1a2a, 0.35], sun: [0xffffff, 2.2], grav: -2.4, cls: 'space' },
   candy: { bg: 0xffe4f2, fog: [0xffe4f2, 0.006], wall: 0xffb8dc, floor: 0xfff0a8, hemi: [0xfff0ff, 0xffc8e0, 0.8], sun: [0xfff4fa, 2.4], grav: -9.82, cls: 'candy' },
@@ -16694,6 +16706,7 @@ const Themes = {
     if (G.renderer) G.renderer.domElement.style.imageRendering = T && T.pixel ? 'pixelated' : '';
     if (G.renderer) G.renderer.setPixelRatio(T && T.pixel ? 0.28 : Math.min(window.devicePixelRatio || 1, Q().pixelRatio));
     this.cur = name;
+    for (const k of ['tableMat', 'legMat', 'pedMat', 'plinthMat']) { const m = Room[k]; if (!m) continue; if (m.userData.c0 == null) m.userData.c0 = m.color.getHex(); m.color.setHex(T && T.furn ? T.furn : m.userData.c0); }
     if (T) {
       document.body.classList.add('th-' + T.cls);
       const S = G.scene, Rm = Room;

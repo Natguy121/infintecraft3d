@@ -78,6 +78,7 @@ function addHat(head, hatIdx, mesh) {
 
 // ---------------------------------------------------------------- themes beyond normal / horror
 const THEMES = {
+  dark: { bg: 0x111318, fog: [0x111318, 0.01], wall: 0x2a2e38, floor: 0x1e2128, hemi: [0xaab4d0, 0x1a1c24, 0.6], sun: [0xe0e6ff, 1.7], grav: -9.82, cls: 'dark', furn: 0x2c303a },
   underwater: { bg: 0x0a3a5a, fog: [0x0e4a6a, 0.028], wall: 0x2a6a8a, floor: 0xd8c890, hemi: [0x7ad0ff, 0x1a4a5a, 0.7], sun: [0x9ae0ff, 1.4], grav: -5.5, cls: 'underwater' },
   space: { bg: 0x02030a, fog: null, wall: 0x2a2e3a, floor: 0x3a3e4a, hemi: [0x8a9aff, 0x1a1a2a, 0.35], sun: [0xffffff, 2.2], grav: -2.4, cls: 'space' },
   candy: { bg: 0xffe4f2, fog: [0xffe4f2, 0.006], wall: 0xffb8dc, floor: 0xfff0a8, hemi: [0xfff0ff, 0xffc8e0, 0.8], sun: [0xfff4fa, 2.4], grav: -9.82, cls: 'candy' },
@@ -94,6 +95,7 @@ const Themes = {
     if (G.renderer) G.renderer.domElement.style.imageRendering = T && T.pixel ? 'pixelated' : '';
     if (G.renderer) G.renderer.setPixelRatio(T && T.pixel ? 0.28 : Math.min(window.devicePixelRatio || 1, Q().pixelRatio));
     this.cur = name;
+    for (const k of ['tableMat', 'legMat', 'pedMat', 'plinthMat']) { const m = Room[k]; if (!m) continue; if (m.userData.c0 == null) m.userData.c0 = m.color.getHex(); m.color.setHex(T && T.furn ? T.furn : m.userData.c0); }
     if (T) {
       document.body.classList.add('th-' + T.cls);
       const S = G.scene, Rm = Room;

@@ -170,10 +170,10 @@ const Room = {
 
   buildTable(g) {
     const T = LAYOUT.table;
-    const mat = new THREE.MeshPhysicalMaterial({ color: 0xfbfcfd, roughness: 0.25, clearcoat: 0.5, clearcoatRoughness: 0.2 });
+    const mat = this.tableMat = new THREE.MeshPhysicalMaterial({ color: 0xfbfcfd, roughness: 0.25, clearcoat: 0.5, clearcoatRoughness: 0.2 });
     const top = new THREE.Mesh(roundedBoxGeo(0.12, 3), mat);
     top.scale.set(T.w, 0.08, T.d); top.position.set(0, T.top - 0.04, T.z); top.castShadow = top.receiveShadow = true; g.add(top);
-    const legMat = new THREE.MeshStandardMaterial({ color: 0xd9dee7, roughness: 0.5 });
+    const legMat = this.legMat = new THREE.MeshStandardMaterial({ color: 0xd9dee7, roughness: 0.5 });
     for (const x of [-T.w / 2 + 0.25, T.w / 2 - 0.25]) {
       const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, T.top - 0.08, T.d - 0.2), legMat);
       leg.position.set(x, (T.top - 0.08) / 2, T.z); leg.castShadow = leg.receiveShadow = true; g.add(leg);
@@ -185,7 +185,7 @@ const Room = {
   },
 
   buildPedestals(g, scene) {
-    const baseMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.2, clearcoat: 1 });
+    const baseMat = this.pedMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.2, clearcoat: 1 });
     for (const P of LAYOUT.pedestals) {
       const x = P.x, z = LAYOUT.pedZ, y0 = LAYOUT.table.top;
       const base = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.18, 0.1, 32), baseMat);
@@ -273,7 +273,7 @@ const Room = {
   buildShelf(g) {
     const S = LAYOUT.shelf, R = LAYOUT.room;
     const mat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.3, clearcoat: 0.4, emissive: 0xb8bfcc, emissiveIntensity: 0.35 });
-    const plinthMat = new THREE.MeshStandardMaterial({ color: 0xeef1f6, roughness: 0.4 });
+    const plinthMat = this.plinthMat = new THREE.MeshStandardMaterial({ color: 0xeef1f6, roughness: 0.4 });
     const width = S.cols * S.dx + 0.3;
     for (const y of S.rows) {
       const board = new THREE.Mesh(new THREE.BoxGeometry(width, 0.05, 0.34), mat);

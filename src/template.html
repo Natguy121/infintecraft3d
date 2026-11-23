@@ -308,6 +308,17 @@ body.horror .menu-card { background: rgba(16, 10, 12, .92); }
 .skin-row .sw { display: flex; flex-wrap: wrap; gap: 6px; }
 .swatch { min-width: 30px; height: 30px; padding: 0 8px; border-radius: 10px; border: 2px solid transparent; font-size: 12px; }
 .swatch.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+body.th-dark { --ink: #e8ebf3; --ink2: #aab2c4; --ink3: #7a8296; --line: rgba(255, 255, 255, .1); --glass: rgba(24, 27, 36, .82); --glass2: rgba(30, 34, 44, .94); --accent: #8a7cff; --shadow: 0 10px 40px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .3); color-scheme: dark; }
+html:has(body.th-dark), body.th-dark { background: #111318; }
+body.th-dark button:not(.primary):not(.on):not(.primary-s) { background: rgba(255, 255, 255, .07); }
+body.th-dark button:not(.primary):not(.on):not(.primary-s):hover { background: rgba(255, 255, 255, .13); }
+body.th-dark input, body.th-dark select, body.th-dark textarea { background: rgba(255, 255, 255, .06); }
+body.th-dark kbd, body.th-dark .tile, body.th-dark .recipe, body.th-dark .ach, body.th-dark .stat, body.th-dark .tabs button.on { background: #232733; }
+body.th-dark .recipe.unk, body.th-dark #cx-detail { background: rgba(255, 255, 255, .03); }
+body.th-dark .modal { background: rgba(22, 25, 33, .95); }
+body.th-dark .menu-card, body.th-dark .flabel { background: rgba(24, 27, 36, .94); color: var(--ink); }
+body.th-dark #menu { background: radial-gradient(ellipse at 50% 30%, rgba(40, 44, 60, .6), rgba(8, 9, 14, .85)); }
+body.th-dark #err { background: #3a1a1e; color: #ffb0b8; }
 body.th-underwater { --accent: #1aa0d8; } body.th-candy { --accent: #ff5ab0; } body.th-space { --accent: #8a7aff; } body.th-blocky { --accent: #4aa83a; }
 #tut { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 30; width: min(440px, 92vw); padding: 12px 16px 10px; border-radius: 16px; background: var(--glass2); box-shadow: var(--shadow); text-align: center; pointer-events: auto; }
 #tut.hidden { display: none; } #tut .tut-k { font-size: 11px; letter-spacing: .15em; font-weight: 900; color: var(--accent); text-transform: uppercase; }
@@ -458,7 +469,7 @@ body.th-underwater { --accent: #1aa0d8; } body.th-candy { --accent: #ff5ab0; } b
       </div>
       <div id="settings" class="hidden">
         <div class="setgrid">
-          <label>Theme<select id="set-theme"><option value="normal">Normal (bright lab)</option><option value="horror">Horror (After Dark)</option><option value="underwater">Underwater (floaty)</option><option value="space">Space station (low gravity)</option><option value="candy">Candy land</option><option value="blocky">Blocky (pixel style)</option></select></label>
+          <label>Theme<select id="set-theme"><option value="normal">Normal (bright lab)</option><option value="dark">Dark mode</option><option value="horror">Horror (After Dark)</option><option value="underwater">Underwater (floaty)</option><option value="space">Space station (low gravity)</option><option value="candy">Candy land</option><option value="blocky">Blocky (pixel style)</option></select></label>
           <label>Graphics quality<select id="set-quality"><option value="high">High (reflections, depth of field)</option><option value="medium">Medium</option><option value="low">Low (fastest)</option></select></label>
           <label>Mouse sensitivity<input id="set-sens" type="range" min="0.2" max="3" step="0.05"></label>
           <label>Master volume<input id="set-vol" type="range" min="0" max="1" step="0.01"></label>
