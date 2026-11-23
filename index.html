@@ -6270,6 +6270,163 @@ Animal + Plant = Cow
 Animal + Life = Baby
 Animal + Monster = Werewolf
 Tree + Magic = Treant
+Detroit + Engine = Car
+Detroit + Factory = Car
+Detroit + Wheel = Car
+Michigan + Car = Detroit
+Michigan + Engine = Detroit
+Car + Michigan = Detroit
+// ---- same + same
+Foam + Foam = Bubble
+Tornado + Tornado = Hurricane
+Marsh + Marsh = Swamp
+Spiral + Spiral = Galaxy
+Sponge + Sponge = Coral
+Tunnel + Tunnel = Cave
+Tin + Tin = Metal
+Paint + Paint = Art
+Spin + Spin = Tornado
+Shadow + Shadow = Darkness
+Microscope + Microscope = Telescope
+Electricity + Electricity = Lightning
+Golem + Golem = Giant
+Great Wall + Great Wall = Castle
+Planet Earth + Planet Earth = Solar System
+Eye + Eye = Glasses
+Egg + Egg = Omelette
+Soil + Soil = Field
+Slime + Slime = Acid
+Acid + Acid = Poison
+Engineer + Engineer = Robot
+Fertilizer + Fertilizer = Garden
+Music + Music = Song
+Desert + Desert = Dune
+Dune + Dune = Desert
+Hail + Hail = Storm
+Drizzle + Drizzle = Rain
+Waste + Waste = Pollution
+Pollution + Pollution = Smog
+Smoke + Smoke = Smog
+Energy + Energy = Power
+Lava + Lava = Lava Lake
+Mud + Mud = Swamp
+Heat + Heat = Heatwave
+Light + Light = Sunbeam
+Cold + Cold = Ice
+Volcano + Volcano = Volcano Island
+Magma + Magma = Lava Lake
+Soot + Soot = Coal
+Earthquake + Earthquake = Mountain
+Geyser + Geyser = Hot Spring
+River + River = Lake
+Fog + Fog = Cloud
+Pressure + Pressure = Diamond
+Ore + Ore = Metal
+Coal + Coal = Diamond
+Ash + Ash = Soil
+Sulfur + Sulfur = Gunpowder
+Cave + Cave = Tunnel
+Cliff + Cliff = Canyon
+Valley + Valley = Canyon
+Swamp + Swamp = Marsh
+Tsunami + Tsunami = Ocean
+Waterfall + Waterfall = River
+Sky + Sky = Atmosphere
+Heatwave + Heatwave = Desert
+Hot Water + Hot Water = Hot Spring
+Ink + Ink = Paint
+Sharp + Sharp = Blade
+Furnace + Furnace = Forge
+Chimney + Chimney = Factory
+Neon + Neon = Neon Sign
+Sound + Sound = Music
+Vibration + Vibration = Earthquake
+Lava Lake + Lava Lake = Volcano
+Diamond + Diamond = Crystal
+Quartz + Quartz = Crystal
+Glacier + Glacier = Iceberg
+Avalanche + Avalanche = Mountain
+Glass + Glass = Window
+Thunderstorm + Thunderstorm = Hurricane
+Thunder + Thunder = Thunderstorm
+Sandstorm + Sandstorm = Desert
+Weather + Weather = Storm
+Sun + Sun = Solar System
+Horizon + Horizon = Sunset
+Primordial Soup + Primordial Soup = Life
+Flour + Flour = Dough
+Kiln + Kiln = Brick
+Gunpowder + Gunpowder = Explosion
+Fireplace + Fireplace = Furnace
+Castle + Castle = Kingdom
+Tower + Tower = Castle
+Tar + Tar = Asphalt
+Dam + Dam = Lake
+Skyscraper + Skyscraper = City
+Sandcastle + Sandcastle = Castle
+Helium + Helium = Balloon
+Liquid + Liquid = Water
+Flint + Flint = Fire
+Pool + Pool = Lake
+Underground + Underground = Cave
+Crystal + Crystal = Gem
+Gem + Gem = Treasure
+Salt + Salt = Salt Water
+Oasis + Oasis = Lake
+Ocean + Ocean = Sea
+Tide + Tide = Wave
+Icicle + Icicle = Ice
+Prism + Prism = Rainbow
+Sunset + Sunset = Night
+Sunrise + Sunrise = Day
+Night + Night = Darkness
+Bacteria + Bacteria = Cell
+Cell + Cell = Life
+Moss + Moss = Grass
+Garden + Garden = Park
+Tortilla + Tortilla = Taco
+Bread + Bread = Sandwich
+Dough + Dough = Bread
+Alloy + Alloy = Steel
+Lightning + Lightning = Electricity
+Ruins + Ruins = Pyramid
+Bridge + Bridge = Road
+Turbine + Turbine = Power
+Engine + Engine = Factory
+Rain + Rain = Storm
+Cloud + Cloud = Storm
+Water + Water = Puddle
+Puddle + Puddle = Pond
+Pond + Pond = Lake
+Lake + Lake = Great Lakes
+Stone + Stone = Boulder
+Sand + Sand = Desert
+Dust + Dust = Sandstorm
+Wind + Wind = Tornado
+Steam + Steam = Cloud
+Mist + Mist = Fog
+Snow + Snow = Snowman
+Ice + Ice = Glacier
+Brick + Brick = Wall
+Wall + Wall = House
+House + House = Village
+Village + Village = Town
+Town + Town = City
+City + City = Country
+Tree + Tree = Forest
+Plant + Plant = Garden
+Grass + Grass = Field
+Seed + Seed = Plant
+Fire + Fire = Energy
+Earth + Earth = Mountain
+Air + Air = Wind
+Metal + Metal = Steel
+Iron + Iron = Steel
+Wood + Wood = Plank
+Paper + Paper = Book
+Book + Book = Library
+Clay + Clay = Brick
+Glacier + Glacier = Iceberg
 Great Lakes + America = Michigan
 Lake + Lake = Great Lakes
 Michigan + City = Detroit
@@ -7106,6 +7263,7 @@ const Universe = {
   /** Is this modifier a SENSIBLE result for this base? (validity is wider so old saves keep working) */
   modSensible(base, m) {
     const st = base.state, t = base.tags, g = m.group, concrete = base.headScore >= 6 || st === 'living';
+    if (m.removeSet && t.some(x => m.removeSet.has(x))) return false;   // opposites: no Frozen Heatwave, no Burning Snow
     const thin = st === 'gas' || st === 'plasma' || st === 'energy' || st === 'abstract';
     if (thin) return g === 'align' && (t.includes('magic') || t.includes('mythical') || t.includes('death') || t.includes('evil'));
     const flammable = ['wood', 'plant', 'paper', 'cloth', 'living', 'edible', 'building', 'vehicle', 'oil'].some(x => t.includes(x)) || st === 'living';
@@ -7587,7 +7745,8 @@ const Universe = {
     // 3. twins → giant (or baby, for living things already huge)
     if (baseKey && A.base === B.base && !this.pairTable.has(baseKey) && A.base.headScore >= 4) {
       const mods = [...new Set([...A.mods, ...B.mods])];
-      for (const extra of ['giant', 'baby']) {
+      const beast = A.base.tags.includes('animal') || A.base.tags.includes('human');
+      for (const extra of beast ? ['baby', 'giant'] : ['giant', 'baby']) {
         if (extra === 'baby' && !A.base.tags.includes('living')) continue;
         if (!mods.includes(extra) && this.sensibleMods(A.base, [...mods, extra])) return { id: this.canon(this.makeModId(A.base.id, [...mods, extra])), how: 'twin' };
       }
@@ -7636,7 +7795,7 @@ const Universe = {
         let ca = 0, cb = 0, cu = 0;
         for (let w = 0; w < MASK_WORDS; w++) { ca += popcount32(it.mask[w] & mA[w]); cb += popcount32(it.mask[w] & mB[w]); cu += popcount32(it.mask[w] | mA[w] | mB[w]); }
         const rel = (ca ? 1 : 0) + (cb ? 1 : 0), jac = (ca + cb) / Math.max(1, cu);
-        if (rel < 2 || jac < 0.2) return [null, 0];
+        if (rel < 2 || jac < 0.3 || Math.min(ca, cb) < (Math.min(IA.tags.length, IB.tags.length) >= 3 ? 2 : 1)) return [null, 0];
         return [o.id, (it.tier < maxTier - 3 ? 0.35 : 1) * (rel === 2 ? 1 : 0.25) * (0.15 + jac) * (0.15 + jac)];
       }
       if (o.type === 'mod') {
@@ -7682,12 +7841,14 @@ const Universe = {
       let a = 0, b = 0, u = 0;
       for (let w = 0; w < MASK_WORDS; w++) { a += popcount32(it.mask[w] & IA.mask[w]); b += popcount32(it.mask[w] & IB.mask[w]); u += popcount32(it.mask[w] | IA.mask[w] | IB.mask[w]); }
       if (!a || !b) continue;
+      const need = Math.min(IA.tags.length, IB.tags.length) >= 3 ? 2 : 1;
+      if (a < need || b < need) continue;
       let s = (a + b) / u + Math.min(a, b) * 0.15 - 0.04 * Math.abs(it.tier - (maxTier + 1)) + hash01(key + it.id, 99) * 0.02;
       if (s > bs) { bs = s; best = it; }
     }
-    if (best) return best.id;
-    const pool2 = this.items.filter(it => Math.abs(it.tier - maxTier) <= 1 && !it.secret && !ex.has(it.id));
-    return pool2[hashStr(key, GLOBAL_SEED ^ 0x1234) % pool2.length].id;
+    if (best && bs > 0.32) return best.id;
+    // nothing really fits: the stronger ingredient absorbs the other (no random results)
+    return (IA.tier > IB.tier || (IA.tier === IB.tier && IA.headScore >= IB.headScore)) ? IA.id : IB.id;
   },
 
   makeComposite(X, Y, adjSide) {

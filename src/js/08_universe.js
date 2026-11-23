@@ -374,6 +374,7 @@ const Universe = {
   /** Is this modifier a SENSIBLE result for this base? (validity is wider so old saves keep working) */
   modSensible(base, m) {
     const st = base.state, t = base.tags, g = m.group, concrete = base.headScore >= 6 || st === 'living';
+    if (m.removeSet && t.some(x => m.removeSet.has(x))) return false;   // opposites: no Frozen Heatwave, no Burning Snow
     const thin = st === 'gas' || st === 'plasma' || st === 'energy' || st === 'abstract';
     if (thin) return g === 'align' && (t.includes('magic') || t.includes('mythical') || t.includes('death') || t.includes('evil'));
     const flammable = ['wood', 'plant', 'paper', 'cloth', 'living', 'edible', 'building', 'vehicle', 'oil'].some(x => t.includes(x)) || st === 'living';
@@ -855,7 +856,8 @@ const Universe = {
     // 3. twins → giant (or baby, for living things already huge)
     if (baseKey && A.base === B.base && !this.pairTable.has(baseKey) && A.base.headScore >= 4) {
       const mods = [...new Set([...A.mods, ...B.mods])];
-      for (const extra of ['giant', 'baby']) {
+      const beast = A.base.tags.includes('animal') || A.base.tags.includes('human');
+      for (const extra of beast ? ['baby', 'giant'] : ['giant', 'baby']) {
         if (extra === 'baby' && !A.base.tags.includes('living')) continue;
         if (!mods.includes(extra) && this.sensibleMods(A.base, [...mods, extra])) return { id: this.canon(this.makeModId(A.base.id, [...mods, extra])), how: 'twin' };
       }
@@ -904,7 +906,7 @@ const Universe = {
         let ca = 0, cb = 0, cu = 0;
         for (let w = 0; w < MASK_WORDS; w++) { ca += popcount32(it.mask[w] & mA[w]); cb += popcount32(it.mask[w] & mB[w]); cu += popcount32(it.mask[w] | mA[w] | mB[w]); }
         const rel = (ca ? 1 : 0) + (cb ? 1 : 0), jac = (ca + cb) / Math.max(1, cu);
-        if (rel < 2 || jac < 0.2) return [null, 0];
+        if (rel < 2 || jac < 0.3 || Math.min(ca, cb) < (Math.min(IA.tags.length, IB.tags.length) >= 3 ? 2 : 1)) return [null, 0];
         return [o.id, (it.tier < maxTier - 3 ? 0.35 : 1) * (rel === 2 ? 1 : 0.25) * (0.15 + jac) * (0.15 + jac)];
       }
       if (o.type === 'mod') {
@@ -950,12 +952,14 @@ const Universe = {
       let a = 0, b = 0, u = 0;
       for (let w = 0; w < MASK_WORDS; w++) { a += popcount32(it.mask[w] & IA.mask[w]); b += popcount32(it.mask[w] & IB.mask[w]); u += popcount32(it.mask[w] | IA.mask[w] | IB.mask[w]); }
       if (!a || !b) continue;
+      const need = Math.min(IA.tags.length, IB.tags.length) >= 3 ? 2 : 1;
+      if (a < need || b < need) continue;
       let s = (a + b) / u + Math.min(a, b) * 0.15 - 0.04 * Math.abs(it.tier - (maxTier + 1)) + hash01(key + it.id, 99) * 0.02;
       if (s > bs) { bs = s; best = it; }
     }
-    if (best) return best.id;
-    const pool2 = this.items.filter(it => Math.abs(it.tier - maxTier) <= 1 && !it.secret && !ex.has(it.id));
-    return pool2[hashStr(key, GLOBAL_SEED ^ 0x1234) % pool2.length].id;
+    if (best && bs > 0.32) return best.id;
+    // nothing really fits: the stronger ingredient absorbs the other (no random results)
+    return (IA.tier > IB.tier || (IA.tier === IB.tier && IA.headScore >= IB.headScore)) ? IA.id : IB.id;
   },
 
   makeComposite(X, Y, adjSide) {
