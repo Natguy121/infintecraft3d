@@ -72,7 +72,9 @@ function displacedIco(detail, seed, amp, freq = 1, flat = false) {
       const key = `${v.x.toFixed(3)},${v.y.toFixed(3)},${v.z.toFixed(3)}`;
       d = 1 + (hash01(key, seed) - 0.5) * 2 * amp;
     } else {
-      d = 1 + amp * (Math.sin(v.x * 3.1 * freq + s1) * Math.cos(v.y * 2.7 * freq + s1 * 2) + 0.6 * Math.sin(v.z * 4.3 * freq + v.x * 1.7 + s1 * 3)) * 0.6;
+      d = 1 + amp * (Math.sin(v.x * 3.1 * freq + s1) * Math.cos(v.y * 2.7 * freq + s1 * 2) + 0.6 * Math.sin(v.z * 4.3 * freq + v.x * 1.7 + s1 * 3)) * 0.6
+            + amp * 0.35 * Math.sin(v.x * 7.9 * freq + v.z * 3.1 + s1 * 5) * Math.cos(v.y * 8.7 * freq - s1)
+            + amp * 0.15 * Math.sin(v.y * 17.3 * freq + v.x * 5.1 + s1 * 7);
     }
     p.setXYZ(i, v.x * d, v.y * d, v.z * d);
   }
@@ -211,7 +213,7 @@ BUILD.flame = (P, I) => {
 BUILD.rock = (P, I, kw) => {
   const seed = hashStr(I.id);
   const smooth = hasKw(kw, 'potato', 'pebble', 'egg', 'moon rock');
-  const g = displacedIco(smooth ? 2 : 1, seed, smooth ? 0.12 : 0.24, 1, !smooth);
+  const g = displacedIco(2, seed, smooth ? 0.12 : 0.26, smooth ? 1 : 1.25, false);
   const base = I.color;
   const cf = (x, y, z) => shiftColor(base, 0, 0, (hash01(`${(x * 7) | 0}${(y * 7) | 0}${(z * 7) | 0}`, seed) - 0.5) * 0.14);
   if (hasKw(kw, 'gravel', 'catapult ball')) {

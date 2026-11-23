@@ -15,12 +15,12 @@ const Post = {
     this.mat = new THREE.ShaderMaterial({
       uniforms: {
         tColor: { value: this.rt.texture }, tDepth: { value: this.rt.depthTexture }, uFocus: { value: 1.5 }, uAmount: { value: 0 },
-        uNear: { value: 0.05 }, uFar: { value: 400 }, uRes: { value: new THREE.Vector2(s.x, s.y) }, uVig: { value: 0.35 },
+        uNear: { value: 0.05 }, uFar: { value: 400 }, uRes: { value: new THREE.Vector2(s.x, s.y) }, uVig: { value: 0.35 }, tBloom: { value: null }, uBloom: { value: 0.55 },
       },
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: `
         #include <packing>
-        uniform sampler2D tColor; uniform sampler2D tDepth;
+        uniform sampler2D tColor; uniform sampler2D tDepth; uniform sampler2D tBloom; uniform float uBloom;
         uniform float uFocus, uAmount, uNear, uFar, uVig; uniform vec2 uRes;
         varying vec2 vUv;
         float vz(vec2 uv) { return -perspectiveDepthToViewZ(texture2D(tDepth, uv).x, uNear, uFar); }
@@ -43,6 +43,7 @@ const Post = {
               col = acc / ws;
             }
           }
+          col += texture2D(tBloom, vUv).rgb * uBloom;
           vec2 q = vUv - 0.5;
           col *= 1.0 - dot(q, q) * uVig;
           gl_FragColor = vec4(col, 1.0);
@@ -58,6 +59,27 @@ const Post = {
     quad.frustumCulled = false;
     this.scene = new THREE.Scene(); this.scene.add(quad);
     this.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    this.quad = quad;
+    // bloom: bright pass → two separable blurs at quarter resolution
+    const opt = { type: THREE.HalfFloatType, depthBuffer: false };
+    this.bA = new THREE.WebGLRenderTarget(Math.max(8, s.x >> 2), Math.max(8, s.y >> 2), opt);
+    this.bB = this.bA.clone();
+    const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
+    this.brightMat = new THREE.ShaderMaterial({ uniforms: { tColor: { value: this.rt.texture } }, vertexShader: vs, depthTest: false, depthWrite: false,
+      fragmentShader: 'uniform sampler2D tColor; varying vec2 vUv; void main(){ vec3 c = texture2D(tColor, vUv).rgb; float l = dot(c, vec3(0.2126,0.7152,0.0722)); gl_FragColor = vec4(c * smoothstep(0.85, 1.6, l), 1.0); }' });
+    this.blurMat = new THREE.ShaderMaterial({ uniforms: { tColor: { value: null }, uDir: { value: new THREE.Vector2() } }, vertexShader: vs, depthTest: false, depthWrite: false,
+      fragmentShader: 'uniform sampler2D tColor; uniform vec2 uDir; varying vec2 vUv; void main(){ vec3 c = texture2D(tColor, vUv).rgb * 0.227; c += (texture2D(tColor, vUv + uDir*1.385).rgb + texture2D(tColor, vUv - uDir*1.385).rgb) * 0.316; c += (texture2D(tColor, vUv + uDir*3.23).rgb + texture2D(tColor, vUv - uDir*3.23).rgb) * 0.07; gl_FragColor = vec4(c, 1.0); }' });
+    this.mat.uniforms.tBloom.value = this.bA.texture;
+  },
+  pass(renderer, mat, target) { this.quad.material = mat; renderer.setRenderTarget(target); renderer.render(this.scene, this.cam); },
+  bloom(renderer) {
+    const w = this.bA.width, h = this.bA.height;
+    this.pass(renderer, this.brightMat, this.bA);
+    for (let i = 0; i < 2; i++) {
+      this.blurMat.uniforms.tColor.value = this.bA.texture; this.blurMat.uniforms.uDir.value.set((1 + i) / w, 0); this.pass(renderer, this.blurMat, this.bB);
+      this.blurMat.uniforms.tColor.value = this.bB.texture; this.blurMat.uniforms.uDir.value.set(0, (1 + i) / h); this.pass(renderer, this.blurMat, this.bA);
+    }
+    this.quad.material = this.mat;
   },
   resize(renderer) {
     if (!this.enabled) return;
@@ -67,6 +89,7 @@ const Post = {
     this.rt.setSize(s.x, s.y);
     this.mat.uniforms.tDepth.value = this.rt.depthTexture;
     this.mat.uniforms.uRes.value.set(s.x, s.y);
+    this.bA.setSize(Math.max(8, s.x >> 2), Math.max(8, s.y >> 2)); this.bB.setSize(Math.max(8, s.x >> 2), Math.max(8, s.y >> 2));
   },
   render(renderer, scene, camera, dt) {
     if (!this.enabled) { renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
@@ -78,6 +101,7 @@ const Post = {
     U.uAmount.value = this.amount; U.uFocus.value = this.focus; U.uNear.value = camera.near; U.uFar.value = camera.far;
     renderer.setRenderTarget(this.rt);
     renderer.render(scene, camera);
+    this.bloom(renderer);
     renderer.setRenderTarget(null);
     renderer.render(this.scene, this.cam);
   },

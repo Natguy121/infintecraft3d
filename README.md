@@ -111,6 +111,7 @@ zero gravity, fireworks, indoor snowfall and a Big Bang.
   humanoid, robot, tool, blade, building, vehicle, plane, boat, rocket, machine, device, planet, galaxy, food, potion,
   instrument, landform, …). Keyword variants handle cases such as a T-Rex, a lighthouse, a pirate ship or a pizza.
   Each item's parts are merged into one vertex-coloured mesh plus a glow mesh, which costs about 2 draw calls per item.
+- Realistic surfaces: procedural fur, skin, wood grain, stone, brushed metal and leaf textures on every item, organic lumpy shapes for creatures, plants and rocks, and bloom on bright things.
 - Material shading: reflective metals, clear-coated glass and ice, faceted stone, emissive fire and energy, liquids
   that wobble in a vertex shader, translucent gases, rainbow, glitch and pixel effects.
 - Living things breathe, hop and flap. Energy pulses, fire flickers, gases drift. Particle emitters cover flames,

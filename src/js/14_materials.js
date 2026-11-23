@@ -6,17 +6,47 @@
 // ============================================================================
 
 const MatCache = new Map();
-const FLAT_SHAPES = new Set(['rock', 'crystal']);
+const FLAT_SHAPES = new Set(['crystal']);
+
+// procedural surface detail: 1 fur/skin, 2 stone, 3 wood, 4 metal, 5 plant, 6 cloth/food/clay
+const DETAIL_GLSL = `
+float dHash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float dNoise(vec3 x) { vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(dHash(i), dHash(i + vec3(1,0,0)), f.x), mix(dHash(i + vec3(0,1,0)), dHash(i + vec3(1,1,0)), f.x), f.y),
+             mix(mix(dHash(i + vec3(0,0,1)), dHash(i + vec3(1,0,1)), f.x), mix(dHash(i + vec3(0,1,1)), dHash(i + vec3(1,1,1)), f.x), f.y), f.z); }
+float dFbm(vec3 p) { float a = 0.5, s = 0.0; for (int i = 0; i < DETAIL_OCT; i++) { s += a * dNoise(p); p *= 2.07; a *= 0.5; } return s; }
+float detailH(vec3 p, int k, out float tint, out float rough) {
+  tint = 1.0; rough = 1.0; float h = 0.0;
+  if (k == 1) { float fur = dFbm(vec3(p.x * 3.5, p.y * 1.2, p.z * 3.5)); float blot = dFbm(p * 0.8); h = fur; tint = 0.86 + 0.2 * fur + 0.12 * (blot - 0.5); rough = 1.05; }
+  else if (k == 2) { float m = dFbm(p * 1.1); float g = dFbm(p * 3.2); h = m * 0.6 + g * 0.4; tint = 0.8 + 0.3 * m + 0.08 * g; rough = 0.95 + 0.1 * g; }
+  else if (k == 3) { float w = dFbm(p * 1.5); float rings = 0.5 + 0.5 * sin(length(p.xz) * 7.0 + w * 4.0); float grain = dFbm(vec3(p.x * 1.0, p.y * 9.0, p.z * 1.0)); h = rings * 0.4 + grain * 0.6; tint = 0.88 + 0.08 * rings + 0.08 * grain; }
+  else if (k == 4) { float br = dFbm(vec3(p.x * 0.8, p.y * 14.0, p.z * 0.8)); h = br * 0.4; tint = 0.97 + 0.05 * br; rough = 0.8 + 0.4 * br; }
+  else if (k == 5) { float v = dFbm(p * 2.0); h = v; tint = 0.9 + 0.16 * v; }
+  else { float n = dFbm(p * 1.8); h = n; tint = 0.95 + 0.08 * n; }
+  return h;
+}`;
+function detailKind(info) {
+  const m = info.material, t = info.tags || [], s = info.shape;
+  if (['glass', 'crystal', 'ice', 'liquid', 'gas', 'fire', 'energy', 'ethereal', 'magic'].includes(m)) return 0;
+  if (m === 'metal' || m === 'gold') return 4;
+  if (m === 'stone' || m === 'soil' || s === 'rock' || s === 'landform') return 2;
+  if (m === 'wood' || s === 'tree') return 3;
+  if (t.includes('plant') || s === 'plant' || s === 'mushroom') return 5;
+  if (t.includes('animal') || t.includes('human') || info.state === 'living' || m === 'organic') return 1;
+  return 6;
+}
 
 function injectItemShader(mat, flags) {
-  const key = Object.keys(flags).filter(k => flags[k]).join(',');
+  const key = Object.keys(flags).filter(k => flags[k]).map(k => k + flags[k]).join(',');
   if (!key) return;
   mat.customProgramCacheKey = () => 'item:' + key;
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uTime = uTime;
     sh.uniforms.uWobble = { value: flags.wobble || 0 };
-    let vHead = 'uniform float uTime;\nuniform float uWobble;\nvarying vec3 vObjPos;\n';
+    sh.uniforms.uLump = { value: flags.lump || 0 };
+    let vHead = 'uniform float uTime;\nuniform float uWobble;\nuniform float uLump;\nvarying vec3 vObjPos;\nfloat vH(vec3 p){p=fract(p*0.3183+0.1);p*=17.0;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}\nfloat vN(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.0-2.0*f);return mix(mix(mix(vH(i),vH(i+vec3(1,0,0)),f.x),mix(vH(i+vec3(0,1,0)),vH(i+vec3(1,1,0)),f.x),f.y),mix(mix(vH(i+vec3(0,0,1)),vH(i+vec3(1,0,1)),f.x),mix(vH(i+vec3(0,1,1)),vH(i+vec3(1,1,1)),f.x),f.y),f.z);}\n';
     let vBody = '#include <begin_vertex>\nvObjPos = position;\n';
+    if (flags.lump) vBody += 'transformed += normal * ((vN(position * 3.1) - 0.5) * 0.7 + (vN(position * 7.3) - 0.5) * 0.3) * uLump;\n';
     if (flags.wobble) vBody += 'transformed += normal * (sin(uTime*3.1 + position.y*7.0 + position.x*5.0) * 0.6 + sin(uTime*4.7 + position.z*6.0) * 0.4) * uWobble;\n';
     if (flags.glitch) vBody += '{ float gt = floor(uTime*11.0); float gr = fract(sin(gt*91.7 + floor(position.y*6.0)*13.1)*43758.5); if (gr > 0.84) transformed.x += (gr - 0.92) * 1.6; }\n';
     if (flags.pixel) vBody += 'transformed = floor(transformed / 0.22 + 0.5) * 0.22;\n';
@@ -28,6 +58,12 @@ function injectItemShader(mat, flags) {
     if (flags.glitch) fBody += '{ float gl = step(0.93, fract(sin(floor(uTime*9.0)*12.9898 + floor(vObjPos.y*8.0))*43758.5)); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(1.0, 0.2, 1.0), gl*0.7); }\n';
     if (flags.ghost) fBody += 'diffuseColor.a *= 0.75 + 0.25*sin(uTime*2.0 + vObjPos.y*3.0);\n';
     if (flags.scan) fBody += '{ float sc = smoothstep(0.92, 1.0, fract(vObjPos.y*1.5 - uTime*0.8)); diffuseColor.rgb += vec3(0.2,0.9,1.0)*sc*0.5; }\n';
+    if (flags.detail) {
+      fHead += `#define DETAIL_OCT ${Q().post ? 3 : 2}\n` + DETAIL_GLSL + '\n';
+      fBody += `float dTint, dRough; float dH = detailH(vObjPos, ${flags.detail}, dTint, dRough); diffuseColor.rgb *= dTint;\n`;
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor * dRough, 0.04, 1.0);');
+    }
     sh.fragmentShader = fHead + sh.fragmentShader.replace('#include <color_fragment>', fBody);
   };
 }
@@ -60,6 +96,8 @@ function itemMaterials(info) {
   const flags = {
     wobble: (info.state === 'liquid' || fx.has('wobble')) ? 0.045 : 0, glitch: fx.has('glitch'), pixel: fx.has('pixel'),
     rainbow: fx.has('rainbow'), ghost: fx.has('ghost'), scan: fx.has('scan'), breathe: info.state === 'living',
+    detail: fx.has('pixel') ? 0 : detailKind(info),
+    lump: fx.has('pixel') ? 0 : (mat === 'stone' || info.shape === 'rock') ? 0.07 : (info.state === 'living' || info.tags.includes('plant')) ? 0.025 : 0,
   };
   injectItemShader(body, flags);
   const glow = new THREE.MeshBasicMaterial({ vertexColors: true, color: new THREE.Color(1, 1, 1).multiplyScalar(mat === 'fire' ? 1.15 : 1.25), toneMapped: true });
