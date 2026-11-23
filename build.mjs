@@ -19,7 +19,7 @@ const libs = await esbuild.build({
       export { Peer } from 'peerjs';
       export { initializeApp } from 'firebase/app';
       export { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'firebase/auth';
-      export { getFirestore, doc, getDoc, setDoc, runTransaction, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+      export { getFirestore, doc, getDoc, setDoc, runTransaction, collection, query, orderBy, limit, getDocs, where, deleteDoc } from 'firebase/firestore';
     `,
     resolveDir: root,
     loader: 'js',

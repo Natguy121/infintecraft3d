@@ -210,3 +210,20 @@ relays messages, so the room closes when they leave.
 | **Co-op goals** | Every multiplayer room gets 3 shared team goals, such as "Fuse your item with a friend's 3 times". |
 | **Share** | 📤 buttons in the menu and the Codex share your progress or a discovery with a link to the game. |
 | **Tutorial** | New players get a short 5-step guide, which can be skipped. |
+
+## Online, shop and secrets
+
+- **🌍 Online hub** (menu → 🌍 Online):
+  - **Leaderboard** with tabs for discoveries, level, speedruns and world firsts.
+  - **World-first hall of fame:** the newest items someone made first anywhere in the world.
+  - **Friends:** add players by username, see their level and discoveries, and **Join** them when they're in a room.
+  - **Public rooms:** join any open game without a code, or host one.
+- **Creature AI:** animals wander, hop, fly and swim. Predators hunt nearby prey, and the prey runs away.
+- **Driving:** look at a car, boat, bike, plane or rocket and press `V` (🚗 in ⋯ on mobile). Steer with `W A S D`. Flying vehicles also use `Space` and `Shift`.
+- **🪙 Coins and 🛒 Shop:** earn coins by crafting, discovering, levelling up and finding Easter eggs. Spend them on hats (halo, pirate, viking, party), golden skin, a rainbow trail, an XP booster, disco parties and hint refills.
+- **⭐ Prestige:** at level 50, reset to level 1. You keep your discoveries, get a ⭐ badge, +10% XP for good and 500 coins.
+- **Emotes:** press `T` (💬 on mobile) for wave, dance, clap, "Nice!", "Help!" and more. Other players see a speech bubble and an animation.
+- **📲 Install app:** on Android and desktop Chrome a real install button appears. On iPhone it shows the Add to Home Screen steps. Works offline once installed.
+- **🥚 10 Easter eggs.** No spoilers, but the Konami code is one of them.
+
+Firestore security rules are in `firestore.rules`. Paste them into Firebase → Firestore → Rules.

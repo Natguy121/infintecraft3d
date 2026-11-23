@@ -313,6 +313,19 @@ body.th-underwater { --accent: #1aa0d8; } body.th-candy { --accent: #ff5ab0; } b
 #tut.hidden { display: none; } #tut .tut-k { font-size: 11px; letter-spacing: .15em; font-weight: 900; color: var(--accent); text-transform: uppercase; }
 #tut b { display: block; font-size: 18px; margin: 2px 0; } #tut div#tut-d { font-size: 14px; color: var(--ink2); }
 #tut button { margin-top: 6px; font-size: 12px; padding: 4px 10px; }
+#soc-panel { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: rgba(10, 12, 20, .45); }
+#soc-panel.hidden { display: none; } .soc-card { width: min(560px, 94vw); }
+.soc-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; } .soc-tabs button, .soc-sub button { padding: 6px 10px; font-size: 13px; }
+.soc-tabs button.on, .soc-sub button.on { background: var(--accent); color: #fff; }
+.soc-sub { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.acct-p .fr-join { padding: 3px 10px; font-size: 12px; margin-left: 6px; } .acct-p .fr-rm { padding: 2px 8px; font-size: 11px; margin-left: 6px; opacity: .6; }
+#shop-panel { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: rgba(10, 12, 20, .45); }
+#shop-panel.hidden, #emote-bar.hidden { display: none; }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 10px; }
+.shop-it { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px; border-radius: 14px; } .shop-it .si { font-size: 30px; } .shop-it small { color: var(--ink2); }
+.shop-it.own { outline: 2px solid #2fbf63; } .swatch.locked { opacity: .55; }
+#emote-bar { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); z-index: 40; display: flex; gap: 6px; padding: 8px; border-radius: 18px; background: var(--glass2); box-shadow: var(--shadow); }
+#emote-bar button { width: 58px; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; border-radius: 14px; padding: 0; } #emote-bar small { font-size: 9px; }
 #horror-vig { position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.92)); }
 #horror-vig.pulse { animation: hpulse .9s ease-out; }
 @keyframes hpulse { 0% { background-color: rgba(140,0,0,.45); } 100% { background-color: transparent; } }

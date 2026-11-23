@@ -85,7 +85,7 @@ const Player = {
     this.pitch = clamp(this.pitch, -1.45, 1.45);
     // ---- movement
     const b = this.body;
-    const canMove = G.locked && !G.ui;
+    const canMove = G.locked && !G.ui && !Driving.car;
     const fx = -Math.sin(this.yaw), fz = -Math.cos(this.yaw), rx = Math.cos(this.yaw), rz = -Math.sin(this.yaw);
     let mx = 0, mz = 0;
     if (canMove) {

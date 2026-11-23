@@ -79,9 +79,14 @@ const Cloud = {
     try {
       localStorage.setItem(Accounts.key('c:' + this.user.uid) + '.t', String(t));
       await FB.setDoc(FB.doc(this.db, 'saves', this.user.uid), { data: raw, t });
-      await FB.setDoc(FB.doc(this.db, 'users', this.user.uid), { name: localStorage.getItem('elementalLab.cloudName') || Accounts.displayName() || 'Player', disc: this.discOf(raw), level: Progress.stats.level || 1, t }, { merge: true });
+      await FB.setDoc(FB.doc(this.db, 'users', this.user.uid), { ...this.profile(), disc: this.discOf(raw), t }, { merge: true });
     } catch (e) { console.warn('push failed', e); this.pending = this.pending || raw; }
   },
+  profile() {
+    const name = localStorage.getItem('elementalLab.cloudName') || Accounts.displayName() || 'Player';
+    return { name, nameLower: name.toLowerCase(), level: Progress.stats.level || 1, prestige: Progress.stats.prestige || 0, runs: Object.keys(Speedrun.best || {}).length, firsts: Progress.stats.worldFirsts || 0 };
+  },
+  async setProfile(extra) { if (!this.user) return; try { await FB.setDoc(FB.doc(this.db, 'users', this.user.uid), { ...this.profile(), ...extra, t: Date.now() }, { merge: true }); } catch (e) { console.warn('profile', e); } },
   discOf(raw) { try { if (!raw.startsWith('ELAB')) return (JSON.parse(raw).order || []).length; } catch (e) { /* */ } return Progress.order.length; },
   flush() { if (this.pending) { clearTimeout(this.upT); this.push(); } },
 
@@ -92,18 +97,18 @@ const Cloud = {
     try {
       const won = await FB.runTransaction(this.db, async (tx) => {
         const s = await tx.get(ref); if (s.exists()) return false;
-        tx.set(ref, { name: localStorage.getItem('elementalLab.cloudName') || 'Player', uid: this.user.uid, t: Date.now() }); return true;
+        tx.set(ref, { name: localStorage.getItem('elementalLab.cloudName') || 'Player', uid: this.user.uid, t: Date.now(), item: info.name, emoji: info.emoji || '' }); return true;
       });
-      if (won) { UI.toast('🌍', `WORLD FIRST: ${info.name}!`, 'Nobody in the world had made this before you. Your name is on it! +50 XP'); Fun.gain(50, null); }
+      if (won) { Progress.stats.worldFirsts = (Progress.stats.worldFirsts || 0) + 1; Save.markDirty(); UI.toast('🌍', `WORLD FIRST: ${info.name}!`, 'Nobody in the world had made this before you. Your name is on it! +50 XP'); Fun.gain(50, null); }
     } catch (e) { /* offline or rules */ }
   },
   async firstOf(id) {
     if (!this.ok) return null;
     try { const s = await FB.getDoc(FB.doc(this.db, 'firsts', id.replace(/\//g, '_').slice(0, 1400))); return s.exists() ? s.data() : null; } catch (e) { return null; }
   },
-  async top() {
+  async top(field = 'disc', n = 15) {
     if (!this.ok) return [];
-    const q = FB.query(FB.collection(this.db, 'users'), FB.orderBy('disc', 'desc'), FB.limit(15));
+    const q = FB.query(FB.collection(this.db, 'users'), FB.orderBy(field, 'desc'), FB.limit(n));
     const s = await FB.getDocs(q); return s.docs.map(d => ({ uid: d.id, ...d.data() }));
   },
 };

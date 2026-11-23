@@ -51,7 +51,7 @@ const Hands = {
     }
   },
   render(r) {
-    if (!this.scene || !G.started || G.ui || Photo.active || Settings.hands === false) return;
+    if (!this.scene || !G.started || G.ui || Photo.active || Driving.car || Settings.hands === false) return;
     this.cam.aspect = innerWidth / innerHeight; this.cam.updateProjectionMatrix();
     const ac = r.autoClear; r.autoClear = false; r.clearDepth(); r.render(this.scene, this.cam); r.autoClear = ac;
   },

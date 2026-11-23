@@ -28,14 +28,16 @@ const Fun = {
 
   gain(xp, pos, mult = 1) {
     const S = Progress.stats;
+    xp = Math.round(xp * Shop.xpMult());
     S.xp = (S.xp || 0) + xp;
     if (pos) UI.xpPop(`+${xp} XP${mult > 1 ? ` ×${mult}` : ''}`, pos);
-    while (S.xp >= this.xpFor(this.level)) { S.xp -= this.xpFor(this.level); S.level = this.level + 1; this.levelUp(); }
+    while (this.level < MAX_LEVEL && S.xp >= this.xpFor(this.level)) { S.xp -= this.xpFor(this.level); S.level = this.level + 1; this.levelUp(); }
     this.updateHud();
   },
 
   levelUp() {
     const L = this.level;
+    Shop.add(25); Prestige.button();
     UI.bigText(`LEVEL ${L}!`, '#ffb703');
     Sound.achievement(); Sound.swell(4);
     UI.hintCooldown = 0;

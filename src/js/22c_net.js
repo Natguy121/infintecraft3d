@@ -20,7 +20,7 @@ const Net = {
   init() {
     $('btn-mp').onclick = () => { $('mp-panel').classList.remove('hidden'); this.refresh(); };
     $('mp-close').onclick = () => $('mp-panel').classList.add('hidden');
-    $('mp-host').onclick = () => this.host();
+    $('mp-host').onclick = () => { this.isPublic = false; this.host(); };
     $('mp-join').onclick = () => this.join($('mp-code').value);
     $('mp-leave').onclick = () => this.leave();
     $('mp-code').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') $('mp-join').click(); });
@@ -47,7 +47,7 @@ const Net = {
     this.isHost = true; this.code = code;
     this.status('Creating room…');
     const p = this.peer = new Peer('elab-' + code, this.opts());
-    p.on('open', (id) => { this.myId = id; this.status('Room ready! Tell your friends the code.'); Coop.setup(code); Firsts.room.clear(); this.refresh(); });
+    p.on('open', (id) => { this.myId = id; this.status(this.isPublic ? 'Public room open! Anyone can join from 🚪 Public rooms.' : 'Room ready! Tell your friends the code.'); Coop.setup(code); Firsts.room.clear(); this.refresh(); Social.beat(true); });
     p.on('connection', (c) => this.addConn(c));
     p.on('error', (e) => this.fail(e));
     this.refresh();
@@ -82,6 +82,7 @@ const Net = {
   },
 
   leave(quiet) {
+    if (this.peer) Social.closeRoom(this.isHost ? this.code : null);
     if (this.peer) { try { this.send({ t: 'bye' }); } catch (e) { /* ignore */ } try { this.peer.destroy(); } catch (e) { /* ignore */ } }
     this.peer = null; this.conns.clear(); this.code = null;
     for (const id of [...this.avatars.keys()]) this.dropPlayer(id, true);
@@ -96,7 +97,7 @@ const Net = {
       this.conns.set(c.peer, c);
       c.send({ t: 'hello', name: this.myName(), look: Skins.look() });
       if (this.isHost) for (const [id, a] of this.avatars) c.send({ t: 'hello', name: a.name, from: id });
-      this.status(this.isHost ? 'Room ready! Tell your friends the code.' : '✅ Connected!');
+      this.status(this.isHost ? 'Room ready! Tell your friends the code.' : '✅ Connected!'); Social.beat(true);
       this.refresh();
     });
     c.on('data', (d) => { try { this.onData(c.peer, d); } catch (e) { console.warn('net', e); } });
@@ -135,6 +136,7 @@ const Net = {
         if (a && info) UI.toast(info.emoji || '✨', `${a.name} discovered ${info.name}`, Progress.disc.has(m.id) ? 'You already have it.' : 'You haven\'t found that one yet!');
         break;
       }
+      case 'emote': if (typeof m.e === 'string') Emotes.show(this.avatars.get(src), m.e); break;
       case 'coop': if (typeof m.k === 'string') Coop.bump(m.k, false); break;
       case 'bye': this.dropPlayer(src); break;
     }
@@ -219,7 +221,7 @@ const Net = {
       a.g.position.set(a.x, a.y, a.z); a.g.rotation.y = a.yaw + Math.PI;
       const sp = Math.hypot(a.x - px, a.z - pz) / Math.max(rdt, 1e-3);
       a.speed += (Math.min(sp, 7) - a.speed) * (1 - Math.exp(-rdt * 8));
-      animatePerson(a.rig, a.speed, rdt);
+      animatePerson(a.rig, a.speed, rdt); Emotes.animate(a, rdt);
     }
     for (const e of this.remote.values()) {
       if (e.dead || e.merging || !e.body) continue;

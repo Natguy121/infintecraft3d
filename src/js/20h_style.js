@@ -4,12 +4,12 @@
 
 // ---------------------------------------------------------------- skins
 const SKIN_OPTS = {
-  skin: [0xf6d8c0, 0xf1c9a5, 0xe0ac84, 0xc68863, 0x9c6644, 0x6e4a32, 0x8ad08a, 0x9ab8ff],
+  skin: [0xf6d8c0, 0xf1c9a5, 0xe0ac84, 0xc68863, 0x9c6644, 0x6e4a32, 0x8ad08a, 0x9ab8ff, 0xffc83a],
   hair: [0x1a1a1a, 0x4a2f1c, 0x8a5a2a, 0xd8b064, 0xa83a1c, 0xe8e8e8, 0xff5ab0, 0x3ab0ff],
   hairStyle: ['Short', 'Long', 'Bun', 'Buzz'],
   shirt: [0x3a6ea8, 0xb83a3a, 0x2f8a5a, 0xe8e8ea, 0x2a2a30, 0xe89a2a, 0x7a4ab8, 0xff7ab8],
   pants: [0x2a3a5a, 0x2a2a2e, 0x5a4a3a, 0x3a4a3a, 0x8a8a9a, 0x7a2a2a],
-  hat: ['None', 'Cap', 'Top hat', 'Crown', 'Wizard', 'Beanie', 'Cowboy'],
+  hat: ['None', 'Cap', 'Top hat', 'Crown', 'Wizard', 'Beanie', 'Cowboy', '😇 Halo', '🏴‍☠️ Pirate', '⚔️ Viking', '🥳 Party'],
 };
 const Skins = {
   look() {
@@ -37,7 +37,9 @@ const Skins = {
         const b = el('button'); const isCol = typeof o === 'number';
         b.className = 'swatch' + ((isCol ? L[k] === o : L[k] === i) ? ' on' : '');
         if (isCol) { b.style.background = '#' + o.toString(16).padStart(6, '0'); b.title = label[k]; } else b.textContent = o;
-        b.onclick = () => this.set(k, isCol ? o : i);
+        const lock = (k === 'hat' && i >= 7 && !Shop.has(SHOP.find(s => s.hat === i).id)) || (k === 'skin' && o === 0xffc83a && !Shop.has('skin-gold'));
+        if (lock) { b.textContent = (isCol ? '' : o + ' ') + '🔒'; b.classList.add('locked'); }
+        b.onclick = () => lock ? UI.toast('🔒', 'Buy it in the 🛒 Shop', '') : this.set(k, isCol ? o : i);
         r.querySelector('.sw').appendChild(b);
       });
       rows.appendChild(r);
@@ -67,6 +69,10 @@ function addHat(head, hatIdx, mesh) {
     case 4: mesh(new THREE.ConeGeometry(0.14, 0.38, 18), M(0x4a3ab8), 0, 0.25, 0, head).rotation.z = 0.12; mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.012, 20), M(0x4a3ab8), 0, 0.07, 0, head); break;
     case 5: mesh(new THREE.SphereGeometry(0.128, 18, 10, 0, Math.PI * 2, 0, Math.PI / 1.9), M(0x2a8ad8), 0, 0.03, 0, head); mesh(new THREE.SphereGeometry(0.035, 10, 8), M(0xffffff), 0, 0.17, 0, head); break;
     case 6: mesh(new THREE.CylinderGeometry(0.21, 0.21, 0.012, 22), M(0x8a5a2a), 0, 0.08, 0, head).scale.set(1, 1, 0.8); mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.12, 18), M(0x8a5a2a), 0, 0.15, 0, head); break;
+    case 7: { const g = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 1.9, 0.8) }); mesh(new THREE.TorusGeometry(0.11, 0.012, 8, 28), g, 0, 0.24, 0, head).rotation.x = Math.PI / 2; break; }
+    case 8: mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.02, 3), M(0x1a1a1e), 0, 0.1, 0, head); mesh(new THREE.SphereGeometry(0.11, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), M(0x1a1a1e), 0, 0.1, 0, head); mesh(new THREE.SphereGeometry(0.025, 8, 6), M(0xffffff), 0, 0.16, 0.1, head); break;
+    case 9: mesh(new THREE.SphereGeometry(0.13, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), M(0x9a9aa4), 0, 0.04, 0, head).material.metalness = 0.7; for (const s of [-1, 1]) mesh(new THREE.ConeGeometry(0.03, 0.14, 8), M(0xf2ead8), s * 0.13, 0.12, 0, head).rotation.z = -s * 0.9; break;
+    case 10: mesh(new THREE.ConeGeometry(0.08, 0.22, 16), M(0xff5ab0), 0, 0.2, 0, head); mesh(new THREE.SphereGeometry(0.025, 8, 6), M(0xffe85a), 0, 0.32, 0, head); break;
   }
 }
 

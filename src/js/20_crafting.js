@@ -140,7 +140,7 @@ const Crafting = {
     Stats.add('merges');
     Daily.count('merges');
     Daily.onCraft(info, isNew, recNew);
-    Pets.onCraft(); Speedrun.onCraft(info); Collections.onCraft(info, isNew); Firsts.onCraft(info, isNew); Coop.onCraft(info, isNew, big); if (Voices.kind(info) && ent) setTimeout(() => Voices.play(Voices.kind(info), ent.root.position), 350);
+    Pets.onCraft(); Shop.onCraft(isNew, recNew); Eggs.onCraft(info); Speedrun.onCraft(info); Collections.onCraft(info, isNew); Firsts.onCraft(info, isNew); Coop.onCraft(info, isNew, big); if (Voices.kind(info) && ent) setTimeout(() => Voices.play(Voices.kind(info), ent.root.position), 350);
     Fun.onCraft(info, isNew, recNew, big ? (ent ? ent.root.position : pos) : pos);
     G.selected = id;
     if (info.secret) this.secret(info.secret, pos);
@@ -173,7 +173,7 @@ const Crafting = {
       const m = Math.max(a.body ? a.body.mass : 0, b && b.body ? b.body.mass : 0);
       if (imp.v > 4.5 && m > 3 && a.root.position.distanceTo(G.camera.position) < 5) G.shake = Math.max(G.shake, Math.min(0.9, imp.v * m / 70));
       if (imp.v > 3 && Math.random() < 0.5) Particles.emit({ add: false, pos: a.root.position, color: 0xe8ecf2, count: 3, size: 0.06, sizeEnd: 0.14, life: 0.4, alpha: 0.4, speed: 0.5 });
-      if (!b || b.dead || a.merging || b.merging) continue;
+      if (!b || b.dead || a.merging || b.merging || a.driven || b.driven) continue;
       const recent = (G.time - a.playerTouch < 2.5) || (G.time - b.playerTouch < 2.5);
       if (imp.v >= 4.2 && recent && G.time - a.spawnT > 0.6 && G.time - b.spawnT > 0.6) this.merge(a, b, 'impact');
     }
@@ -259,7 +259,7 @@ const Crafting = {
         e.vanish(0xff6a3a, 0.3);
         Particles.emit({ pos: p, color: [0xff6a3a, 0xffb03a, 0xffffff], count: 30, speed: 2, size: 0.06, life: 0.6, up: 0.8 });
         Glows.flash(new THREE.Vector3(T.x, T.h, T.z), 0xff5a2a, 1.4, 0.4);
-        Sound.trash(); Stats.add('trashed');
+        Sound.trash(); Stats.add('trashed'); Eggs.onTrash();
         if ((Progress.stats.trashed || 0) >= 10) unlock('trash');
         continue;
       }

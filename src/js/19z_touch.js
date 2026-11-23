@@ -24,7 +24,7 @@ const Touch = {
         <button data-a="book">📜<small>Recipes</small></button><button data-a="hint">💡<small>Hint</small></button>
         <button data-a="pet">🐾<small>Pet</small></button><button data-a="build">📌<small>Pin</small></button>
         <button data-a="photo">📷<small>Photo</small></button><button data-a="shelf">🏺<small>Shelf</small></button>
-        <button data-a="split">✂️<small>Split</small></button>
+        <button data-a="split">✂️<small>Split</small></button><button data-a="drive">🚗<small>Drive</small></button>
       </div>
       <div class="t-hold" id="t-hold">
         <button data-a="rotate">🔄<small>Rotate</small></button><button data-a="far">➕</button><button data-a="near">➖</button>
@@ -99,7 +99,7 @@ const Touch = {
   syncHold() { if (this.root) this.root.classList.toggle('holding', !!Player.held); },
   setSplit(v) { this.split = v; this.root.querySelector('[data-a=split]').classList.toggle('on', v); },
   press(a, down, btn) {
-    if (down && ['book', 'hint', 'pet', 'build', 'photo', 'shelf', 'split'].includes(a)) setTimeout(() => $('t-more').classList.add('hidden'), 120);
+    if (down && ['book', 'hint', 'pet', 'build', 'photo', 'shelf', 'split', 'drive'].includes(a)) setTimeout(() => $('t-more').classList.add('hidden'), 120);
     const K = Input.keys;
     const key = (code, d) => { if (d) { K.add(code); Input.pressed.add(code); } else K.delete(code); };
     const fake = (code) => UI.onKey({ code, preventDefault() {} });
@@ -118,6 +118,7 @@ const Touch = {
       case 'pet': if (down) Input.pressed.add('KeyG'); break;
       case 'build': if (down) Input.pressed.add('KeyB'); break;
       case 'photo': if (down) Input.pressed.add('KeyP'); break;
+      case 'drive': if (down) Input.pressed.add('KeyV'); break;
       case 'split': if (down) this.setSplit(!this.split); break;
       case 'codex': if (down) fake('Tab'); break;
       case 'book': if (down) fake('KeyC'); break;
