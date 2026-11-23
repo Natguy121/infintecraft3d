@@ -243,3 +243,12 @@ The movement works like Counter-Strike and Source:
 - **Air strafing:** while you're in the air, hold `A` and turn the mouse left, then `D` and turn right. Don't hold `W`. Every smooth turn adds speed.
 - **Bhop:** jump within about 0.1 s of landing and you skip ground friction, so your speed carries over. The **scroll wheel jumps** whenever you're not holding an item, just like `bind mwheeldown +jump`.
 - A **speedometer** (in u/s) appears when you go faster than sprinting and counts your hop chain. Your best speed is saved, and there's an Easter egg for going really fast.
+
+## Legends
+
+`src/js/05d_data_legends.js` adds about 75 items:
+- **Gods and myths from around the world:** Greek gods (Hades, Athena, Apollo, Ares, Hermes…), Norse (Loki, Valkyrie, Fenrir, Mjolnir, Yggdrasil, Ragnarok), Egyptian (Anubis, Osiris, Isis, Horus, Ra), Quetzalcoatl, Oni, Tengu, Baba Yaga and Wendigo.
+- **Superheroes and villains**, such as Spider + Superhero = Spider-Man.
+- **Star Wars**, such as Sith + Cyborg = Darth Vader and Jedi + Frog = Yoda.
+
+Characters are referenced by name only in this non-commercial fan game, which isn't affiliated with Marvel, DC or Lucasfilm.
