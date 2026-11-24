@@ -21,7 +21,7 @@ Mist|🌁|water,wet,gas,air,@gas,#dfeaf2|Air+Water
 Energy|⚡|energy,hot,light,electric,@abstract,#ffe14d|Fire+Fire;Fire+Wind
 Lava|🌋|fire,hot,liquid,earth,@liquid,#ff4d00,%fire|Earth+Fire
 Steam|♨️|gas,hot,wet,water,@gas,#e8eef2|Water+Fire;Fire+Ice;Cloud+Sun
-Mud|🟤|earth,wet,soft,sticky,@blob,#6b4a2b,%soil|Earth+Water;Dust+Water
+Mud|🟤|earth,wet,soft,sticky,@blob,#6b4a2b,%soil|Dust+Water;Soil+Water
 Pressure|🗜️|earth,abstract,hard,@abstract,#9aa0aa|Earth+Earth;Air+Stone
 Puddle|💦|water,wet,liquid,tiny,@liquid,#4a9cff|Water+Water;Rain+Stone
 Heat|🌡️|hot,energy,abstract,@abstract,#ff8a3d|Fire+Energy;Sun+Air

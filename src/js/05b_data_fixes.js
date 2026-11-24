@@ -57,7 +57,7 @@ Water + Cat = cat~soggy
 Water + Dog = dog~soggy
 Water + Snow = Ice
 Water + Forest = Swamp
-Water + Earth = Mud
+Water + Earth = Plant
 // ---- Fire
 Fire + Snow = Water
 Fire + Ice = Water

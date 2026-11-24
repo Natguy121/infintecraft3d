@@ -13,7 +13,7 @@ const Ext = {
 
 /** One-time cleanup after recipe fixes: drop recipes that now give something else, and the items
  *  that were only ever obtained through them (repeating the mix now gives the correct result). */
-const PURGE_V = 5;
+const PURGE_V = 6;
 const Purge = {
   valid(res, key) {
     try {
@@ -26,6 +26,12 @@ const Purge = {
   run() {
     const base = new Set(['air', 'fire', 'earth', 'water']);
     let badRecipes = 0;
+    // v6: Water + Earth is Plant now, and everything made with Mud is wiped once
+    if ((Ext.pending.purge || 0) < 6) for (const [res, keys] of [...Progress.recipes]) {
+      if (res === 'mud') { Progress.recipes.delete(res); continue; }
+      for (const k of [...keys]) if ((k.includes('+') ? k.split('+') : k.split('|')).some(i => Universe.canon ? Universe.canon(i) === 'mud' || i === 'mud' : i === 'mud')) { keys.delete(k); badRecipes++; }
+      if (!keys.size) Progress.recipes.delete(res);
+    }
     for (const [res, keys] of Progress.recipes) {
       for (const k of [...keys]) if (!this.valid(res, k)) { keys.delete(k); badRecipes++; }
       if (!keys.size) Progress.recipes.delete(res);
