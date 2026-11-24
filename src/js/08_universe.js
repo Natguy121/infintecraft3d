@@ -77,6 +77,7 @@ const MATERIALS = {
   food: { density: 1.4, rough: 0.6, metal: 0, sound: 'food', bounce: 0.25, friction: 0.6 },
   candy: { density: 1.2, rough: 0.2, metal: 0, sound: 'glass', bounce: 0.35, friction: 0.4 },
 };
+const NO_MOD = new Set(['Windmill:tiny', 'Windmill:baby']);
 const RULE_MODS = new Set(['frozen', 'burning', 'molten', 'golden', 'cooked', 'burnt', 'rusty', 'soggy', 'electric', 'crystal', 'petrified', 'zombie', 'robotic', 'holy', 'cursed', 'ancient', 'baby', 'giant', 'tiny', 'winged', 'aquatic', 'toxic', 'spicy', 'haunted', 'wooden', 'candy', 'chocolate', 'liquid']);
 const COMP_GENERIC = new Set(['animal', 'life', 'human', 'monster', 'plant', 'creature', 'person', 'thing', 'object', 'machine', 'food', 'tool', 'building', 'vehicle', 'nature', 'energy', 'matter', 'material', 'liquid', 'gas', 'solid', 'element', 'idea', 'time', 'love', 'death', 'emotion', 'family', 'baby', 'man', 'woman', 'pet']);
 const COMP_ADJ_IDS = new Set(['fire', 'ice', 'water', 'lava', 'gold', 'crystal', 'diamond', 'stone', 'metal', 'steel', 'glass', 'wood', 'candy', 'chocolate', 'sand', 'snow', 'cloud', 'storm', 'rainbow', 'plasma', 'poison', 'steam', 'lightning', 'frost', 'mud', 'honey', 'magma', 'thunder', 'ocean', 'sea', 'sky', 'moon', 'sun', 'star', 'space', 'paper', 'stone', 'cheese', 'bone', 'slime', 'jelly', 'marshmallow', 'lego', 'pixel', 'laser', 'robot', 'ghost', 'zombie', 'dragon', 'shadow', 'darkness', 'light', 'magic', 'ninja', 'pirate', 'baby', 'mega', 'mini', 'acid', 'toxic', 'wind', 'air', 'earth', 'rock', 'iron', 'silver', 'copper', 'golden']);
@@ -375,6 +376,7 @@ const Universe = {
   /** Is this modifier a SENSIBLE result for this base? (validity is wider so old saves keep working) */
   modSensible(base, m) {
     const st = base.state, t = base.tags, g = m.group, concrete = base.headScore >= 6 || st === 'living';
+    if (NO_MOD.has(base.name + ':' + m.id)) return false;               // combos players asked to drop
     if (m.removeSet && t.some(x => m.removeSet.has(x))) return false;   // opposites: no Frozen Heatwave, no Burning Snow
     const thin = st === 'gas' || st === 'plasma' || st === 'energy' || st === 'abstract';
     if (thin) return g === 'align' && (t.includes('magic') || t.includes('mythical') || t.includes('death') || t.includes('evil'));
