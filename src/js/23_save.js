@@ -13,7 +13,7 @@ const Ext = {
 
 /** One-time cleanup after recipe fixes: drop recipes that now give something else, and the items
  *  that were only ever obtained through them (repeating the mix now gives the correct result). */
-const PURGE_V = 6;
+const PURGE_V = 7;
 const Purge = {
   valid(res, key) {
     try {

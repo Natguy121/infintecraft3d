@@ -173,6 +173,7 @@ Fire + Robot = Terminator
 Human + Shoe = Foot
 Human + Mud = Golem
 Detroit + Engine = Car
+Plant + Engine = Car
 Detroit + Factory = Car
 Detroit + Wheel = Car
 Michigan + Car = Detroit
