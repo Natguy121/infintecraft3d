@@ -73,6 +73,7 @@ Fire + Steam = Engine
 Steam + Coal = Steam Engine
 Steam + Engine = Locomotive
 Dust + Turbine = Flour
+Dust + Windmill = Flour
 Ink + Monster = Kraken
 Fire + Smoke = Soot
 Wheat + Turbine = Flour
