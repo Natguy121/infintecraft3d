@@ -43,7 +43,7 @@ const UI = {
     bind('set-theme', 'theme', () => Themes.apply(Settings.theme));
     bind('set-quality', 'quality', () => this.status('Quality saved — reload the page to fully apply reflections and shadows.'));
     bind('set-sens', 'sens'); bind('set-vol', 'vol', () => Sound.applyVolumes()); bind('set-music', 'music', () => Sound.applyVolumes());
-    bind('set-invert', 'invert', null, 'checked'); bind('set-bob', 'bob', null, 'checked');
+    bind('set-invert', 'invert', null, 'checked'); bind('set-bob', 'bob', null, 'checked'); bind('set-manim', 'mergeAnim', null, 'checked');
     bind('set-fps', 'fps', () => $('fps-pill').classList.toggle('hidden', !Settings.fps), 'checked');
     bind('set-ai', 'ai', () => this.status(Settings.ai ? (Settings.key ? 'Creative AI on.' : 'Add your API key to enable the creative AI.') : 'Creative AI off — using the procedural generator.'), 'checked');
     bind('set-key', 'key'); bind('set-model', 'model');

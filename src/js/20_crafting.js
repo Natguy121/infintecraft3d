@@ -93,17 +93,23 @@ const Crafting = {
     const pa = a.root.position.clone(), pb = b.root.position.clone(), sa = a.root.scale.x, sb = b.root.scale.x;
     const key = pairKey(a.id, b.id);
     const pending = this.resolve(a.id, b.id);
-    Sound.tone(260, 0.16, { vol: 0.08, glide: 700 });
-    Tweens.add(0.17, (k) => {
-      const e = ease.inCubic(k);
-      a.root.position.lerpVectors(pa, mid, e); b.root.position.lerpVectors(pb, mid, e);
-      a.root.scale.setScalar(sa * (1 - e * 0.5)); b.root.scale.setScalar(sb * (1 - e * 0.5));
-      a.root.rotation.y += 0.25; b.root.rotation.y -= 0.25;
-    }, () => {
-      a.destroy(); b.destroy();
-      const done = (res) => this.finish(res, mid, { key, keepHeld, inputs: [a.info, b.info] });
-      if (pending.then) { const stop = this.thinking(mid); pending.then((r) => { stop(); done(r); }); } else done(pending);
-    });
+    const fin = (res, at, style) => this.finish(res, at, { key, keepHeld, inputs: [a.info, b.info], style });
+    if (pending.then || Settings.mergeAnim === false) {
+      Sound.tone(260, 0.16, { vol: 0.08, glide: 700 });
+      Tweens.add(0.17, (k) => {
+        const e = ease.inCubic(k);
+        a.root.position.lerpVectors(pa, mid, e); b.root.position.lerpVectors(pb, mid, e);
+        a.root.scale.setScalar(sa * (1 - e * 0.5)); b.root.scale.setScalar(sb * (1 - e * 0.5));
+        a.root.rotation.y += 0.25; b.root.rotation.y -= 0.25;
+      }, () => {
+        a.destroy(); b.destroy();
+        if (pending.then) { const stop = this.thinking(mid); pending.then((r) => { stop(); fin(r, mid); }); } else fin(pending, mid);
+      });
+      return;
+    }
+    // a little story for every combination (see 20a_mergefx)
+    const plan = MergeFX.pick(a.info, b.info, Universe.get(pending.id));
+    MergeFX.play(plan, a, b, mid, (at) => { a.destroy(); b.destroy(); fin(pending, at, plan.style); });
   },
 
   /** deterministic result, or a Promise when the optional LLM is consulted */
@@ -122,7 +128,7 @@ const Crafting = {
     return () => { alive = false; };
   },
 
-  finish(res, pos, { key, keepHeld, inputs, multiKey }) {
+  finish(res, pos, { key, keepHeld, inputs, multiKey, style }) {
     const id = res.id;
     const info = Universe.get(id);
     if (!info) return;
@@ -131,6 +137,7 @@ const Crafting = {
     if (big) pos = Fun.deliverBig(info, r0);
     const ent = spawnItem(id, pos, { popDur: 0.55, touched: true, vel: new THREE.Vector3(0, 1.4, 0) });
     this.fx(pos, info);
+    if (style && !big) MergeFX.reveal(style, ent);
     const isNew = Progress.discover(id);
     const recNew = Progress.addRecipe(id, multiKey || key);
     if (ent) UI.floatLabel(ent, info, isNew);
